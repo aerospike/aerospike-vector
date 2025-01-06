@@ -34,11 +34,14 @@ python3 -m pip install -r requirements.txt
 ## Start the application
 
 > [!IMPORTANT]
-> If you did not use an virtualenv when installing dependencies `waitress-serve` will
+> If you did not use a virtualenv when installing dependencies `waitress-serve` will
 > likely not be in your path. 
 
+> [!IMPORTANT]
+> If Aerospike Vector Search is not running on port 5555 change the command below to match your deployment.
+
 ```shell
- waitress-serve --host 127.0.0.1 --port 8080 --threads 32 quote_search:app
+AVS_PORT=5555 waitress-serve --host 127.0.0.1 --port 8080 --threads 32 quote_search:app
 ```
 
 ## Performing a quote search
@@ -77,7 +80,7 @@ FEATURE_KEY=/path/to/features.conf docker compose -f docker-compose-asdb-6.4.yml
 
 
 ## Developing
-This demo is build using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
+This demo is built using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
 and [Vue.js](https://vuejs.org/). In order to developer follow the steps to 
 setup your Python environment.
 

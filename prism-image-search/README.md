@@ -39,8 +39,11 @@ ln -s ~/Pictures static/images/data
 ## Start the application
 
 > [!IMPORTANT]
-> If you did not use an virtualenv when installing dependencies `waitress-serve` will
+> If you did not use a virtualenv when installing dependencies `waitress-serve` will
 > likely not be in your path. 
+
+> [!IMPORTANT]
+> If Aerospike Vector Search is not running on port 5555 change the command below to match your deployment.
 
 ```shell
 AVS_PORT=5555 waitress-serve --host 127.0.0.1 --port 8080 --threads 32 prism:app
