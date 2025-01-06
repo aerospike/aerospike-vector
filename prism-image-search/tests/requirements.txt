@@ -1,0 +1,4 @@
+pytest
+selenium
+requests
+aerospike-vector-search
