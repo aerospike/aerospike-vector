@@ -1,4 +1,4 @@
-name: Run Pytest Tests with Different Server Deployments
+name: Run Prism Tests
 
 on:
   push:
@@ -36,6 +36,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r prism/requirements.txt
           pip install -r tests/requirements.txt
+
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
       # Run the AVS server with Docker Compose
       - name: Start AVS Server
