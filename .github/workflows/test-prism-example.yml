@@ -78,7 +78,7 @@ jobs:
           AVS_PORT: 5555
         run: |
           nohup python -m waitress --host=127.0.0.1 --port=8080 --threads 32 prism:app &
-          sleep 5 # Wait for the server to be ready
+          sleep 20 # Wait for the server to be ready
 
       # Build and run Docker container
       - name: Build and Start Server with Docker
@@ -91,7 +91,7 @@ jobs:
             -e AVS_PORT=5000 \
             -e AVS_HOST=aerospike-vector-search \
             prism
-          sleep 5 # Wait for the server to be ready
+          sleep 20 # Wait for the server to be ready
 
       # Verify Chrome and ChromeDriver Installation
       - name: Verify Chrome and ChromeDriver
