@@ -3,6 +3,7 @@ import time
 
 import pytest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 ##########################################
 ###### GLOBALS
@@ -29,7 +30,17 @@ def app(request):
 
 @pytest.fixture(scope='function')
 def browser():
-    driver = webdriver.Chrome()
+
+    # Configure Chrome options
+    # We do this mostly so that we can run headless in github actions
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
+
+    driver = webdriver.Chrome(options=chrome_options)
     # Wait up to 30 seconds for elements to appear
     driver.implicitly_wait(30)
     yield driver
