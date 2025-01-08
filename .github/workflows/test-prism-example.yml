@@ -73,6 +73,9 @@ jobs:
       - name: Start Server with Waitress
         working-directory: ${{ env.WORKING_DIR }}/prism
         if: matrix.deployment == 'waitress'
+        env:
+          # By default, the docker compose in /docker maps the AVS_PORT from 5000 to 5555 on localhost
+          AVS_PORT: 5555
         run: |
           nohup python -m waitress --host=127.0.0.1 --port=8080 --threads 32 prism:app &
           sleep 5 # Wait for the server to be ready
