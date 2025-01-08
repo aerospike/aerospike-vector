@@ -96,7 +96,7 @@ jobs:
       # Run Pytest tests
       - name: Run Pytest
         run: |
-          pytest tests/ -s
+          python -m pytest tests/e2e -s
 
       # Cleanup Docker container (only for Docker deployment)
       - name: Cleanup Docker
