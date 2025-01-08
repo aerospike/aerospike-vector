@@ -48,7 +48,7 @@ jobs:
       - name: Start AVS Server
         working-directory: docker
         run: |
-          docker-compose -f docker-compose.yml up -d
+          docker-compose -f docker-compose.yaml up -d
 
       # Wait for the AVS Docker Container to be Healthy
       - name: Wait for Docker Container to Be Healthy
