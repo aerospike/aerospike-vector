@@ -95,6 +95,7 @@ jobs:
 
       # Run Pytest tests
       - name: Run Pytest
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           python -m pytest tests/e2e -s
 
