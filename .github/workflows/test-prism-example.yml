@@ -44,6 +44,15 @@ jobs:
           chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
+      # Write feature keys to config files for use by AVS and Aerospike
+      - name: Write feature keys
+        working-directory: docker
+        env:
+          FEATURES_CONF : ${{secrets.FEATURES_CONF}}
+
+        run: |
+          echo "$FEATURES_CONF" > config/features.conf
+
       # Run the AVS server with Docker Compose
       - name: Start AVS Server
         working-directory: docker
