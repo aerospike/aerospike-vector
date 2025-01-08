@@ -93,6 +93,19 @@ jobs:
             prism
           sleep 5 # Wait for the server to be ready
 
+      # Verify Chrome and ChromeDriver Installation
+      - name: Verify Chrome and ChromeDriver
+        run: |
+          google-chrome --version
+          chromedriver --version
+
+      - name: Setup chrome driver
+        env:
+          DISPLAY: :99
+        run: |
+          # Start a virtual display for headless Chrome
+          Xvfb :99 -screen 0 1920x1080x24 &
+
       # Run Pytest tests
       - name: Run Pytest
         working-directory: ${{ env.WORKING_DIR }}
