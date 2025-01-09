@@ -1,21 +1,12 @@
 import pytest
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+import requests
 
-def test_search(browser, app_url):
-    browser.get(app_url + "/search")
-    search_input = browser.find_element(By.ID, 'textInput')
-    search_input.send_keys('aerospike')
-    search_input.send_keys(Keys.RETURN)
+def test_search(app_url):
 
-    results_div = browser.find_element(By.ID, 'results')
-    assert results_div.is_displayed(), "Results div is not displayed"
+    response = requests.post(app_url + "/rest/v1/search", data={"text": "aerospike"})
+    assert response.status_code == 200, f"Expected status code 200, but got {response.status_code}"
 
-    # Find all elements within the search resultsgallery
-    gallery_items = results_div.find_elements(By.CSS_SELECTOR, ".responsive .gallery .search-result")
-
-    # Assert there are exactly 1 elements
-    # This assumes that the app was started without adding any additional images to the data file
-    # By default, there is 1 image in the data file
-    assert len(gallery_items) == 1, f"Expected 1 elements in the gallery, but found {len(gallery_items)}."
+    # by default there is 1 photo in the data dir so expect 1
+    results = response.json()["results"]
+    assert len(results) == 1, f"Expected 1 results, but got {len(results)}"
