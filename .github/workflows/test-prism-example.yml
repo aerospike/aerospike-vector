@@ -101,7 +101,3 @@ jobs:
         run: |
           docker stop prism
           docker rm prism
-
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
