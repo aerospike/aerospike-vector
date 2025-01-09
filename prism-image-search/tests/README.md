@@ -11,6 +11,8 @@ Create a virtual environment and install the requirements in requirements.txt.
 pip install -r requirements.txt
 ```
 
+The tests use selenium with the chrome web driver so make sure that is installed on your system.
+
 > [!IMPORTANT]
 > Run the example app with the IMAGE_DIR environment variable pointing to your test image data. The CI tests use ../container-volumes/prism/images/static/data as it contains one image already.
 
