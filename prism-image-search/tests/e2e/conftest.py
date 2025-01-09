@@ -44,8 +44,8 @@ def browser():
     chrome_options.add_argument(f"--user-agent={user_agent}")
 
     driver = webdriver.Chrome(options=chrome_options)
-    # Wait up to 50 seconds for elements to appear
-    driver.implicitly_wait(50)
+    # Wait up to 2 minutes for elements to appear
+    driver.implicitly_wait(120)
     yield driver
     driver.quit()
 
