@@ -104,12 +104,6 @@ jobs:
           sleep 60 # Wait for the server to be ready
           # TODO come up with a better/faster way to wait for the server to be ready
 
-      # Verify Chrome and ChromeDriver Installation
-      - name: Verify Chrome and ChromeDriver
-        run: |
-          google-chrome --version
-          chromedriver --version
-
       # Run Pytest tests
       - name: Run Pytest
         working-directory: ${{ env.WORKING_DIR }}

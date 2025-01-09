@@ -11,9 +11,8 @@ Create a virtual environment and install the requirements in requirements.txt.
 pip install -r requirements.txt
 ```
 
-The tests use selenium with the chrome web driver so make sure that is installed on your system.
-
-Run the quote search example app so that it listens on port 8080. If it is not running on port 8080, you will have to change the tests.
+Run the quote search example app so that it listens on port 8080.
+If it is not running on port 8080, you can run the tests with the --app-address option set to the correct address:port.
 
 Then run the tests with pytest.
 ```shell
