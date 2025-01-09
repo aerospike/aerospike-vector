@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    name: Run Tests with Waitress and Docker Deployments
+    name: Quote Search Tests
     runs-on: ubuntu-latest
 
     env:
@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        deployment: [waitress, docker]
+        deployment: [waitress, docker, docker-preview]
 
     steps:
       # Checkout the repository
@@ -93,7 +93,22 @@ jobs:
             -e AVS_HOST=aerospike-vector-search \
             -v ./container-volumes/quote-search/data:/container-volumes/quote-search/data \
             quote-search
-          sleep 30 # Wait for the server to be ready
+          sleep 60 # Wait for the server to be ready
+          # TODO come up with a better/faster way to wait for the server to be ready
+
+      # Build and run preview Docker container
+      # The preview container copies the dataset so no volume is needed
+      - name: Build and Start app with Docker
+        working-directory: .internal
+        if: matrix.deployment == 'docker-preview'
+        run: |
+          docker build -t quote-search . -f Dockerfile-quote-search-preview
+          docker run -d -p 8080:8080 --name quote-search \
+            --network svc \
+            -e AVS_PORT=5000 \
+            -e AVS_HOST=aerospike-vector-search \
+            quote-search
+          sleep 60 # Wait for the server to be ready
           # TODO come up with a better/faster way to wait for the server to be ready
 
       # Verify Chrome and ChromeDriver Installation
@@ -117,7 +132,7 @@ jobs:
 
       # Cleanup Docker container (only for Docker deployment)
       - name: Cleanup Docker
-        if: matrix.deployment == 'docker'
+        if: matrix.deployment == 'docker' || matrix.deployment == 'docker-preview'
         run: |
           docker stop quote-search
           docker rm quote-search

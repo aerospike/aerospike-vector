@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    name: Run Tests with Waitress and Docker Deployments
+    name: Prism Tests
     runs-on: ubuntu-latest
 
     env:
@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        deployment: [waitress, docker] # Define deployment strategies
+        deployment: [waitress, docker]
 
     steps:
       # Checkout the repository
