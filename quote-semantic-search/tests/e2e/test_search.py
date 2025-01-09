@@ -3,8 +3,8 @@ import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-def test_search(browser):
-    browser.get('http://localhost:8080/search')
+def test_search(browser, app_url):
+    browser.get(app_url + "/search")
     search_input = browser.find_element(By.ID, 'textInput')
     search_input.send_keys('dog')
     search_input.send_keys(Keys.RETURN)
