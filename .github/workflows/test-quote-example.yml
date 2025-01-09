@@ -101,7 +101,7 @@ jobs:
       - name: Build and Start app with preview Docker image
         if: matrix.deployment == 'docker-preview'
         run: |
-          docker build -t quote-search . -f internal/Dockerfile-quote-search-preview
+          docker build -t quote-search . -f .internal/Dockerfile-quote-search-preview
           docker run -d -p 8080:8080 --name quote-search \
             --network svc \
             -e AVS_PORT=5000 \
