@@ -72,7 +72,7 @@ jobs:
           AVS_PORT: 5555
         run: |
           nohup python -m waitress --host=127.0.0.1 --port=8080 --threads 32 quote_search:app &
-          sleep 30 # Wait for the server to be ready
+          sleep 60 # Wait for the server to be ready
           # TODO come up with a better/faster way to wait for the server to be ready
 
       # Build and run Docker container
