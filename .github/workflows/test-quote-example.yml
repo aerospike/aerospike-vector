@@ -98,11 +98,10 @@ jobs:
 
       # Build and run preview Docker container
       # The preview container copies the dataset so no volume is needed
-      - name: Build and Start app with Docker
-        working-directory: .internal
+      - name: Build and Start app with preview Docker image
         if: matrix.deployment == 'docker-preview'
         run: |
-          docker build -t quote-search . -f Dockerfile-quote-search-preview
+          docker build -t quote-search . -f internal/Dockerfile-quote-search-preview
           docker run -d -p 8080:8080 --name quote-search \
             --network svc \
             -e AVS_PORT=5000 \
