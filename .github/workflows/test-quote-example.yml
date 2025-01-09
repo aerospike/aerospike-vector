@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        deployment: [waitress, docker] # Define deployment strategies
+        deployment: [waitress, docker]
 
     steps:
       # Checkout the repository
