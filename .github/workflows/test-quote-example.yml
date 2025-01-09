@@ -38,13 +38,6 @@ jobs:
           pip install -r quote-search/requirements.txt
           pip install -r tests/requirements.txt
 
-      # Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
-
       # Write feature keys to config files for use by AVS and Aerospike
       - name: Write feature keys
         working-directory: docker
@@ -58,7 +51,7 @@ jobs:
       - name: Start AVS Server
         working-directory: docker
         run: |
-          docker-compose -f docker-compose.yaml up -d
+          docker compose -f docker-compose.yaml up -d
 
       # Wait for the AVS Docker Container to be Healthy
       - name: Wait for Docker Container to Be Healthy
