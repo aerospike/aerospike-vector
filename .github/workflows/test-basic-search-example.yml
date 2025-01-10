@@ -58,7 +58,7 @@ jobs:
           done
           echo "Container $CONTAINER_NAME is healthy, continuing..."
 
-      - name: Start Server with Waitress
+      - name: Run the Basic Search
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           python search.py --port 5555
