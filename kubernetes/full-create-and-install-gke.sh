@@ -363,12 +363,13 @@ create_gke_cluster() {
     echo "Labeling AVS nodes..."
     kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name | \
         xargs -I {} kubectl label {} aerospike.com/node-pool=avs --overwrite
-    
-        kubectl create namespace aerospike || true
-        kubectl create namespace avs || true
-    
+
 }
 
+create_namespaces() {
+    kubectl create namespace aerospike || true
+    kubectl create namespace avs || true
+}
 
 setup_aerospike() {
     echo "Setting up namespaces..."
@@ -461,39 +462,41 @@ get_reverse_dns() {
     echo "Reverse DNS: $REVERSE_DNS_AVS"
 }
 
-deploy_avs_helm_chart() {
-    echo "Deploying AVS Helm chart..."
-    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
-    helm repo update
+label_avs_nodes() {
 
-    # Installs AVS query nodes
-    if [ -n "$NODE_TYPES" ]; then
-         if (( NUM_QUERY_NODES > 0 )); then
-            helm install avs-app aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_QUERY_NODES" \
-            --set aerospikeVectorSearchConfig.cluster.node-roles[0]=query \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
-        fi
-        if (( NUM_INDEX_NODES > 0 )); then
-            helm install avs-app-update aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_INDEX_NODES" \
-            --set aerospikeVectorSearchConfig.cluster.node-roles[0]=index-update \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
-        fi
-    else 
-        helm install avs-app aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_AVS_NODES" \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
+  local role_label_key="aerospike.io/role-label"
+  local role_labels=("" "node-label-1" "node-label-2")
+
+  nodes="$(kubectl get nodes -l aerospike.com/node-pool=avs -o name)"
+
+  counter=0
+
+  num_labels="${#role_labels[@]}"
+
+  for node in $nodes; do
+    label="${role_labels[$((counter % num_labels))]}"
+
+    if [ -z "$label" ]; then
+      kubectl label "$node" "$role_label_key"- || true
+    else
+      kubectl label "$node" "$role_label_key"="$label"
     fi
+
+    counter="$((counter + 1))"
+  done
+
+}
+
+deploy_avs_helm_chart() {
+#    echo "Deploying AVS Helm chart..."
+#    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
+#    helm repo update
+
+
+    helm install avs-app "$CHART_LOCATION" \
+    --values $BUILD_DIR/manifests/avs-values.yaml \
+    --namespace avs \
+    --atomic --wait
 }
 
 # Function to setup monitoring
@@ -532,6 +535,7 @@ main() {
     print_env
     reset_build
     create_gke_cluster
+    create_namespaces
     deploy_istio
     get_reverse_dns
     if [[ "${RUN_INSECURE}" != 1 ]]; then
@@ -539,6 +543,7 @@ main() {
     fi
     setup_aerospike
     setup_avs
+    label_avs_nodes
     deploy_avs_helm_chart
     setup_monitoring
     print_final_instructions

@@ -40,6 +40,16 @@ aerospikeVectorSearchConfig:
       root: info
     ticker-interval: 10
 
+aerospikeVectorSearchNodeRoles:
+  node-label-1:
+    - query
+  node-label-2:
+    - query
+    - index-update
+
+serviceAccount:
+  create: true
+
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
