@@ -7,6 +7,7 @@ from dataset_stats import dataset_counts
 from data_encoder import encoder
 from quote_search import app
 from avs_client import avs_client
+from indexer import index_created
 from aerospike_vector_search import types
 
 logger = logging.getLogger(__name__)
@@ -73,13 +74,13 @@ def search_internal():
 
 def vector_search(embedding, count=Config.AVS_MAX_RESULTS):
     # Execute kNN search over the dataset
-    field_names = ["quote_id", "quote", "author"]
+    fields = ["quote_id", "quote", "author"]
     r = avs_client.vector_search(
         namespace=Config.AVS_NAMESPACE,
         index_name=Config.AVS_INDEX_NAME,
         query=embedding,
         limit=count,
-        field_names=field_names,
+        include_fields=fields,
     )
     return r
 
