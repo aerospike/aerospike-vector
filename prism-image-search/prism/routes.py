@@ -54,7 +54,7 @@ def search_internal():
         namespace=Config.AVS_NAMESPACE,
         set_name=Config.AVS_SET,
         key=image_id,
-        field_names=["image_embedding"],
+        include_fields=["image_embedding"],
     )
     embedding = record.fields["image_embedding"]
 
@@ -70,13 +70,13 @@ def search_internal():
 
 def vector_search(embedding, count=Config.AVS_MAX_RESULTS):
     # Execute kNN search over the image dataset
-    field_names = ["image_id", "image_name", "relative_path"]
+    fields = ["image_id", "image_name", "relative_path"]
     return avs_client.vector_search(
         namespace=Config.AVS_NAMESPACE,
         index_name=Config.AVS_INDEX_NAME,
         query=embedding,
         limit=count,
-        field_names=field_names,
+        include_fields=fields,
     )
 
 

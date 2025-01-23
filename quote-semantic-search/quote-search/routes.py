@@ -59,7 +59,7 @@ def search_internal():
         namespace=Config.AVS_NAMESPACE,
         set_name=Config.AVS_SET,
         key=int(quote_id),
-        field_names=["quote_embedding"],
+        include_fields=["quote_embedding"],
     )
     embedding = record.fields["quote_embedding"]
     # Search on more and filter the query id.
