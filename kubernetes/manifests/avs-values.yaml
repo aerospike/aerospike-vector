@@ -41,11 +41,11 @@ aerospikeVectorSearchConfig:
     ticker-interval: 10
 
 aerospikeVectorSearchNodeRoles:
-  node-label-1:
+  node-label-0:
     - query
   node-label-2:
-    - query
     - index-update
+
 
 serviceAccount:
   create: true
