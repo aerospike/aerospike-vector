@@ -12,7 +12,7 @@ import tarfile
 
 from config import Config
 from data_encoder import MODEL_DIM
-from avs_client import avs_admin_client, avs_client
+from avs_client import avs_client
 from aerospike_vector_search import types
 
 logger = logging.getLogger(__name__)
@@ -41,14 +41,14 @@ def create_index():
     global index_created
 
     try:
-        for index in avs_admin_client.index_list():
+        for index in avs_client.index_list():
             if (
                 index["id"]["namespace"] == Config.AVS_NAMESPACE
                 and index["id"]["name"] == Config.AVS_INDEX_NAME
             ):
                 return
 
-        avs_admin_client.index_create(
+        avs_client.index_create(
             namespace=Config.AVS_NAMESPACE,
             name=Config.AVS_INDEX_NAME,
             sets=Config.AVS_SET,

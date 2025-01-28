@@ -1,10 +1,25 @@
 import argparse
 
-from aerospike_vector_search import types
-from aerospike_vector_search import AdminClient, Client
+from aerospike_vector_search import Client, Index, types, AVSServerError
 
 listener_name = None
 index_name = "basic_index"
+
+# Wait for the index to finish indexing records
+def wait_for_indexing(index: Index):
+    import time
+
+    verticies = 0
+    unmerged_recs = 0
+    
+    # Wait for the index to have verticies and no unmerged records
+    while verticies == 0 or unmerged_recs > 0:
+        status = index.status()
+
+        verticies = status.index_healer_vertices_valid
+        unmerged_recs = status.unmerged_record_count
+
+        time.sleep(0.5)
 
 arg_parser = argparse.ArgumentParser(description="Aerospike Vector Search Example")
 arg_parser.add_argument(
@@ -62,14 +77,14 @@ arg_parser.add_argument(
 args = arg_parser.parse_args()
 
 try:
-    with AdminClient(
+    with Client(
         seeds=types.HostPort(host=args.host, port=args.port),
         listener_name=listener_name,
         is_loadbalancer=args.load_balancer,
-    ) as adminClient:
+    ) as client:
         try:
             print("creating index")
-            adminClient.index_create(
+            client.index_create(
                 namespace=args.namespace,
                 name=index_name,
                 vector_field="vector",
@@ -77,47 +92,47 @@ try:
                 sets=args.set,
                 index_storage=types.IndexStorage(namespace=args.index_namespace, set_name=args.index_set),
             )
-        except Exception as e:
-            print("failed creating index " + str(e))
+        except AVSServerError as e:
+            print(f"failed creating index {e}, it may already exist, continuing...")
             pass
+
+        index = client.index(
+            namespace=args.namespace,
+            name=index_name,
+        )
+
+        print("inserting vectors")
+        for i in range(10):
+            key = "r" + str(i)
+            if not index.is_indexed(
+                set_name=args.set, key=key
+            ):
+                # client is responsible for data operations
+                # not the index object
+                client.upsert(
+                    namespace=args.namespace,
+                    set_name=args.set,
+                    key=key,
+                    record_data={
+                        "url": f"http://host.com/data{i}",
+                        "vector": [i * 1.0, i * 1.0],
+                        "map": {"a": "A", "inlist": [1, 2, 3]},
+                        "list": ["a", 1, "c", {"a": "A"}],
+                    },
+                )
+
+        print("waiting for indexing to complete")
+        wait_for_indexing(index)
+
+        print("querying")
+        for i in range(10):
+            print("   query " + str(i))
+            results = index.vector_search(
+                query=[i * 1.0, i * 1.0],
+                limit=10,
+            )
+            for result in results:
+                print(str(result.key.key) + " -> " + str(result.fields))
 except Exception as e:
     raise Exception(f"you are trying to connect to AVS on port {args.port}, "
           "on MacOS airplay uses port 5000 by default, make sure there is not a conflict") from e
-
-with Client(
-    seeds=types.HostPort(host=args.host, port=args.port),
-    listener_name=listener_name,
-    is_loadbalancer=args.load_balancer,
-) as client:
-    print("inserting vectors")
-    for i in range(10):
-        key = "r" + str(i)
-        if not client.is_indexed(
-            namespace=args.namespace, set_name=args.set, key=key, index_name=index_name
-        ):
-            client.upsert(
-                namespace=args.namespace,
-                set_name=args.set,
-                key=key,
-                record_data={
-                    "url": f"http://host.com/data{i}",
-                    "vector": [i * 1.0, i * 1.0],
-                    "map": {"a": "A", "inlist": [1, 2, 3]},
-                    "list": ["a", 1, "c", {"a": "A"}],
-                },
-            )
-
-    print("waiting for indexing to complete")
-    client.wait_for_index_completion(namespace=args.namespace, name=index_name)
-
-    print("querying")
-    for i in range(10):
-        print("   query " + str(i))
-        results = client.vector_search(
-            namespace=args.namespace,
-            index_name=index_name,
-            query=[i * 1.0, i * 1.0],
-            limit=10,
-        )
-        for result in results:
-            print(str(result.key.key) + " -> " + str(result.fields))
