@@ -22,7 +22,8 @@ DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=0
 DEFAULT_NUM_INDEX_NODES=0
 DEFAULT_NUM_AEROSPIKE_NODES=3
-
+JFROG_DOCKER_REPO="artifact.aerospike.io/container"
+JFROG_HELM_REPO="https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm"
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
@@ -520,7 +521,7 @@ get_reverse_dns() {
 
 label_avs_nodes() {
 
-  local role_label_key="aerospike.io/role-label"
+  local role_label_key="aerospike.com/role-label"
   local role_labels=("" "node-label-1" "node-label-2")
 
   nodes="$(kubectl get nodes -l aerospike.com/node-pool=avs -o name)"
@@ -548,30 +549,29 @@ deploy_avs_helm_chart() {
 
   if [[ -n "$JFROG_USER" && -n "$JFROG_TOKEN" ]]; then
     kubectl create secret docker-registry jfrog-secret \
-      --docker-server=<ARTIFACTORY_REGISTRY_URL> \
+      --docker-server=aerospike.jfrog.io \
       --docker-username="$JFROG_USER" \
       --docker-password="$JFROG_TOKEN" \
-      --docker-email="unused@example.com" \
+      --docker-email="$JFROG_USER" \
       --dry-run=client -o yaml | kubectl apply -f -
+    helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
   fi
-  helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
+  
+  helm repo add aerospike-helm "$JFROG_HELM_REPO"
 
-helm repo add my-helm-repo \
-  https://<artifactory-domain>/artifactory/helm/<repo-name> \
-  --username "$JFROG_USER" \
-  --password "$JFROG_TOKEN"
+  helm repo update
 
-helm repo update
-
-helm install avs my-helm-repo/aerospike-vector-search \
-  --namespace my-namespace \
-  --set imagePullSecrets[0].name=jfrog-secret
+  helm install avs-app aerospike-helm/aerospike-vector-search\
+    --namespace avs --version "$CHART_VERSION" --set imagePullSecrets[0].name=jfrog-secret \
+    --set initContainer.image.repository="$JFROG_DOCKER_REPO" \
+    --set initcontainer.image.tag=0.0.0 --values "$BUILD_DIR/manifests/avs-values.yaml"\
+    --atomic --wait --debug --create-namespace "$helm_set_args" 
 
 #    echo "Deploying AVS Helm chart..."
 #    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
 #    helm repo update
 
-helm install avs-app  /home/joem/src/helm-aerospike-vector-search/charts/aerospike-vector-search/ --set replicaCount=3  --values /home/joem/src/aerospike-vector/kubernetes/generated/manifests/avs-values.yaml --namespace avs --atomic --wait --debug --create-namespace  --set initContainer.image.repository=artifact.aerospike.io/container/avs-init-container --set initContainer.image.tag=0.0.0
+# helm install avs-app  /home/joem/src/helm-aerospike-vector-search/charts/aerospike-vector-search/ --set replicaCount=3  --values /home/joem/src/aerospike-vector/kubernetes/generated/manifests/avs-values.yaml --namespace avs --atomic --wait --debug --create-namespace  --set initContainer.image.repository=artifact.aerospike.io/container/avs-init-container --set initContainer.image.tag=0.0.0
     # helm install avs-app "$CHART_LOCATION" \
     # --values $BUILD_DIR/manifests/avs-values.yaml \
     # --namespace avs \
