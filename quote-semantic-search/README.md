@@ -77,9 +77,9 @@ FEATURE_KEY=/path/to/features.conf docker compose -f docker-compose-asdb-6.4.yml
 
 
 ## Developing
-This demo is build using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
-and [Vue.js](https://vuejs.org/). In order to developer follow the steps to 
-setup your Python environment.
+This demo is built using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
+and [Vue.js](https://vuejs.org/). In order to develop, follow the steps to 
+set up your Python environment.
 
 ### Setup Python Virtual Environment
 

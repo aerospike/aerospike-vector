@@ -53,9 +53,9 @@ description.
 
 
 ## Install using docker compose
-If you have a license key, you can easily setup Aerospike, AVS, and the prism-image-search
+If you have a license key, you can easily set up Aerospike, AVS, and the prism-image-search
 app using docker-compose. When using docker-compose, you'll need to place your images in `container-volumes/prism/images/static/data`. 
-You can not use a sym link. This command will copy jpgs from your `~/Pictures` directory. 
+You can not use a symlink. This command will copy jpgs from your `~/Pictures` directory. 
 
 ```shell
 rsync -av --include='*/' --include='*.jp*' --exclude='*' ~/Pictures ./aerospike-vector-search-examples/prism-image-search/container-volumes/prism/images/static/data
