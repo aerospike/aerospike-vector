@@ -10,7 +10,7 @@ Aerospike Vector Search (AVS) performs Approximate Nearest Neighbor(ANN) search 
 ## Prerequisites
 You don't have to know Aerospike to get started, but you do need the following:
 
-1. A Python 3.10 - 3.11 environment and familiarity with the Python programming language (see [Setup Python Virtual Environment](../prism-image-search/README.md#setup-python-virtual-environment)).
+1. A Python 3.10 - 3.11 environment and familiarity with the Python programming language (see [Setup Python Virtual Environment](../prism-image-search/README.md#set-up-python-virtual-environment)).
 2. An Aerospike Vector Search host (preview or local) running AVS 0.11.1 or newer.
 
 ## Configure AVS host
@@ -34,7 +34,7 @@ python3 -m pip install -r requirements.txt
 ## Start the application
 
 > [!IMPORTANT]
-> If you did not use an virtualenv when installing dependencies `waitress-serve` will
+> If you did not use a virtualenv when installing dependencies `waitress-serve` will
 > likely not be in your path. 
 
 ```shell
@@ -77,9 +77,9 @@ FEATURE_KEY=/path/to/features.conf docker compose -f docker-compose-asdb-6.4.yml
 
 
 ## Developing
-This demo is build using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
-and [Vue.js](https://vuejs.org/). In order to developer follow the steps to 
-setup your Python environment.
+This demo is built using [Python Flask](https://flask.palletsprojects.com/en/2.3.x/)
+and [Vue.js](https://vuejs.org/). In order to develop, follow the steps to 
+set up your Python environment.
 
 ### Setup Python Virtual Environment
 
@@ -105,31 +105,31 @@ If not set defaults are used.
 
 [!NOTE]
 It is best practice to store AVS index and record data in separate namespaces.
-By default this application stores its AVS index in the "avs-index" namespace, and AVS records in "avs-data".
+By default, this application stores its AVS index in the "avs-index" namespace, and AVS records in "avs-data".
 If your Aerospike database configuration does not define these namespaces you will see an error.
 You may change the AVS_NAMESPACE and AVS_INDEX_NAMESPACE to other values, like the default Aerospike "test" namespace, to use other namespaces.
 
 [!NOTE]
-Using a load balancer with AVS is best practice. Therefore AVS_IS_LOADBAlANCER defaults to True.
+Using a load balancer with AVS is best practice. Therefore, AVS_IS_LOADBALANCER defaults to True.
 This works fine for AVS clusters with a load balancer or clusters with only 1 node. If you are using
-the examples with an AVS cluster larger than 1 node without load balancing you should set AVS_IS_LOADBAlANCER to False.
+the examples with an AVS cluster larger than 1 node without load balancing you should set AVS_IS_LOADBALANCER to False.
 
-| Environment Variable        | Default            | Description                                                     |
-|-----------------------------|--------------------|-----------------------------------------------------------------|
-| APP_USERNAME          |                    | If set, the username for basic authentication                   |
-| APP_PASSWORD          |                    | If set, the password for basic authentication                   |
-| APP_NUM_QUOTES                  | 5000               | The number of quotes to index. If time and space allows the max is 100000. **Hint:** To keep the app from re-indexing quotes on subsequent runs set to 0               |
-| APP_INDEXER_PARALLELISM                  | 1               | To speed up indexing of quotes set this equal to or less than the number of CPU cores               |
-| AVS_HOST               | localhost          | AVS server seed host                                       |
-| AVS_PORT               | 5000               | AVS server seed host port                                  |
-| AVS_ADVERTISED_LISTENER|                    | An optional advertised listener to use if configured on the AVS server                              |
-| AVS_NAMESPACE     | avs-data               | The Aerospike namespace for storing the quote records           |
-| AVS_SET           | quote-data         | The Aerospike set for storing the quote records                 |
-| AVS_INDEX_NAMESPACE     | avs-index               | The Aerospike namespace for storing the HNSW index              |
-| AVS_INDEX_SET           | quote-index        | The Aerospike set for storing the HNSW index                    |
-| AVS_INDEX_NAME         | quote-search       | The name of the  index                                          |
-| AVS_MAX_RESULTS        | 20                 | Maximum number of vector search results to return               |
-| AVS_IS_LOADBALANCER    | True                 |                 If true, the first seed address will be treated as a load balancer node.```
+| Environment Variable    | Default      | Description                                                                                                                                              |
+|-------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| APP_USERNAME            |              | If set, the username for basic authentication                                                                                                            |
+| APP_PASSWORD            |              | If set, the password for basic authentication                                                                                                            |
+| APP_NUM_QUOTES          | 5000         | The number of quotes to index. If time and space allows the max is 100000. **Hint:** To keep the app from re-indexing quotes on subsequent runs set to 0 |
+| APP_INDEXER_PARALLELISM | 1            | To speed up indexing of quotes set this equal to or less than the number of CPU cores                                                                    |
+| AVS_HOST                | localhost    | AVS server seed host                                                                                                                                     |
+| AVS_PORT                | 5000         | AVS server seed host port                                                                                                                                |
+| AVS_ADVERTISED_LISTENER |              | An optional advertised listener to use if configured on the AVS server                                                                                   |
+| AVS_NAMESPACE           | avs-data     | The Aerospike namespace for storing the quote records                                                                                                    |
+| AVS_SET                 | quote-data   | The Aerospike set for storing the quote records                                                                                                          |
+| AVS_INDEX_NAMESPACE     | avs-index    | The Aerospike namespace for storing the HNSW index                                                                                                       |
+| AVS_INDEX_SET           | quote-index  | The Aerospike set for storing the HNSW index                                                                                                             |
+| AVS_INDEX_NAME          | quote-search | The name of the  index                                                                                                                                   |
+| AVS_MAX_RESULTS         | 20           | Maximum number of vector search results to return                                                                                                        |
+| AVS_IS_LOADBALANCER     | True         | If true, the first seed address will be treated as a load balancer node                                                                                  |
 
 ### Setup networking (optional)
 
