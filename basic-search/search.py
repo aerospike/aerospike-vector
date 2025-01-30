@@ -9,14 +9,14 @@ index_name = "basic_index"
 def wait_for_indexing(index: Index):
     import time
 
-    verticies = 0
+    vertices = 0
     unmerged_recs = 0
     
-    # Wait for the index to have verticies and no unmerged records
-    while verticies == 0 or unmerged_recs > 0:
+    # Wait for the index to have vertices and no unmerged records
+    while vertices == 0 or unmerged_recs > 0:
         status = index.status()
 
-        verticies = status.index_healer_vertices_valid
+        vertices = status.index_healer_vertices_valid
         unmerged_recs = status.unmerged_record_count
 
         time.sleep(0.5)
