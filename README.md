@@ -17,6 +17,6 @@ For more information about AVS, see our [install documentation](https://aerospik
 This repo contains example apps for developing with AVS. Try these apps to gain a basic understanding before you
 start developing your own AVS apps.
 
-* [Basic Search](./basic-search/README.md) - A simple application used to showcase the Python client.
-* [Quote Search](./quote-semantic-search/) - An application for semantic text search that includes a small dataset of quotes. 
-* [Prism Image Search](./prism-image-search/) - An image search demo that can be used to search JPEG images (no sample dataset included).
+* [Basic Search](./basic-search) - A simple application used to showcase the Python client.
+* [Quote Search](./quote-semantic-search) - An application for semantic text search that includes a small dataset of quotes.
+* [Prism Image Search](./prism-image-search) - An image search demo that can be used to search JPEG images (no sample dataset included).
