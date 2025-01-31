@@ -1,0 +1,64 @@
+name: Run Basic Search Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Basic Search Tests
+    runs-on: ubuntu-latest
+
+    env:
+      WORKING_DIR: basic-search
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # Install Python dependencies
+      - name: Install Dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Write feature keys to config files for use by AVS and Aerospike
+      - name: Write feature keys
+        working-directory: docker
+        env:
+          FEATURES_CONF : ${{secrets.FEATURES_CONF}}
+
+        run: |
+          echo "$FEATURES_CONF" > config/features.conf
+
+      # Run the AVS server with Docker Compose
+      - name: Start AVS Server
+        working-directory: docker
+        run: |
+          docker compose -f docker-compose.yaml up -d
+
+      # Wait for the AVS Docker Container to be Healthy
+      - name: Wait for Docker Container to Be Healthy
+        run: |
+          CONTAINER_NAME="aerospike-vector-search"
+          while [ "$(docker inspect -f '{{.State.Health.Status}}' $CONTAINER_NAME)" != "healthy" ]; do
+            echo "Waiting for container $CONTAINER_NAME to be healthy..."
+            sleep 1
+          done
+          echo "Container $CONTAINER_NAME is healthy, continuing..."
+
+      - name: Run the Basic Search
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          python search.py --port 5555

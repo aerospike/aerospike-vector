@@ -37,8 +37,11 @@ python3 -m pip install -r requirements.txt
 > If you did not use a virtualenv when installing dependencies `waitress-serve` will
 > likely not be in your path. 
 
+> [!IMPORTANT]
+> If Aerospike Vector Search is not running on port 5555 change the command below to match your deployment.
+
 ```shell
- waitress-serve --host 127.0.0.1 --port 8080 --threads 32 quote_search:app
+AVS_PORT=5555 waitress-serve --host 127.0.0.1 --port 8080 --threads 32 quote_search:app
 ```
 
 ## Performing a quote search
