@@ -40,6 +40,18 @@ aerospikeVectorSearchConfig:
       root: info
     ticker-interval: 10
 
+aerospikeVectorSearchNodeRoles:
+  node-label-0:
+    - query
+  node-label-1:
+    - query
+  node-label-2:
+    - index-update
+
+
+serviceAccount:
+  create: true
+
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
@@ -63,7 +75,7 @@ affinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.com/node-pool
+          - key: aerospike.io/node-pool
             operator: In
             values:
             - "avs"

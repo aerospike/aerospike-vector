@@ -4,6 +4,7 @@
 # It handles the creation of the GKE cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
 # deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
 
+#!/usr/bin/env bash
 set -eo pipefail
 if [ -n "$DEBUG" ]; then set -x; fi
 trap 'echo "Error: $? at line $LINENO" >&2' ERR
@@ -21,40 +22,95 @@ DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=0
 DEFAULT_NUM_INDEX_NODES=0
 DEFAULT_NUM_AEROSPIKE_NODES=3
-
-# Function to display the script usage
+JFROG_DOCKER_REPO="artifact.aerospike.io/container"
+JFROG_HELM_REPO="https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm"
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
-    echo "  --chart-location, -l <path>  If specified expects a local directory for AVS Helm chart (default: official repo)"
-    echo "  --cluster-name, -c <name>    Override the default cluster name (default: ${USERNAME}-${PROJECT_ID}-${DEFAULT_CLUSTER_NAME_SUFFIX})"
-    echo "  --machine-type, -m <type>    Specify the machine type (default: ${DEFAULT_MACHINE_TYPE})"
-    echo "  --num-avs-nodes, -a <num>     Specify the number of AVS nodes (default: ${DEFAULT_NUM_AVS_NODES})"
-    echo "  --num-query-nodes, -q <num>  Specify the number of AVS query nodes (default: ${DEFAULT_NUM_QUERY_NODES})"
-    echo "  --num-index-nodes, -i <num>  Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
-    echo "  --num-aerospike-nodes, -s <num>  Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
-    echo "  --run-insecure, -I           Run setup cluster without auth or tls. No argument required."
-    echo "  --help, -h                   Show this help message"
+    echo "  --chart-location, -l <path>           If specified, uses a local directory for AVS Helm chart (default: official repo)"
+    echo "  --cluster-name, -c <name>             Override the default cluster name"
+    echo "  --jfrog-user, -u <name>               JFrog username for pulling unpublished images"
+    echo "  --jfrog-token, -t <token>             JFrog token for pulling unpublished images"
+    echo "  --jfrog-helm-repo, -H <repo_url>      JFrog Helm repository URL (e.g. https://.../helm/<repo>)"
+    echo "  --jfrog-docker-repo, -D <registry>    JFrog Docker registry prefix (e.g. artifact.aerospike.io/container)"
+    echo "  --chart-version, -v <ver>             Helm chart version (default: ${CHART_VERSION})"
+    echo "  --machine-type, -m <type>             Specify the machine type (default: ${DEFAULT_MACHINE_TYPE})"
+    echo "  --num-avs-nodes, -a <num>             Specify the number of AVS nodes (default: ${DEFAULT_NUM_AVS_NODES})"
+    echo "  --num-query-nodes, -q <num>           Specify the number of AVS query nodes (default: ${DEFAULT_NUM_QUERY_NODES})"
+    echo "  --num-index-nodes, -i <num>           Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
+    echo "  --num-aerospike-nodes, -s <num>       Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
+    echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)."
+    echo "  --help, -h                            Show this help message"
     exit 1
 }
 
-# Parse command line arguments
-while [[ "$#" -gt 0 ]];
-do
+
+while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --chart-location|-l) CHART_LOCATION="$2"; shift 2 ;;
-        --cluster-name|-c) CLUSTER_NAME_OVERRIDE="$2"; shift 2 ;;
-        --machine-type|-m) MACHINE_TYPE="$2"; shift 2 ;;
-        --num-avs-nodes|-a) NUM_AVS_NODES="$2"; shift 2 ;;
-        --num-query-nodes|-q) NUM_QUERY_NODES="$2"; NODE_TYPES=1; shift 2 ;;
-        --num-index-nodes|-i) NUM_INDEX_NODES="$2"; NODE_TYPES=1; shift 2 ;;
-        --num-aerospike-nodes|-s) NUM_AEROSPIKE_NODES="$2"; shift 2 ;;
-        --run-insecure|-I) RUN_INSECURE=1; shift ;;
-        --help|-h) usage ;;
-        *) echo "Unknown parameter passed: $1";
-           usage ;;
+        --chart-location|-l)
+            CHART_LOCATION="$2"
+            shift 2
+            ;;
+        --cluster-name|-c)
+            CLUSTER_NAME_OVERRIDE="$2"
+            shift 2
+            ;;
+        --jfrog-user|-u)
+            JFROG_USER="$2"
+            shift 2
+            ;;
+        --jfrog-token|-t)
+            JFROG_TOKEN="$2"
+            shift 2
+            ;;
+        --jfrog-helm-repo|-H)
+            JFROG_HELM_REPO="$2"
+            shift 2
+            ;;
+        --jfrog-docker-repo|-D)
+            JFROG_DOCKER_REPO="$2"
+            shift 2
+            ;;
+        --chart-version|-v)
+            CHART_VERSION="$2"
+            shift 2
+            ;;
+        --machine-type|-m)
+            MACHINE_TYPE="$2"
+            shift 2
+            ;;
+        --num-avs-nodes|-a)
+            NUM_AVS_NODES="$2"
+            shift 2
+            ;;
+        --num-query-nodes|-q)
+            NUM_QUERY_NODES="$2"
+            NODE_TYPES=1
+            shift 2
+            ;;
+        --num-index-nodes|-i)
+            NUM_INDEX_NODES="$2"
+            NODE_TYPES=1
+            shift 2
+            ;;
+        --num-aerospike-nodes|-s)
+            NUM_AEROSPIKE_NODES="$2"
+            shift 2
+            ;;
+        --run-insecure|-I)
+            RUN_INSECURE=1
+            shift
+            ;;
+        --help|-h)
+            usage
+            ;;
+        *)
+            echo "Unknown parameter passed: $1"
+            usage
+            ;;
     esac
 done
+
 
 if [ -n "$NODE_TYPES" ]
 then
@@ -76,15 +132,16 @@ print_env() {
     echo "export CLUSTER_NAME=$CLUSTER_NAME"
     echo "export NODE_POOL_NAME_AEROSPIKE=$NODE_POOL_NAME_AEROSPIKE"
     echo "export NODE_POOL_NAME_AVS=$NODE_POOL_NAME_AVS"
-    echo "export ZONE=$ZONE"
-    echo "export FEATURES_CONF=$FEATURES_CONF"
-    echo "export CHART_LOCATION=$CHART_LOCATION"
-    echo "export RUN_INSECURE=$RUN_INSECURE"
-    echo "export MACHINE_TYPE=$MACHINE_TYPE"
-    echo "export NUM_AVS_NODES=$NUM_AVS_NODES"
-    echo "export NUM_QUERY_NODES=$NUM_QUERY_NODES"
-    echo "export NUM_INDEX_NODES=$NUM_INDEX_NODES"
-    echo "export NUM_AEROSPIKE_NODES=$NUM_AEROSPIKE_NODES"
+    echo "CHART_LOCATION       = ${CHART_LOCATION:-'(not specified)'}"
+    echo "CLUSTER_NAME_OVERRIDE= ${CLUSTER_NAME_OVERRIDE:-'(not specified)'}"
+    echo "JFROG_USER           = ${JFROG_USER:-'(not specified)'}"
+    echo "JFROG_TOKEN          = ${JFROG_TOKEN:-'(not specified)'}"
+    echo "MACHINE_TYPE         = ${MACHINE_TYPE:-$DEFAULT_MACHINE_TYPE}"
+    echo "NUM_AVS_NODES        = ${NUM_AVS_NODES:-$DEFAULT_NUM_AVS_NODES}"
+    echo "NUM_QUERY_NODES      = ${NUM_QUERY_NODES:-$DEFAULT_NUM_QUERY_NODES}"
+    echo "NUM_INDEX_NODES      = ${NUM_INDEX_NODES:-$DEFAULT_NUM_INDEX_NODES}"
+    echo "NUM_AEROSPIKE_NODES  = ${NUM_AEROSPIKE_NODES:-$DEFAULT_NUM_AEROSPIKE_NODES}"
+    echo "RUN_INSECURE         = ${RUN_INSECURE:-0}"
 }
 
 # Function to set environment variables
@@ -348,7 +405,7 @@ create_gke_cluster() {
 
     echo "Labeling Aerospike nodes..."
     kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AEROSPIKE" -o name | \
-        xargs -I {} kubectl label {} aerospike.com/node-pool=default-rack --overwrite
+        xargs -I {} kubectl label {} aerospike.io/node-pool=default-rack --overwrite
 
     echo "Adding AVS node pool..."
     gcloud container node-pools create "$NODE_POOL_NAME_AVS" \
@@ -362,13 +419,14 @@ create_gke_cluster() {
 
     echo "Labeling AVS nodes..."
     kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name | \
-        xargs -I {} kubectl label {} aerospike.com/node-pool=avs --overwrite
-    
-        kubectl create namespace aerospike || true
-        kubectl create namespace avs || true
-    
+        xargs -I {} kubectl label {} aerospike.io/node-pool=avs --overwrite
+
 }
 
+create_namespaces() {
+    kubectl create namespace aerospike || true
+    kubectl create namespace avs || true
+}
 
 setup_aerospike() {
     echo "Setting up namespaces..."
@@ -461,39 +519,56 @@ get_reverse_dns() {
     echo "Reverse DNS: $REVERSE_DNS_AVS"
 }
 
-deploy_avs_helm_chart() {
-    echo "Deploying AVS Helm chart..."
-    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
-    helm repo update
+label_avs_nodes() {
 
-    # Installs AVS query nodes
-    if [ -n "$NODE_TYPES" ]; then
-         if (( NUM_QUERY_NODES > 0 )); then
-            helm install avs-app aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_QUERY_NODES" \
-            --set aerospikeVectorSearchConfig.cluster.node-roles[0]=query \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
-        fi
-        if (( NUM_INDEX_NODES > 0 )); then
-            helm install avs-app-update aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_INDEX_NODES" \
-            --set aerospikeVectorSearchConfig.cluster.node-roles[0]=index-update \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
-        fi
-    else 
-        helm install avs-app aerospike-helm/aerospike-vector-search \
-            --set replicaCount="$NUM_AVS_NODES" \
-            --values $BUILD_DIR/manifests/avs-values.yaml \
-            --namespace avs \
-            --version $CHART_VERSION \
-            --atomic --wait
+  local role_label_key="aerospike.io/role-label"
+  local role_labels=("" "node-label-1" "node-label-2")
+
+  nodes="$(kubectl get nodes -l aerospike.io/node-pool=avs -o name)"
+
+  counter=0
+
+  num_labels="${#role_labels[@]}"
+
+  for node in $nodes; do
+    label="${role_labels[$((counter % num_labels))]}"
+
+    if [ -z "$label" ]; then
+      kubectl label "$node" "$role_label_key"- || true
+    else
+      kubectl label "$node" "$role_label_key"="$label"
     fi
+
+    counter="$((counter + 1))"
+  done
+
+}
+
+deploy_avs_helm_chart() {
+  local helm_set_args=""
+  local helm_repo_args=""
+
+  if [[ -n "$JFROG_USER" && -n "$JFROG_TOKEN" ]]; then
+    kubectl create secret docker-registry jfrog-secret \
+      --docker-server=aerospike.jfrog.io \
+      --docker-username="$JFROG_USER" \
+      --docker-password="$JFROG_TOKEN" \
+      --docker-email="$JFROG_USER" \
+      --namespace=avs\
+      --dry-run=client -o yaml | kubectl apply -f -
+    helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
+    helm_repo_args="--username $JFROG_USER --password $JFROG_TOKEN"
+  fi
+  
+  helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update $helm_repo_args
+
+  helm repo update
+
+  helm install avs-app aerospike-helm/aerospike-vector-search\
+    --namespace avs --version "$CHART_VERSION" --set imagePullSecrets[0].name=jfrog-secret \
+    --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
+    --set initContainer.image.tag=0.8.0 --values "$BUILD_DIR/manifests/avs-values.yaml"\
+    --atomic --wait --debug --create-namespace $helm_set_args 
 }
 
 # Function to setup monitoring
@@ -532,6 +607,7 @@ main() {
     print_env
     reset_build
     create_gke_cluster
+    create_namespaces
     deploy_istio
     get_reverse_dns
     if [[ "${RUN_INSECURE}" != 1 ]]; then
@@ -539,6 +615,7 @@ main() {
     fi
     setup_aerospike
     setup_avs
+    label_avs_nodes
     deploy_avs_helm_chart
     setup_monitoring
     print_final_instructions
