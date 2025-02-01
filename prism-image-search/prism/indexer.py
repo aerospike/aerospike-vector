@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from config import Config
 from data_encoder import MODEL_DIM, encoder
-from avs_client import avs_admin_client, avs_client
+from avs_client import avs_client
 from aerospike_vector_search import types
 
 lock = threading.Lock()
@@ -25,7 +25,7 @@ logger.setLevel(logging.INFO)
 
 def create_index():
     try:
-        for index in avs_admin_client.index_list():
+        for index in avs_client.index_list():
             if (
                 index["id"]["namespace"] == Config.AVS_NAMESPACE
                 and index["id"]["name"] == Config.AVS_INDEX_NAME
@@ -33,7 +33,7 @@ def create_index():
                 logger.info("Index already exists")
                 return
 
-        avs_admin_client.index_create(
+        avs_client.index_create(
             namespace=Config.AVS_NAMESPACE,
             name=Config.AVS_INDEX_NAME,
             sets=Config.AVS_SET,

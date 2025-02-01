@@ -40,11 +40,11 @@ dataset = itertools.islice(read_csv(DATASET_FILE), 10000)
 
 
 def embed_quote(quote):
-    quote, author, catagory = quote
+    quote, author, category = quote
     doc = {}
     doc["quote"] = quote
     doc["author"] = author
-    doc["tags"] = catagory.split(",")
+    doc["tags"] = category.split(",")
 
     text = quote + " ".join(doc["tags"])
     embedding = encoder(text)

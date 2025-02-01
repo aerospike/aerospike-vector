@@ -5,7 +5,7 @@ vector record insertion, and basic ANN query against the AVS server using the Py
 
 ## Prerequisites
 
-1. A Python 3.10 - 3.11 environment and familiarity with the Python programming language (see [Setup Python Virtual Environment](../prism-image-search/README.md#setup-python-virtual-environment)).
+1. A Python 3.10 - 3.11 environment and familiarity with the Python programming language (see [Setup Python Virtual Environment](../prism-image-search/README.md#set-up-python-virtual-environment)).
 2. An Aerospike Vector Search host (sandbox or local) running AVS 0.11.1 or newer.
 
 ## Setup build Python Virtual Environment
@@ -31,19 +31,19 @@ If not set defaults are used.
 
 [!NOTE]
 It is best practice to store AVS index and record data in separate namespaces.
-By default this application stores its AVS index in the "avs-index" namespace, and AVS records in "avs-data".
+By default, this application stores its AVS index in the "avs-index" namespace, and AVS records in "avs-data".
 If your Aerospike database configuration does not define these namespaces you will see an error.
 You may change the --namespace and --index-namespace to other values, like the default Aerospike "test" namespace, to use other namespaces.
 
-| Command Line Flag        | Default            | Description                                                        |
-|-----------------------------|--------------------|-----------------------------------------------------------------|
-| --host               | localhost          | AVS host used for initial connection                                                   |
-| --port               | 5000               | AVS server seed host port                                              |
-| --namespace          | avs-data           | The Aerospike namespace for storing the quote records                  |
-| --set                | basic-data         | The Aerospike set for storing the quote records                        |
-| --index-namespace    | avs-index          | The Aerospike namespace for storing the HNSW index                     |
-| --index-set          | basic-index        | The Aerospike set for storing the HNSW index                           |
-| --load-balancer      | False              |                 If true, the first seed address will be treated as a load balancer node.```
+| Command Line Flag | Default     | Description                                                             |
+|-------------------|-------------|-------------------------------------------------------------------------|
+| --host            | localhost   | AVS host used for initial connection                                    |
+| --port            | 5000        | AVS server seed host port                                               |
+| --namespace       | avs-data    | The Aerospike namespace for storing the quote records                   |
+| --set             | basic-data  | The Aerospike set for storing the quote records                         |
+| --index-namespace | avs-index   | The Aerospike namespace for storing the HNSW index                      |
+| --index-set       | basic-index | The Aerospike set for storing the HNSW index                            |
+| --load-balancer   | False       | If true, the first seed address will be treated as a load balancer node |
 
 ## Run the search demo
 

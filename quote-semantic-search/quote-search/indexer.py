@@ -12,7 +12,7 @@ import tarfile
 
 from config import Config
 from data_encoder import MODEL_DIM
-from avs_client import avs_admin_client, avs_client
+from avs_client import avs_client
 from aerospike_vector_search import types
 
 logger = logging.getLogger(__name__)
@@ -41,14 +41,14 @@ def create_index():
     global index_created
 
     try:
-        for index in avs_admin_client.index_list():
+        for index in avs_client.index_list():
             if (
                 index["id"]["namespace"] == Config.AVS_NAMESPACE
                 and index["id"]["name"] == Config.AVS_INDEX_NAME
             ):
                 return
 
-        avs_admin_client.index_create(
+        avs_client.index_create(
             namespace=Config.AVS_NAMESPACE,
             name=Config.AVS_INDEX_NAME,
             sets=Config.AVS_SET,
@@ -99,10 +99,10 @@ def index_data():
 
 def index_quote(id_quote):
     id, quote = id_quote
-    # The quotes from the dataset are in the format: [quote, author, catagory, embedding]
+    # The quotes from the dataset are in the format: [quote, author, category, embedding]
     # The embedding is a string representation of a numpy.ndarray of floats that was pre-computed
     # using the pre-embed.py script in the /scripts directory.
-    quote, author, catagory, embedding = quote
+    quote, author, category, embedding = quote
     # The embedding is stored as a string in the CSV file, It is a bytes object that was wrapped in quotes by the CSV writer,
     # so the embedding format is as follows: "b'[0.1, 0.2, 0.3, ...]'". 
     # We need to convert this string to a bytes object and then convert the bytes object to a numpy array.
@@ -115,7 +115,7 @@ def index_quote(id_quote):
     doc = {"quote_id": id}
     doc["quote"] = quote
     doc["author"] = author
-    doc["tags"] = catagory.split(",")
+    doc["tags"] = category.split(",")
     logger.debug(f"Creating text vector embedding {id}")
     doc["quote_embedding"] = embedding  # Numpy array is supported by aerospike
 
