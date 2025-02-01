@@ -43,6 +43,8 @@ aerospikeVectorSearchConfig:
 aerospikeVectorSearchNodeRoles:
   node-label-0:
     - query
+  node-label-1:
+    - query
   node-label-2:
     - index-update
 
@@ -73,7 +75,7 @@ affinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.com/node-pool
+          - key: aerospike.io/node-pool
             operator: In
             values:
             - "avs"

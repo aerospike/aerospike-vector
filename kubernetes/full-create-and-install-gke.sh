@@ -405,7 +405,7 @@ create_gke_cluster() {
 
     echo "Labeling Aerospike nodes..."
     kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AEROSPIKE" -o name | \
-        xargs -I {} kubectl label {} aerospike.com/node-pool=default-rack --overwrite
+        xargs -I {} kubectl label {} aerospike.io/node-pool=default-rack --overwrite
 
     echo "Adding AVS node pool..."
     gcloud container node-pools create "$NODE_POOL_NAME_AVS" \
@@ -419,7 +419,7 @@ create_gke_cluster() {
 
     echo "Labeling AVS nodes..."
     kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name | \
-        xargs -I {} kubectl label {} aerospike.com/node-pool=avs --overwrite
+        xargs -I {} kubectl label {} aerospike.io/node-pool=avs --overwrite
 
 }
 
@@ -521,10 +521,10 @@ get_reverse_dns() {
 
 label_avs_nodes() {
 
-  local role_label_key="aerospike.com/role-label"
+  local role_label_key="aerospike.io/role-label"
   local role_labels=("" "node-label-1" "node-label-2")
 
-  nodes="$(kubectl get nodes -l aerospike.com/node-pool=avs -o name)"
+  nodes="$(kubectl get nodes -l aerospike.io/node-pool=avs -o name)"
 
   counter=0
 
@@ -546,6 +546,7 @@ label_avs_nodes() {
 
 deploy_avs_helm_chart() {
   local helm_set_args=""
+  local helm_repo_args=""
 
   if [[ -n "$JFROG_USER" && -n "$JFROG_TOKEN" ]]; then
     kubectl create secret docker-registry jfrog-secret \
@@ -553,29 +554,21 @@ deploy_avs_helm_chart() {
       --docker-username="$JFROG_USER" \
       --docker-password="$JFROG_TOKEN" \
       --docker-email="$JFROG_USER" \
+      --namespace=avs\
       --dry-run=client -o yaml | kubectl apply -f -
     helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
+    helm_repo_args="--username $JFROG_USER --password $JFROG_TOKEN"
   fi
   
-  helm repo add aerospike-helm "$JFROG_HELM_REPO"
+  helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update $helm_repo_args
 
   helm repo update
 
   helm install avs-app aerospike-helm/aerospike-vector-search\
     --namespace avs --version "$CHART_VERSION" --set imagePullSecrets[0].name=jfrog-secret \
-    --set initContainer.image.repository="$JFROG_DOCKER_REPO" \
-    --set initcontainer.image.tag=0.0.0 --values "$BUILD_DIR/manifests/avs-values.yaml"\
-    --atomic --wait --debug --create-namespace "$helm_set_args" 
-
-#    echo "Deploying AVS Helm chart..."
-#    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
-#    helm repo update
-
-# helm install avs-app  /home/joem/src/helm-aerospike-vector-search/charts/aerospike-vector-search/ --set replicaCount=3  --values /home/joem/src/aerospike-vector/kubernetes/generated/manifests/avs-values.yaml --namespace avs --atomic --wait --debug --create-namespace  --set initContainer.image.repository=artifact.aerospike.io/container/avs-init-container --set initContainer.image.tag=0.0.0
-    # helm install avs-app "$CHART_LOCATION" \
-    # --values $BUILD_DIR/manifests/avs-values.yaml \
-    # --namespace avs \
-    # --atomic --wait
+    --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
+    --set initContainer.image.tag=0.8.0 --values "$BUILD_DIR/manifests/avs-values.yaml"\
+    --atomic --wait --debug --create-namespace $helm_set_args 
 }
 
 # Function to setup monitoring
