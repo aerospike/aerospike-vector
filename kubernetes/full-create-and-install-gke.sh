@@ -40,6 +40,7 @@ usage() {
     echo "  --num-index-nodes, -i <num>           Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
     echo "  --num-aerospike-nodes, -s <num>       Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)."
+    echo "  --set-nodeport, -n                    Expose AVS to external network using NodePort service"
     echo "  --help, -h                            Show this help message"
     exit 1
 }
@@ -101,6 +102,10 @@ while [[ "$#" -gt 0 ]]; do
             RUN_INSECURE=1
             shift
             ;;
+        --set-nodeport|-n)
+            SET_NODEPORT=1
+            shift
+            ;;
         --help|-h)
             usage
             ;;
@@ -120,7 +125,8 @@ then
     fi
 
     echo "setting number of nodes equal to query + index nodes"
-    NUM_AVS_NODES=$((NUM_QUERY_NODES + NUM_INDEX_NODES))
+    # Causes the the bug when set replica set is 3 but the node-pool is of size 2
+#    NUM_AVS_NODES=$((NUM_QUERY_NODES + NUM_INDEX_NODES))
 fi
 
 
@@ -142,6 +148,7 @@ print_env() {
     echo "NUM_INDEX_NODES      = ${NUM_INDEX_NODES:-$DEFAULT_NUM_INDEX_NODES}"
     echo "NUM_AEROSPIKE_NODES  = ${NUM_AEROSPIKE_NODES:-$DEFAULT_NUM_AEROSPIKE_NODES}"
     echo "RUN_INSECURE         = ${RUN_INSECURE:-0}"
+    echo "SET_NODEPORT         = ${SET_NODEPORT:-0}"
 }
 
 # Function to set environment variables
@@ -559,16 +566,23 @@ deploy_avs_helm_chart() {
     helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
     helm_repo_args="--username $JFROG_USER --password $JFROG_TOKEN"
   fi
+
+  nodeport_args=""
+  if [[ "${SET_NODEPORT}" == 1 ]]; then
+    nodeport_args=('--set-json' 'service={"enabled":true,"type":"NodePort","ports":[{"name":"svc-5000","port":5000,"targetPort":5000,"nodePort":30036}]}')
+  fi
   
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update $helm_repo_args
-
   helm repo update
 
-  helm install avs-app aerospike-helm/aerospike-vector-search\
-    --namespace avs --version "$CHART_VERSION" --set imagePullSecrets[0].name=jfrog-secret \
+  helm install avs-app aerospike-helm/aerospike-vector-search \
+    --namespace avs --version "$CHART_VERSION" \
+    --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
-    --set initContainer.image.tag="$CHART_VERSION" --values "$BUILD_DIR/manifests/avs-values.yaml"\
-    --atomic --wait --debug --create-namespace $helm_set_args 
+    --set initContainer.image.tag="$CHART_VERSION" \
+     "${nodeport_args[@]}" \
+    --values "$BUILD_DIR/manifests/avs-values.yaml" \
+    --atomic --wait --debug --create-namespace $helm_set_args
 }
 
 # Function to setup monitoring
@@ -585,18 +599,31 @@ setup_monitoring() {
 }
 
 print_final_instructions() {
-    
-    echo Your new deployment is available at $REVERSE_DNS_AVS.
+
+    if [[ "${SET_NODEPORT}" == 0 ]]; then
+      echo Your new deployment is available at $REVERSE_DNS_AVS.
+    fi
+
     echo Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec.
 
- 
     if [[ "${RUN_INSECURE}" != 1 ]]; then
         echo "connect with asvec using cert "
         cat $BUILD_DIR/certs/ca.aerospike.com.pem
         echo Use the asvec tool to change your password with 
-        echo asvec  -h  $REVERSE_DNS_AVS:5000  --tls-cafile path/to/tls/file  -U admin -P admin  user new-password --name admin --new-password your-new-password
+        echo asvec -h  $REVERSE_DNS_AVS:5000  --tls-cafile path/to/tls/file  -U admin -P admin  user new-password --name admin --new-password your-new-password
     fi
 
+    if [[ "${RUN_INSECURE}" == 1 ]] && [[ "${SET_NODEPORT}" == 1 ]]; then
+      echo asvec nodes ls --seeds "$(
+        kubectl get nodes \
+          --selector=aerospike.io/node-pool=avs \
+          --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}'
+      ):$(
+        kubectl get svc avs-app-aerospike-vector-search \
+          --namespace avs \
+          --output=jsonpath='{.spec.ports[0].nodePort}'
+      )"
+    fi
 
     echo "Setup Complete!"
     
@@ -608,8 +635,10 @@ main() {
     reset_build
     create_gke_cluster
     create_namespaces
-    deploy_istio
-    get_reverse_dns
+    if [[ "${SET_NODEPORT}" == 0 ]]; then
+      deploy_istio
+      get_reverse_dns
+    fi
     if [[ "${RUN_INSECURE}" != 1 ]]; then
         generate_certs
     fi
@@ -620,6 +649,5 @@ main() {
     setup_monitoring
     print_final_instructions
 }
-
 
 main

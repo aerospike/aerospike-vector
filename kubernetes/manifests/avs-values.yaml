@@ -6,17 +6,14 @@ aerospikeVectorSearchConfig:
   service:
     metadata-namespace: "avs-meta"
     ports:
-      5000:
-        addresses:
-          "0.0.0.0"
-        # tls-id: service-tls
+      5000: { }
   manage:
     ports:
       5040: { }
 
   heartbeat:
     seeds:
-      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search.avs.svc.cluster.local
+      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
         port: 5001
   interconnect:
     # client-tls-id: interconnect-tls
@@ -39,6 +36,13 @@ aerospikeVectorSearchConfig:
       metrics-ticker: debug
       root: info
     ticker-interval: 10
+
+initContainer:
+   image:
+     repository: davi17g/avs-init-container
+     tag: "4.0.5"
+     pullPolicy: Always
+
 
 aerospikeVectorSearchNodeRoles:
   node-label-0:
