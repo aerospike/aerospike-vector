@@ -39,8 +39,8 @@ aerospikeVectorSearchConfig:
 
 initContainer:
    image:
-     repository: davi17g/avs-init-container
-     tag: "4.0.5"
+     repository: aerospike.jfrog.io/container/avs-init-container:0.8.0
+     tag: "0.8.0"
      pullPolicy: Always
 
 

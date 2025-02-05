@@ -13,7 +13,7 @@ WORKSPACE="$(pwd)"
 PROJECT_ID="$(gcloud config get-value project)"
 # Prepend the current username to the cluster name
 USERNAME=$(whoami)
-CHART_VERSION="0.7.1"
+CHART_VERSION="0.8.0"
 REVERSE_DNS_AVS=""
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
@@ -23,7 +23,7 @@ DEFAULT_NUM_QUERY_NODES=0
 DEFAULT_NUM_INDEX_NODES=0
 DEFAULT_NUM_AEROSPIKE_NODES=3
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
-JFROG_HELM_REPO="https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm"
+JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
@@ -552,8 +552,9 @@ label_avs_nodes() {
 }
 
 deploy_avs_helm_chart() {
-  local helm_set_args=""
-  local helm_repo_args=""
+  local helm_set_args=()
+  local helm_repo_args=()
+  local nodeport_args=()
 
   if [[ -n "$JFROG_USER" && -n "$JFROG_TOKEN" ]]; then
     kubectl create secret docker-registry jfrog-secret \
@@ -563,16 +564,15 @@ deploy_avs_helm_chart() {
       --docker-email="$JFROG_USER" \
       --namespace=avs\
       --dry-run=client -o yaml | kubectl apply -f -
-    helm_set_args+="--set jfrog.user=$JFROG_USER --set jfrog.token=$JFROG_TOKEN"
-    helm_repo_args="--username $JFROG_USER --password $JFROG_TOKEN"
+    helm_set_args=("--set jfrog.user=$JFROG_USER" "--set jfrog.token=$JFROG_TOKEN")
+    helm_repo_args=("--username $JFROG_USER" "--password $JFROG_TOKEN")
   fi
 
-  nodeport_args=""
   if [[ "${SET_NODEPORT}" == 1 ]]; then
     nodeport_args=('--set-json' 'service={"enabled":true,"type":"NodePort","ports":[{"name":"svc-5000","port":5000,"targetPort":5000,"nodePort":30036}]}')
   fi
   
-  helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update $helm_repo_args
+  helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
   helm install avs-app aerospike-helm/aerospike-vector-search \
@@ -582,7 +582,7 @@ deploy_avs_helm_chart() {
     --set initContainer.image.tag="$CHART_VERSION" \
      "${nodeport_args[@]}" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
-    --atomic --wait --debug --create-namespace $helm_set_args
+    --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
 }
 
 # Function to setup monitoring
