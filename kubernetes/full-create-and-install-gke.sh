@@ -15,6 +15,8 @@ PROJECT_ID="$(gcloud config get-value project)"
 USERNAME=$(whoami)
 CHART_VERSION="0.8.0"
 REVERSE_DNS_AVS=""
+SET_NODEPORT=0
+
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"
@@ -24,6 +26,7 @@ DEFAULT_NUM_INDEX_NODES=0
 DEFAULT_NUM_AEROSPIKE_NODES=3
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
+
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
