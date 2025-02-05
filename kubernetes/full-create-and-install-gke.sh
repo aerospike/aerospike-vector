@@ -567,7 +567,7 @@ deploy_avs_helm_chart() {
   helm install avs-app aerospike-helm/aerospike-vector-search\
     --namespace avs --version "$CHART_VERSION" --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
-    --set initContainer.image.tag=0.8.0 --values "$BUILD_DIR/manifests/avs-values.yaml"\
+    --set initContainer.image.tag="$CHART_VERSION" --values "$BUILD_DIR/manifests/avs-values.yaml"\
     --atomic --wait --debug --create-namespace $helm_set_args 
 }
 
