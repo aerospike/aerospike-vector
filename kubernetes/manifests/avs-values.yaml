@@ -6,17 +6,14 @@ aerospikeVectorSearchConfig:
   service:
     metadata-namespace: "avs-meta"
     ports:
-      5000:
-        addresses:
-          "0.0.0.0"
-        # tls-id: service-tls
+      5000: { }
   manage:
     ports:
       5040: { }
 
   heartbeat:
     seeds:
-      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search.avs.svc.cluster.local
+      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
         port: 5001
   interconnect:
     # client-tls-id: interconnect-tls
@@ -39,6 +36,26 @@ aerospikeVectorSearchConfig:
       metrics-ticker: debug
       root: info
     ticker-interval: 10
+
+initContainer:
+   image:
+     repository: aerospike.jfrog.io/container/avs-init-container:0.8.0
+     tag: "0.8.0"
+     pullPolicy: Always
+
+
+aerospikeVectorSearchNodeRoles:
+  query-nodes:
+    - query
+  index-update-nodes:
+    - index-update
+  default-nodes:
+    - query
+    - index-update
+
+
+serviceAccount:
+  create: true
 
 securityContext:
   allowPrivilegeEscalation: false
@@ -63,7 +80,7 @@ affinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.com/node-pool
+          - key: aerospike.io/node-pool
             operator: In
             values:
             - "avs"
