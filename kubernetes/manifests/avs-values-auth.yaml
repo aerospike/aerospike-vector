@@ -83,17 +83,19 @@ aerospikeVectorSearchConfig:
 
 initContainer:
    image:
-     repository: davi17g/avs-init-container
-     tag: "4.0.5"
+     repository: aerospike.jfrog.io/container/avs-init-container:0.8.0
+     tag: "0.8.0"
      pullPolicy: Always
 
-#aerospikeVectorSearchNodeRoles:
-#  node-label-0:
-#    - query
-#  node-label-1:
-#    - query
-#  node-label-2:
-#    - index-update
+
+aerospikeVectorSearchNodeRoles:
+  query-nodes:
+    - query
+  index-update-nodes:
+    - index-update
+  default-nodes:
+    - query
+    - index-update
 
 serviceAccount:
   create: true
