@@ -21,9 +21,9 @@ SET_NODEPORT=0
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"
 DEFAULT_NUM_AVS_NODES=3
-DEFAULT_NUM_QUERY_NODES=0
-DEFAULT_NUM_INDEX_NODES=0
-DEFAULT_NUM_AEROSPIKE_NODES=3
+DEFAULT_NUM_QUERY_NODES=2
+DEFAULT_NUM_INDEX_NODES=1
+DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 
@@ -427,9 +427,6 @@ create_gke_cluster() {
         --disk-size "100" \
         --machine-type "$MACHINE_TYPE";
 
-    echo "Labeling AVS nodes..."
-    kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name | \
-        xargs -I {} kubectl label {} aerospike.io/node-pool=avs --overwrite
 
 }
 
@@ -530,26 +527,27 @@ get_reverse_dns() {
 }
 
 label_avs_nodes() {
+  echo "Labeling AVS nodes..."
 
-  local role_label_key="aerospike.io/role-label"
-  local role_labels=("" "node-label-1" "node-label-2")
-
-  nodes="$(kubectl get nodes -l aerospike.io/node-pool=avs -o name)"
-
-  counter=0
-
-  num_labels="${#role_labels[@]}"
-
+  local index_to_be_labeled=$NUM_INDEX_NODES
+  local query_to_be_labeled=$NUM_QUERY_NODES
+  local nodes
+  nodes=$(kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name)
   for node in $nodes; do
-    label="${role_labels[$((counter % num_labels))]}"
-
-    if [ -z "$label" ]; then
-      kubectl label "$node" "$role_label_key"- || true
+    echo "Labeling AVS node $node"
+    kubectl label "$node" aerospike.io/node-pool=avs --overwrite
+    if (( index_to_be_labeled > 0 )); then
+      echo "Labeling AVS node $node as index-update-nodes"
+      kubectl label "$node" aerospike.io/role-label=index-update-nodes --overwrite
+      index_to_be_labeled="$((index_to_be_labeled - 1))"
+    elif (( query_to_be_labeled > 0 )); then
+      echo "Labeling AVS node $node as query"
+      kubectl label "$node" aerospike.io/role-label=query-nodes --overwrite
+      query_to_be_labeled="$((query_to_be_labeled - 1))"
     else
-      kubectl label "$node" "$role_label_key"="$label"
-    fi
-
-    counter="$((counter + 1))"
+      echo "Labeling AVS node $node as default"
+      kubectl label "$node" aerospike.io/role-label=default-nodes --overwrite
+    fi 
   done
 
 }

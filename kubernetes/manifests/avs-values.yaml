@@ -45,11 +45,12 @@ initContainer:
 
 
 aerospikeVectorSearchNodeRoles:
-  node-label-0:
+  query-nodes:
     - query
-  node-label-1:
+  index-update-nodes:
+    - index-update
+  default-nodes:
     - query
-  node-label-2:
     - index-update
 
 
