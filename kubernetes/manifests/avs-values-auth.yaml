@@ -7,8 +7,6 @@ aerospikeVectorSearchConfig:
     metadata-namespace: "avs-meta"
     ports:
       5000:
-        addresses:
-          "0.0.0.0"
         tls-id: service-tls
   manage:
     ports:
@@ -16,7 +14,7 @@ aerospikeVectorSearchConfig:
 
   heartbeat:
     seeds:
-      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search.avs.svc.cluster.local
+      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
         port: 5001
   interconnect:
     client-tls-id: interconnect-tls
@@ -33,7 +31,6 @@ aerospikeVectorSearchConfig:
         password-file: "/etc/aerospike-vector-search/secrets/aerospike-password.txt"
     seeds:
       - aerocluster-0-0.aerocluster.aerospike.svc.cluster.local:
-#          port: 3000
           port: 4333
           tls-name: "asd.aerospike.com"
   security:
@@ -84,6 +81,23 @@ aerospikeVectorSearchConfig:
       root: info
     ticker-interval: 10
 
+initContainer:
+   image:
+     repository: davi17g/avs-init-container
+     tag: "4.0.5"
+     pullPolicy: Always
+
+#aerospikeVectorSearchNodeRoles:
+#  node-label-0:
+#    - query
+#  node-label-1:
+#    - query
+#  node-label-2:
+#    - index-update
+
+serviceAccount:
+  create: true
+
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
@@ -107,7 +121,7 @@ affinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.com/node-pool
+          - key: aerospike.io/node-pool
             operator: In
             values:
             - "avs"

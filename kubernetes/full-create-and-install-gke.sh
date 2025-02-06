@@ -444,7 +444,7 @@ setup_aerospike() {
 
     if ! kubectl get ns olm &> /dev/null; then
         echo "Installing OLM..."
-        curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.25.0/install.sh | bash -s v0.25.0
+        curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.31.0/install.sh | bash -s v0.31.0
     else
         echo "OLM is already installed in olm namespace. Skipping installation."
     fi
@@ -624,6 +624,23 @@ print_final_instructions() {
           --namespace avs \
           --output=jsonpath='{.spec.ports[0].nodePort}'
       )"
+    fi
+
+
+    if [[ "${RUN_INSECURE}" == 0 ]] && [[ "${SET_NODEPORT}" == 1 ]]; then
+      echo asvec nodes ls --seeds "$(
+        kubectl get nodes \
+          --selector=aerospike.io/node-pool=avs \
+          --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}'
+      ):$(
+        kubectl get svc avs-app-aerospike-vector-search \
+          --namespace avs \
+          --output=jsonpath='{.spec.ports[0].nodePort}'
+      )" \
+        --tls-cafile path/to/tls/file \
+        --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local \
+        --credentials admin:admin
+
     fi
 
     echo "Setup Complete!"

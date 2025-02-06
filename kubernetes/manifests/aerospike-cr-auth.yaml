@@ -80,7 +80,7 @@ spec:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
           - matchExpressions:
-            - key: aerospike.com/node-pool
+            - key: aerospike.io/node-pool
               operator: In
               values:
               - "default-rack"
