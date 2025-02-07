@@ -91,6 +91,7 @@ try:
                 dimensions=2,
                 sets=args.set,
                 index_storage=types.IndexStorage(namespace=args.index_namespace, set_name=args.index_set),
+                index_params=types.HnswParams(healer_params=types.HnswHealerParams(schedule="* * * * * ?")),
             )
         except AVSServerError as e:
             print(f"failed creating index {e}, it may already exist, continuing...")
