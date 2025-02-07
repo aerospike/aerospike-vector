@@ -70,6 +70,16 @@ extraSecretVolumeMounts:
     mountPath: "/etc/ssl/certs"
     readOnly: true
 
+service:
+  enabled: true
+  type: NodePort
+  externalTrafficPolicy: Local 
+  ports:
+    - name: "svc-5000"
+      port: 5000
+      targetPort: 5000
+      nodePort: 30036
+
 extraVolumes:
   - name: aerospike-tls
     secret:
