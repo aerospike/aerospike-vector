@@ -15,7 +15,6 @@ PROJECT_ID="$(gcloud config get-value project)"
 USERNAME=$(whoami)
 CHART_VERSION="0.8.0"
 REVERSE_DNS_AVS=""
-SET_NODEPORT=0
 
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
@@ -43,7 +42,6 @@ usage() {
     echo "  --num-index-nodes, -i <num>           Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
     echo "  --num-aerospike-nodes, -s <num>       Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)."
-    echo "  --set-nodeport, -n                    Expose AVS to external network using NodePort service"
     echo "  --help, -h                            Show this help message"
     exit 1
 }
@@ -105,10 +103,6 @@ while [[ "$#" -gt 0 ]]; do
             RUN_INSECURE=1
             shift
             ;;
-        --set-nodeport|-n)
-            SET_NODEPORT=1
-            shift
-            ;;
         --help|-h)
             usage
             ;;
@@ -118,19 +112,6 @@ while [[ "$#" -gt 0 ]]; do
             ;;
     esac
 done
-
-
-if [ -n "$NODE_TYPES" ]
-then
-    if ((RUN_INSECURE != 1 && NODE_TYPES == 1)); then
-        echo "Error: This script has a limitation that it cannot currently use both node types and secure mode. For secure deployments please do not set num-query-nodes nor num-index-nodes."
-        exit 1
-    fi
-
-    echo "setting number of nodes equal to query + index nodes"
-    # Causes the the bug when set replica set is 3 but the node-pool is of size 2
-#    NUM_AVS_NODES=$((NUM_QUERY_NODES + NUM_INDEX_NODES))
-fi
 
 
 
@@ -151,7 +132,6 @@ print_env() {
     echo "NUM_INDEX_NODES      = ${NUM_INDEX_NODES:-$DEFAULT_NUM_INDEX_NODES}"
     echo "NUM_AEROSPIKE_NODES  = ${NUM_AEROSPIKE_NODES:-$DEFAULT_NUM_AEROSPIKE_NODES}"
     echo "RUN_INSECURE         = ${RUN_INSECURE:-0}"
-    echo "SET_NODEPORT         = ${SET_NODEPORT:-0}"
 }
 
 # Function to set environment variables
@@ -502,24 +482,6 @@ setup_avs() {
 
 }
 
-# Function to optionally deploy Istio
-deploy_istio() {
-    echo "Deploying Istio"
-    helm repo add istio https://istio-release.storage.googleapis.com/charts
-    helm repo update
-
-    helm install istio-base istio/base --namespace istio-system --set defaultRevision=default --create-namespace --wait
-    helm install istiod istio/istiod --namespace istio-system --create-namespace --wait
-    helm install istio-ingress istio/gateway \
-     --values ./manifests/istio/istio-ingressgateway-values.yaml \
-     --namespace istio-ingress \
-     --create-namespace \
-     --wait
-
-    kubectl apply -f manifests/istio/gateway.yaml
-    kubectl apply -f manifests/istio/avs-virtual-service.yaml
-}
-
 get_reverse_dns() {
     INGRESS_IP=$(kubectl get svc istio-ingress -n istio-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     REVERSE_DNS_AVS=$(dig +short -x $INGRESS_IP)
@@ -541,11 +503,11 @@ label_avs_nodes() {
       kubectl label "$node" aerospike.io/role-label=index-update-nodes --overwrite
       index_to_be_labeled="$((index_to_be_labeled - 1))"
     elif (( query_to_be_labeled > 0 )); then
-      echo "Labeling AVS node $node as query"
+      echo "Labeling AVS node $node as query-nodes"
       kubectl label "$node" aerospike.io/role-label=query-nodes --overwrite
       query_to_be_labeled="$((query_to_be_labeled - 1))"
     else
-      echo "Labeling AVS node $node as default"
+      echo "Labeling AVS node $node as default-nodes"
       kubectl label "$node" aerospike.io/role-label=default-nodes --overwrite
     fi 
   done
@@ -555,7 +517,6 @@ label_avs_nodes() {
 deploy_avs_helm_chart() {
   local helm_set_args=()
   local helm_repo_args=()
-  local nodeport_args=()
 
   if [[ -n "$JFROG_USER" && -n "$JFROG_TOKEN" ]]; then
     kubectl create secret docker-registry jfrog-secret \
@@ -569,9 +530,6 @@ deploy_avs_helm_chart() {
     helm_repo_args=("--username $JFROG_USER" "--password $JFROG_TOKEN")
   fi
 
-  if [[ "${SET_NODEPORT}" == 1 ]]; then
-    nodeport_args=('--set-json' 'service={"enabled":true,"type":"NodePort","ports":[{"name":"svc-5000","port":5000,"targetPort":5000,"nodePort":30036}]}')
-  fi
   
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
@@ -581,7 +539,6 @@ deploy_avs_helm_chart() {
     --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
-     "${nodeport_args[@]}" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
 }
@@ -601,10 +558,6 @@ setup_monitoring() {
 
 print_final_instructions() {
 
-    if [[ "${SET_NODEPORT}" == 0 ]]; then
-      echo Your new deployment is available at $REVERSE_DNS_AVS.
-    fi
-
     echo Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec.
 
     if [[ "${RUN_INSECURE}" != 1 ]]; then
@@ -614,7 +567,7 @@ print_final_instructions() {
         echo asvec -h  $REVERSE_DNS_AVS:5000  --tls-cafile path/to/tls/file  -U admin -P admin  user new-password --name admin --new-password your-new-password
     fi
 
-    if [[ "${RUN_INSECURE}" == 1 ]] && [[ "${SET_NODEPORT}" == 1 ]]; then
+    if [[ "${RUN_INSECURE}" == 1 ]] ; then
       echo asvec nodes ls --seeds "$(
         kubectl get nodes \
           --selector=aerospike.io/node-pool=avs \
@@ -627,7 +580,7 @@ print_final_instructions() {
     fi
 
 
-    if [[ "${RUN_INSECURE}" == 0 ]] && [[ "${SET_NODEPORT}" == 1 ]]; then
+    if [[ "${RUN_INSECURE}" == 0 ]]; then
       echo asvec nodes ls --seeds "$(
         kubectl get nodes \
           --selector=aerospike.io/node-pool=avs \
@@ -653,10 +606,6 @@ main() {
     reset_build
     create_gke_cluster
     create_namespaces
-    if [[ "${SET_NODEPORT}" == 0 ]]; then
-      deploy_istio
-      get_reverse_dns
-    fi
     if [[ "${RUN_INSECURE}" != 1 ]]; then
         generate_certs
     fi
