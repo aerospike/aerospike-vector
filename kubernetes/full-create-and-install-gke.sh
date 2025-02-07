@@ -463,7 +463,7 @@ get_reverse_dns() {
 
 deploy_avs_helm_chart() {
     echo "Deploying AVS Helm chart..."
-    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm
+    helm repo add aerospike-helm https://artifact.aerospike.io/artifactory/api/helm/aerospike-helm --force-update
     helm repo update
 
     # Installs AVS query nodes
