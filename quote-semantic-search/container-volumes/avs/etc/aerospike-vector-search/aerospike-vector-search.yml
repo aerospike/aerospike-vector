@@ -6,6 +6,17 @@ cluster:
   # Unique identifier for this cluster.
   cluster-name: quote-semantic-search
 
+  # Roles of the node in the cluster.
+  # indexer is standard.
+  # standalone-indexer is required for standalone index tests.
+  node-roles:
+    - index-query
+    - index-update
+    - kv-read
+    - standalone-indexer
+    - kv-write
+    - indexer
+
 # The Proximus service listening ports, TLS and network interface.
 service:
   ports:
