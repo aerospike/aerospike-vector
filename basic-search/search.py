@@ -1,25 +1,19 @@
 import argparse
+import time
 
 from aerospike_vector_search import Client, Index, types, AVSServerError
 
 listener_name = None
 index_name = "basic_index"
 
-# Wait for the index to finish indexing records
+
 def wait_for_indexing(index: Index):
-    import time
-
-    vertices = 0
-    unmerged_recs = 0
-    
-    # Wait for the index to have vertices and no unmerged records
-    while vertices == 0 or unmerged_recs > 0:
-        status = index.status()
-
-        vertices = status.index_healer_vertices_valid
-        unmerged_recs = status.unmerged_record_count
-
+    index_status = index.status()
+    while index_status.readiness != types.IndexReadiness.READY:
+        print(f"index status: {index_status.readiness}")
         time.sleep(0.5)
+        index_status = index.status()
+
 
 arg_parser = argparse.ArgumentParser(description="Aerospike Vector Search Example")
 arg_parser.add_argument(
@@ -82,6 +76,22 @@ try:
         listener_name=listener_name,
         is_loadbalancer=args.load_balancer,
     ) as client:
+        
+        print("inserting vectors")
+        for i in range(10):
+            key = "r" + str(i)
+            client.upsert(
+                namespace=args.namespace,
+                set_name=args.set,
+                key=key,
+                record_data={
+                    "url": f"http://host.com/data{i}",
+                    "vector": [i * 1.0, i * 1.0],
+                    "map": {"a": "A", "inlist": [1, 2, 3]},
+                    "list": ["a", 1, "c", {"a": "A"}],
+                },
+            )
+
         try:
             print("creating index")
             client.index_create(
@@ -96,30 +106,11 @@ try:
             print(f"failed creating index {e}, it may already exist, continuing...")
             pass
 
+        # get an index object for easy querying
         index = client.index(
             namespace=args.namespace,
             name=index_name,
         )
-
-        print("inserting vectors")
-        for i in range(10):
-            key = "r" + str(i)
-            if not index.is_indexed(
-                set_name=args.set, key=key
-            ):
-                # client is responsible for data operations
-                # not the index object
-                client.upsert(
-                    namespace=args.namespace,
-                    set_name=args.set,
-                    key=key,
-                    record_data={
-                        "url": f"http://host.com/data{i}",
-                        "vector": [i * 1.0, i * 1.0],
-                        "map": {"a": "A", "inlist": [1, 2, 3]},
-                        "list": ["a", 1, "c", {"a": "A"}],
-                    },
-                )
 
         print("waiting for indexing to complete")
         wait_for_indexing(index)
