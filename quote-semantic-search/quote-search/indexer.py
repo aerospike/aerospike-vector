@@ -55,6 +55,9 @@ def create_index():
             vector_field="quote_embedding",
             dimensions=MODEL_DIM,
             vector_distance_metric=types.VectorDistanceMetric.COSINE,
+            # Use a standalone index so that initial data
+            # is indexes in a batch immediately after creation
+            mode=types.IndexMode.STANDALONE,
             index_storage=types.IndexStorage(namespace=Config.AVS_INDEX_NAMESPACE, set_name=Config.AVS_INDEX_SET),
         )
 
@@ -70,10 +73,6 @@ def either(c):
 
 def index_data():
     try:
-        logger.info("Creating index")
-        create_index()
-        logger.info("Successfully created the index")
-
         if Config.INDEXER_PARALLELISM <= 1:
             for quote in tqdm(
                 enumerate(dataset), "Indexing quotes", total=Config.NUM_QUOTES
@@ -89,6 +88,12 @@ def index_data():
                     total=Config.NUM_QUOTES,
                 ):
                     pass
+
+        # Create the standalone index after writing all initial data
+        # so that it will index it all in a batch
+        logger.info("Creating index")
+        create_index()
+        logger.info("Successfully created the index")
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))

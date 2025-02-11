@@ -96,6 +96,7 @@ def index_data():
         # so that it will index it all in a batch
         logger.info("Creating index")
         create_index()
+        logger.info("Successfully created the index")
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))
