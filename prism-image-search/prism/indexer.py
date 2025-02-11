@@ -40,6 +40,9 @@ def create_index():
             vector_field="image_embedding",
             dimensions=MODEL_DIM,
             vector_distance_metric=types.VectorDistanceMetric.COSINE,
+            # Use a standalone index so that initial data
+            # is indexes in a batch immediately after creation
+            mode=types.IndexMode.STANDALONE,
             index_storage=types.IndexStorage(namespace=Config.AVS_INDEX_NAMESPACE, set_name=Config.AVS_INDEX_SET),
         )
     except Exception as e:
@@ -54,8 +57,6 @@ def either(c):
 def index_data():
     lock.acquire()
     try:
-        logger.info("Creating index")
-        create_index()
         filenames = image_data_files()
 
         to_index = []
@@ -90,6 +91,11 @@ def index_data():
                         total=len(to_index),
                     ):
                         pass
+
+        # Create the standalone index after writing all initial data
+        # so that it will index it all in a batch
+        logger.info("Creating index")
+        create_index()
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))
