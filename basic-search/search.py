@@ -10,7 +10,6 @@ index_name = "basic_index"
 def wait_for_indexing(index: Index):
     index_status = index.status()
     while index_status.readiness != types.IndexReadiness.READY:
-        print(f"index status: {index_status.readiness}")
         time.sleep(0.5)
         index_status = index.status()
 
@@ -99,6 +98,7 @@ try:
                 name=index_name,
                 vector_field="vector",
                 dimensions=2,
+                mode=types.IndexMode.STANDALONE,
                 sets=args.set,
                 index_storage=types.IndexStorage(namespace=args.index_namespace, set_name=args.index_set),
             )
