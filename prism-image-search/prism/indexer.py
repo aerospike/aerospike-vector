@@ -2,6 +2,7 @@ import glob
 import os
 import sys
 import threading
+import time
 from multiprocessing import get_context
 from threading import Thread
 import logging
@@ -21,6 +22,25 @@ image_datasets_folder = "static/images/data"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+def wait_for_indexing(timeout=30):
+    index = avs_client.index(
+        name=Config.AVS_INDEX_NAME,
+        namespace=Config.AVS_NAMESPACE
+    )
+    index_status = index.status()
+
+    timeout = float(timeout)
+    while index_status.readiness != types.IndexReadiness.READY:
+        time.sleep(0.5)
+        
+        timeout -= 0.5
+        if timeout <= 0:
+            raise Exception("timed out waiting for indexing to complete, "
+                            "maybe standalone indexing is not configured on this AVS cluster")
+
+        index_status = index.status()
 
 
 def create_index():
@@ -97,6 +117,14 @@ def index_data():
         logger.info("Creating index")
         create_index()
         logger.info("Successfully created the index")
+
+        # Wait for initial indexing to complete
+        # This is mostly done so that clusters without standalone indexing
+        # enabled do not silently fail to index the initial data forever
+        logger.info("Waiting for indexing to complete")
+        wait_for_indexing()
+        logger.info("Indexing complete")
+        
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))

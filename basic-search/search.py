@@ -7,10 +7,17 @@ listener_name = None
 index_name = "basic_index"
 
 
-def wait_for_indexing(index: Index):
+def wait_for_indexing(index: Index, timeout=30):
     index_status = index.status()
+    timeout = float(timeout)
     while index_status.readiness != types.IndexReadiness.READY:
         time.sleep(0.5)
+        
+        timeout -= 0.5
+        if timeout <= 0:
+            raise Exception("timed out waiting for indexing to complete, "
+                            "maybe standalone indexing is not configured on this AVS cluster")
+
         index_status = index.status()
 
 
