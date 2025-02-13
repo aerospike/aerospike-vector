@@ -6,6 +6,14 @@ cluster:
   # Unique identifier for this cluster.
   cluster-name: prism-image-search
 
+  # Roles of the node in the cluster.
+  # indexer is standard.
+  # standalone-indexer is required for standalone index tests.
+  node-roles:
+      - query
+      - indexer
+      - standalone-indexer
+
 # The AVS service listening ports, TLS and network interface.
 service:
   ports:
