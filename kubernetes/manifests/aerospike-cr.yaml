@@ -5,8 +5,8 @@ metadata:
   namespace: aerospike
 
 spec:
-  size: 3
-  image: aerospike/aerospike-server-enterprise:7.0.0.0
+  size: 1
+  image: aerospike/aerospike-server-enterprise:8.0
   storage:
     filesystemVolumePolicy:
       initMethod: deleteFiles
@@ -73,19 +73,12 @@ spec:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
           - matchExpressions:
-            - key: aerospike.com/node-pool
+            - key: aerospike.io/node-pool
               operator: In
               values:
               - "default-rack"
     multiPodPerHost: false
 
-  # aerospikeAccessControl:
-  #   users:
-  #     - name: admin
-  #       secretName: auth-secret
-  #       roles:
-  #         - sys-admin
-  #         - user-admin
 
   aerospikeConfig:
     service:
