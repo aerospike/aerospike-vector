@@ -13,7 +13,7 @@ WORKSPACE="$(pwd)"
 PROJECT_ID="$(gcloud config get-value project)"
 # Prepend the current username to the cluster name
 USERNAME=$(whoami)
-CHART_VERSION="0.8.0"
+CHART_VERSION="0.8.1"
 REVERSE_DNS_AVS=""
 
 # Default values
@@ -22,7 +22,7 @@ DEFAULT_MACHINE_TYPE="n2d-standard-4"
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=2
 DEFAULT_NUM_INDEX_NODES=1
-DEFAULT_NUM_AEROSPIKE_NODES=3
+DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 
@@ -388,7 +388,7 @@ create_gke_cluster() {
         --project "$PROJECT_ID" \
         --zone "$ZONE" \
         --num-nodes "$NUM_AEROSPIKE_NODES" \
-        --local-ssd-count 2 \
+        --local-ssd-count  1\
         --disk-type "pd-standard" \
         --disk-size "100" \
         --machine-type "$MACHINE_TYPE";
