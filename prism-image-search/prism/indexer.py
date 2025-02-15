@@ -2,6 +2,7 @@ import glob
 import os
 import sys
 import threading
+import time
 from multiprocessing import get_context
 from threading import Thread
 import logging
@@ -23,6 +24,25 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def wait_for_indexing(timeout=30):
+    index = avs_client.index(
+        name=Config.AVS_INDEX_NAME,
+        namespace=Config.AVS_NAMESPACE
+    )
+    index_status = index.status()
+
+    timeout = float(timeout)
+    while index_status.readiness != types.IndexReadiness.READY:
+        time.sleep(0.5)
+        
+        timeout -= 0.5
+        if timeout <= 0:
+            raise Exception("timed out waiting for indexing to complete, "
+                            "maybe standalone indexing is not configured on this AVS cluster")
+
+        index_status = index.status()
+
+
 def create_index():
     try:
         for index in avs_client.index_list():
@@ -40,6 +60,9 @@ def create_index():
             vector_field="image_embedding",
             dimensions=MODEL_DIM,
             vector_distance_metric=types.VectorDistanceMetric.COSINE,
+            # Use a standalone index so that initial data
+            # is indexes in a batch immediately after creation
+            mode=types.IndexMode.STANDALONE,
             index_storage=types.IndexStorage(namespace=Config.AVS_INDEX_NAMESPACE, set_name=Config.AVS_INDEX_SET),
         )
     except Exception as e:
@@ -54,8 +77,6 @@ def either(c):
 def index_data():
     lock.acquire()
     try:
-        logger.info("Creating index")
-        create_index()
         filenames = image_data_files()
 
         to_index = []
@@ -90,6 +111,20 @@ def index_data():
                         total=len(to_index),
                     ):
                         pass
+
+        # Create the standalone index after writing all initial data
+        # so that it will index it all in a batch
+        logger.info("Creating index")
+        create_index()
+        logger.info("Successfully created the index")
+
+        # Wait for initial indexing to complete
+        # This is mostly done so that clusters without standalone indexing
+        # enabled do not silently fail to index the initial data forever
+        logger.info("Waiting for indexing to complete")
+        wait_for_indexing()
+        logger.info("Indexing complete")
+        
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))
