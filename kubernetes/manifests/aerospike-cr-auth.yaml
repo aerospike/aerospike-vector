@@ -6,7 +6,7 @@ metadata:
 
 spec:
   size: 1
-  image: aerospike/aerospike-server-enterprise:8.0
+  image: aerospike/aerospike-server-enterprise:8.0.0.2
   storage:
     filesystemVolumePolicy:
       initMethod: deleteFiles

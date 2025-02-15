@@ -66,15 +66,13 @@ service:
 
 initContainer:
    image:
-     repository: aerospike.jfrog.io/container/avs-init-container:0.8.0
-     tag: "0.8.1"
+     repository: aerospike.jfrog.io/container/avs-init-container
      pullPolicy: Always
 
 image:
   repository: "aerospike/aerospike-vector-search"
   pullPolicy: "IfNotPresent"
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.0"
+
 
 extraSecretVolumeMounts:
   - name: aerospike-tls
