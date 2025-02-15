@@ -102,8 +102,7 @@ service:
 
 initContainer:
    image:
-     repository: aerospike.jfrog.io/container/avs-init-container:0.8.0
-     tag: "0.8.1"
+     repository: aerospike.jfrog.io/container/avs-init-container
      pullPolicy: Always
 
 image:
