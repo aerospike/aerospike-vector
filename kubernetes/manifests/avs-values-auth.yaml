@@ -82,6 +82,17 @@ aerospikeVectorSearchConfig:
       root: info
     ticker-interval: 10
 
+aerospikeVectorSearchNodeRoles:
+  query-nodes:
+    - query
+  standalone-indexer-nodes:
+    - standalone-indexer
+  indexer-nodes:
+    - indexer
+  default-nodes:
+    - query
+    - indexer
+
 
 serviceAccount:
   create: true

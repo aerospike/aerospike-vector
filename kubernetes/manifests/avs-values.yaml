@@ -40,11 +40,13 @@ aerospikeVectorSearchConfig:
 aerospikeVectorSearchNodeRoles:
   query-nodes:
     - query
-  index-update-nodes:
-    - index-update
+  standalone-nodes:
+    - standalone-indexer
+  indexer-nodes:
+    - indexer
   default-nodes:
     - query
-    - index-update
+    - indexer
 
 
 serviceAccount:
