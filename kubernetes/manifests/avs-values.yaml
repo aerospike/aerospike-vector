@@ -41,10 +41,11 @@ aerospikeVectorSearchNodeRoles:
   query-nodes:
     - query
   index-update-nodes:
-    - index-update
+    - indexer
+    - standalone-indexer
   default-nodes:
     - query
-    - index-update
+    - indexer
 
 
 serviceAccount:
@@ -72,6 +73,7 @@ initContainer:
 image:
   repository: "aerospike/aerospike-vector-search"
   pullPolicy: "IfNotPresent"
+  tag: "1.1.0-RC"
 
 
 extraSecretVolumeMounts:
