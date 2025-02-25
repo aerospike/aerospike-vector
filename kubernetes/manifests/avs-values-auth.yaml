@@ -86,19 +86,33 @@ aerospikeVectorSearchConfig:
 serviceAccount:
   create: true
 
+aerospikeVectorSearchNodeRoles:
+  query-nodes:
+    - query
+  indexer-nodes:
+    - index-update
+  standalone-nodes:
+    - standalone-indexer
+  default-nodes:
+    - query
+    - index-update
+
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
 
+## multiPodPerHost controls if connections will be made directly to the host. Some deployments might benefit from the default configuration and use NodePort 
+## for external access if it is needed.
+## Only set multipodPerHost: false if this host networking is desired
+multiPodPerHost: false
 service:
-  enabled: true
-  type: NodePort
-  externalTrafficPolicy: Local 
+  enabled: false
+  type: ClusterIP
   ports:
-    - name: "svc-5000"
+    - name: "svc-port"
       port: 5000
       targetPort: 5000
-      nodePort: 30036
+
 
 initContainer:
    image:

@@ -22,6 +22,7 @@ DEFAULT_MACHINE_TYPE="n2d-standard-4"
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=2
 DEFAULT_NUM_INDEX_NODES=1
+DEFAULT_NUM_STANDALONE_NODES=0
 DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
@@ -40,6 +41,7 @@ usage() {
     echo "  --num-avs-nodes, -a <num>             Specify the number of AVS nodes (default: ${DEFAULT_NUM_AVS_NODES})"
     echo "  --num-query-nodes, -q <num>           Specify the number of AVS query nodes (default: ${DEFAULT_NUM_QUERY_NODES})"
     echo "  --num-index-nodes, -i <num>           Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
+    echo "  --num-standalone-nodes, -d <num>      Specify the number of AVS standalone nodes (default: ${DEFAULT_NUM_STANDALONE_NODES})"
     echo "  --num-aerospike-nodes, -s <num>       Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)."
     echo "  --help, -h                            Show this help message"
@@ -83,6 +85,11 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --num-avs-nodes|-a)
             NUM_AVS_NODES="$2"
+            shift 2
+            ;;
+        --num-standalone-nodes|-d)
+            NUM_STANDALONE_NODES="$2"
+            NODE_TYPES=1
             shift 2
             ;;
         --num-query-nodes|-q)
@@ -130,6 +137,7 @@ print_env() {
     echo "NUM_AVS_NODES        = ${NUM_AVS_NODES:-$DEFAULT_NUM_AVS_NODES}"
     echo "NUM_QUERY_NODES      = ${NUM_QUERY_NODES:-$DEFAULT_NUM_QUERY_NODES}"
     echo "NUM_INDEX_NODES      = ${NUM_INDEX_NODES:-$DEFAULT_NUM_INDEX_NODES}"
+    echo "NUM_STANDALONE_NODES = ${NUM_STANDALONE_NODES:-$DEFAULT_NUM_STANDALONE_NODES}"
     echo "NUM_AEROSPIKE_NODES  = ${NUM_AEROSPIKE_NODES:-$DEFAULT_NUM_AEROSPIKE_NODES}"
     echo "RUN_INSECURE         = ${RUN_INSECURE:-0}"
 }
@@ -153,7 +161,9 @@ set_env_variables() {
     export NUM_AVS_NODES="${NUM_AVS_NODES:-${DEFAULT_NUM_AVS_NODES}}"
     export NUM_QUERY_NODES="${NUM_QUERY_NODES:-${DEFAULT_NUM_QUERY_NODES}}"
     export NUM_INDEX_NODES="${NUM_INDEX_NODES:-${DEFAULT_NUM_INDEX_NODES}}"
+    export NUM_STANDALONE_NODES="${NUM_STANDALONE_NODES:-${DEFAULT_NUM_STANDALONE_NODES}}"
     export NUM_AEROSPIKE_NODES="${NUM_AEROSPIKE_NODES:-${DEFAULT_NUM_AEROSPIKE_NODES}}"
+
 }
 
 reset_build() {
@@ -493,19 +503,24 @@ label_avs_nodes() {
 
   local index_to_be_labeled=$NUM_INDEX_NODES
   local query_to_be_labeled=$NUM_QUERY_NODES
+  local standalone_to_be_labeled=$NUM_STANDALONE_NODES
   local nodes
   nodes=$(kubectl get nodes -l cloud.google.com/gke-nodepool="$NODE_POOL_NAME_AVS" -o name)
   for node in $nodes; do
     echo "Labeling AVS node $node"
     kubectl label "$node" aerospike.io/node-pool=avs --overwrite
     if (( index_to_be_labeled > 0 )); then
-      echo "Labeling AVS node $node as index-update-nodes"
-      kubectl label "$node" aerospike.io/role-label=index-update-nodes --overwrite
+      echo "Labeling AVS node $node as indexer-nodes"
+      kubectl label "$node" aerospike.io/role-label=indexer-nodes --overwrite
       index_to_be_labeled="$((index_to_be_labeled - 1))"
     elif (( query_to_be_labeled > 0 )); then
       echo "Labeling AVS node $node as query-nodes"
       kubectl label "$node" aerospike.io/role-label=query-nodes --overwrite
       query_to_be_labeled="$((query_to_be_labeled - 1))"
+    elif (( standalone_to_be_labeled > 0 )); then
+      echo "Labeling AVS node $node as standalone-indexer-nodes"
+      kubectl label "$node" aerospike.io/role-label=standalone-indexer-nodes --overwrite
+      standalone_to_be_labeled="$((standalone_to_be_labeled - 1))"
     else
       echo "Labeling AVS node $node as default-nodes"
       kubectl label "$node" aerospike.io/role-label=default-nodes --overwrite
@@ -526,8 +541,8 @@ deploy_avs_helm_chart() {
       --docker-email="$JFROG_USER" \
       --namespace=avs\
       --dry-run=client -o yaml | kubectl apply -f -
-    helm_set_args=("--set jfrog.user=$JFROG_USER" "--set jfrog.token=$JFROG_TOKEN")
-    helm_repo_args=("--username $JFROG_USER" "--password $JFROG_TOKEN")
+    helm_set_args=(--set jfrog.user="$JFROG_USER" --set jfrog.token="$JFROG_TOKEN")
+    helm_repo_args=(--username "$JFROG_USER" --password "$JFROG_TOKEN")
   fi
 
   
