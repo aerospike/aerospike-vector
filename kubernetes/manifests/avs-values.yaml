@@ -55,6 +55,7 @@ serviceAccount:
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
+
 multiPodPerHost: false
 
 service:
