@@ -40,8 +40,10 @@ aerospikeVectorSearchConfig:
 aerospikeVectorSearchNodeRoles:
   query-nodes:
     - query
-  index-update-nodes:
+  indexer-nodes:
     - index-update
+  standalone-nodes:
+    - standalone-indexer
   default-nodes:
     - query
     - index-update
@@ -54,15 +56,16 @@ securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
 
+multiPodPerHost: false
+
 service:
-  enabled: true
-  type: NodePort
-  externalTrafficPolicy: Local 
+  enabled: false
+  type: ClusterIP
   ports:
-    - name: "svc-5000"
+    - name: "svc-port"
       port: 5000
       targetPort: 5000
-      nodePort: 30036
+
 
 initContainer:
    image:
