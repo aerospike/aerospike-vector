@@ -573,46 +573,16 @@ setup_monitoring() {
 
 print_final_instructions() {
 
-    echo Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec.
+    echo "Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec."
 
-    if [[ "${RUN_INSECURE}" != 1 ]]; then
-        echo "connect with asvec using cert "
-        cat $BUILD_DIR/certs/ca.aerospike.com.pem
-        echo Use the asvec tool to change your password with 
-        echo asvec -h  $REVERSE_DNS_AVS:5000  --tls-cafile path/to/tls/file  -U admin -P admin  user new-password --name admin --new-password your-new-password
+    echo "Use the asvec tool to change your password with"
+    echo -n asvec nodes ls --seeds "$(kubectl get nodes --selector=aerospike.io/node-pool=avs --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')"
+if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
+        echo " --tls-cafile $BUILD_DIR/certs/ca.aerospike.com.pem --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local --credentials admin:admin"
+        echo "note: the ca file will be overwritten if the script is re run so copy it over to a safe location"
     fi
-
-    if [[ "${RUN_INSECURE}" == 1 ]] ; then
-      echo asvec nodes ls --seeds "$(
-        kubectl get nodes \
-          --selector=aerospike.io/node-pool=avs \
-          --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}'
-      ):$(
-        kubectl get svc avs-app-aerospike-vector-search \
-          --namespace avs \
-          --output=jsonpath='{.spec.ports[0].nodePort}'
-      )"
-    fi
-
-
-    if [[ "${RUN_INSECURE}" == 0 ]]; then
-      echo asvec nodes ls --seeds "$(
-        kubectl get nodes \
-          --selector=aerospike.io/node-pool=avs \
-          --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}'
-      ):$(
-        kubectl get svc avs-app-aerospike-vector-search \
-          --namespace avs \
-          --output=jsonpath='{.spec.ports[0].nodePort}'
-      )" \
-        --tls-cafile path/to/tls/file \
-        --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local \
-        --credentials admin:admin
-
-    fi
-
     echo "Setup Complete!"
-    
+
 }
 #This script runs in this order.
 main() {
