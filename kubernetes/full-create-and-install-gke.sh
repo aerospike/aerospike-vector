@@ -15,7 +15,7 @@ PROJECT_ID="$(gcloud config get-value project)"
 USERNAME=$(whoami)
 CHART_VERSION="1.1.0"
 REVERSE_DNS_AVS=""
-
+IMAGE_TAG=""
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"
@@ -32,6 +32,7 @@ usage() {
     echo "Options:"
     echo "  --chart-location, -l <path>           If specified, uses a local directory for AVS Helm chart (default: official repo)"
     echo "  --cluster-name, -c <name>             Override the default cluster name"
+    echo "  --image-tag, -g <tag>                 Docker image tag for AVS (default: chart default)"
     echo "  --jfrog-user, -u <name>               JFrog username for pulling unpublished images"
     echo "  --jfrog-token, -t <token>             JFrog token for pulling unpublished images"
     echo "  --jfrog-helm-repo, -H <repo_url>      JFrog Helm repository URL (e.g. https://.../helm/<repo>)"
@@ -57,6 +58,10 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --cluster-name|-c)
             CLUSTER_NAME_OVERRIDE="$2"
+            shift 2
+            ;;
+        --image-tag|-g)
+            IMAGE_TAG="$2"
             shift 2
             ;;
         --jfrog-user|-u)
@@ -121,7 +126,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 
-
 # Function to print environment variables for verification
 print_env() {
     echo "Environment Variables:"
@@ -131,6 +135,7 @@ print_env() {
     echo "export NODE_POOL_NAME_AVS=$NODE_POOL_NAME_AVS"
     echo "CHART_LOCATION       = ${CHART_LOCATION:-'(not specified)'}"
     echo "CLUSTER_NAME_OVERRIDE= ${CLUSTER_NAME_OVERRIDE:-'(not specified)'}"
+    echo "IMAGE_TAG            = ${IMAGE_TAG:-'(not specified)'}"
     echo "JFROG_USER           = ${JFROG_USER:-'(not specified)'}"
     echo "JFROG_TOKEN          = ${JFROG_TOKEN:-'(not specified)'}"
     echo "MACHINE_TYPE         = ${MACHINE_TYPE:-$DEFAULT_MACHINE_TYPE}"
@@ -163,6 +168,12 @@ set_env_variables() {
     export NUM_INDEX_NODES="${NUM_INDEX_NODES:-${DEFAULT_NUM_INDEX_NODES}}"
     export NUM_STANDALONE_NODES="${NUM_STANDALONE_NODES:-${DEFAULT_NUM_STANDALONE_NODES}}"
     export NUM_AEROSPIKE_NODES="${NUM_AEROSPIKE_NODES:-${DEFAULT_NUM_AEROSPIKE_NODES}}"
+    # Adjust NUM_AVS_NODES to be the sum of standalone, query, and index nodes if that total exceeds the current NUM_AVS_NODES value
+    if [[ $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) -gt $NUM_AVS_NODES ]]; then
+        NUM_AVS_NODES=$((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES))
+        echo "NUM_AVS_NODES adjusted to: $NUM_AVS_NODES (the sum of standalone, query, and index nodes)"
+
+    fi
 
 }
 
@@ -545,7 +556,9 @@ deploy_avs_helm_chart() {
     helm_repo_args=(--username "$JFROG_USER" --password "$JFROG_TOKEN")
   fi
 
-  
+  if [[ -n $IMAGE_TAG ]]; then
+    helm_set_args+=(--set image.tag="$IMAGE_TAG")
+  fi
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
