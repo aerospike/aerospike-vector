@@ -89,17 +89,14 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --num-standalone-nodes|-d)
             NUM_STANDALONE_NODES="$2"
-            NODE_TYPES=1
             shift 2
             ;;
         --num-query-nodes|-q)
             NUM_QUERY_NODES="$2"
-            NODE_TYPES=1
             shift 2
             ;;
         --num-index-nodes|-i)
             NUM_INDEX_NODES="$2"
-            NODE_TYPES=1
             shift 2
             ;;
         --num-aerospike-nodes|-s)
@@ -492,12 +489,6 @@ setup_avs() {
 
 }
 
-get_reverse_dns() {
-    INGRESS_IP=$(kubectl get svc istio-ingress -n istio-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    REVERSE_DNS_AVS=$(dig +short -x $INGRESS_IP)
-    echo "Reverse DNS: $REVERSE_DNS_AVS"
-}
-
 label_avs_nodes() {
   echo "Labeling AVS nodes..."
 
@@ -575,9 +566,9 @@ print_final_instructions() {
 
     echo "Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec."
 
-    echo "Use the asvec tool to change your password with"
+    echo "Use the asvec tool to get information about and administrate your AVS cluster"
     echo -n asvec nodes ls --seeds "$(kubectl get nodes --selector=aerospike.io/node-pool=avs --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')"
-if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
+    if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
         echo " --tls-cafile $BUILD_DIR/certs/ca.aerospike.com.pem --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local --credentials admin:admin"
         echo "note: the ca file will be overwritten if the script is re run so copy it over to a safe location"
     fi
@@ -591,7 +582,7 @@ main() {
     reset_build
     create_gke_cluster
     create_namespaces
-    if [[ "${RUN_INSECURE}" != 1 ]]; then
+    if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
         generate_certs
     fi
     setup_aerospike
