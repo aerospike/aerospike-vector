@@ -567,6 +567,7 @@ deploy_avs_helm_chart() {
     --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
+    --set replicaCount="$NUM_AVS_NODES" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
 }
