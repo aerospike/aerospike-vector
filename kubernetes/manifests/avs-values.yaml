@@ -42,7 +42,7 @@ aerospikeVectorSearchNodeRoles:
     - query
   indexer-nodes:
     - index-update
-  standalone-nodes:
+  standalone-indexer-nodes:
     - standalone-indexer
   default-nodes:
     - query
