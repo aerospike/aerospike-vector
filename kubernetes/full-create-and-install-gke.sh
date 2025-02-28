@@ -474,7 +474,10 @@ setup_aerospike() {
 
     if ! kubectl get ns olm &> /dev/null; then
         echo "Installing OLM..."
-        curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.31.0/install.sh | bash -s v0.31.0
+        if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.31.0/install.sh | bash -s v0.31.0; then
+            echo "Error: Failed to install OLM"
+            exit 1
+        fi
     else
         echo "OLM is already installed in olm namespace. Skipping installation."
     fi
@@ -482,41 +485,87 @@ setup_aerospike() {
     # Check if the subscription already exists
     if ! kubectl get subscription my-aerospike-kubernetes-operator --namespace operators &> /dev/null; then
         echo "Installing AKO subscription..."
-        kubectl create -f https://operatorhub.io/install/aerospike-kubernetes-operator.yaml
+        if ! kubectl create -f https://operatorhub.io/install/aerospike-kubernetes-operator.yaml; then
+            echo "Error: Failed to create AKO subscription"
+            exit 1
+        fi
     else
         echo "AKO subscription already exists. Skipping installation."
     fi
 
-
     echo "Waiting for AKO to be ready..."
+    local timeout=300  # 5 minutes timeout
+    local interval=10  # Check every 10 seconds
+    local elapsed=0
+    
     while true; do
         if kubectl --namespace operators get deployment/aerospike-operator-controller-manager &> /dev/null; then
-            echo "AKO is ready."
-            kubectl --namespace operators wait \
-            --for=condition=available --timeout=180s deployment/aerospike-operator-controller-manager
-            break
+            echo "AKO deployment found, checking readiness..."
+            if kubectl --namespace operators wait --for=condition=available --timeout=30s deployment/aerospike-operator-controller-manager; then
+                echo "AKO is ready."
+                break
+            fi
         else
-            echo "AKO setup is still in progress..."
-            sleep 10
+            echo "AKO setup is still in progress... (${elapsed}s elapsed)"
         fi
+        
+        elapsed=$((elapsed + interval))
+        if [ "$elapsed" -ge "$timeout" ]; then
+            echo "Error: Timeout waiting for AKO to be ready"
+            exit 1
+        fi
+        sleep $interval
     done
 
     echo "Granting permissions to the target namespace..."
-    kubectl --namespace aerospike create serviceaccount aerospike-operator-controller-manager
+    kubectl --namespace aerospike create serviceaccount aerospike-operator-controller-manager || true
     kubectl create clusterrolebinding aerospike-cluster \
-        --clusterrole=aerospike-cluster --serviceaccount=aerospike:aerospike-operator-controller-manager
+        --clusterrole=aerospike-cluster --serviceaccount=aerospike:aerospike-operator-controller-manager || true
 
     echo "Setting secrets for Aerospike cluster..."
-    kubectl --namespace aerospike create secret generic aerospike-secret --from-file="$BUILD_DIR/secrets"
-    kubectl --namespace aerospike create secret generic auth-secret --from-literal=password='admin123'
-    kubectl --namespace aerospike create secret generic aerospike-tls \
-        --from-file="$BUILD_DIR/certs"
+    kubectl --namespace aerospike create secret generic aerospike-secret --from-file="$BUILD_DIR/secrets" || true
+    kubectl --namespace aerospike create secret generic auth-secret --from-literal=password='admin123' || true
+    if [[ "${RUN_INSECURE}" != 1 ]]; then
+        kubectl --namespace aerospike create secret generic aerospike-tls \
+            --from-file="$BUILD_DIR/certs" || true
+    fi
 
     echo "Adding storage class..."
     kubectl apply -f https://raw.githubusercontent.com/aerospike/aerospike-kubernetes-operator/master/config/samples/storage/gce_ssd_storage_class.yaml
 
     echo "Deploying Aerospike cluster..."
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
+
+    echo "Waiting for Aerospike cluster to be ready..."
+    local timeout=600  # 10 minutes timeout
+    local elapsed=0
+    
+    while true; do
+        if kubectl get aerospikecluster -n aerospike aerocluster -o jsonpath='{.status.phase}' 2>/dev/null | grep -q "Running"; then
+            echo "Aerospike cluster is running."
+            break
+        fi
+        
+        echo "Waiting for Aerospike cluster to be ready... (${elapsed}s elapsed)"
+        
+        # Check for any errors in the status
+        local status=$(kubectl get aerospikecluster -n aerospike aerocluster -o jsonpath='{.status.phase}' 2>/dev/null)
+        if [[ "$status" == "Failed" ]]; then
+            echo "Error: Aerospike cluster deployment failed"
+            kubectl describe aerospikecluster -n aerospike aerocluster
+            exit 1
+        fi
+        
+        elapsed=$((elapsed + interval))
+        if [ "$elapsed" -ge "$timeout" ]; then
+            echo "Error: Timeout waiting for Aerospike cluster to be ready"
+            kubectl describe aerospikecluster -n aerospike aerocluster
+            exit 1
+        fi
+        sleep $interval
+    done
+
+    echo "Aerospike setup completed successfully"
 }
 
 # Function to setup AVS node pool and namespace
