@@ -451,13 +451,23 @@ create_gke_cluster() {
     create_node_pool "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack" true
 
     # Create AVS node pools
-    [ "$NUM_STANDALONE_NODES" -gt 0 ] && create_node_pool "avs-standalone-pool" "$NUM_STANDALONE_NODES" "standalone-indexer-nodes"
-    [ "$NUM_QUERY_NODES" -gt 0 ] && create_node_pool "avs-query-pool" "$NUM_QUERY_NODES" "query-nodes"
-    [ "$NUM_INDEX_NODES" -gt 0 ] && create_node_pool "avs-index-pool" "$NUM_INDEX_NODES" "indexer-nodes"
+    if [ "$NUM_STANDALONE_NODES" -gt 0 ]; then
+        create_node_pool "avs-standalone-pool" "$NUM_STANDALONE_NODES" "standalone-indexer-nodes"
+    fi
+    
+    if [ "$NUM_QUERY_NODES" -gt 0 ]; then
+        create_node_pool "avs-query-pool" "$NUM_QUERY_NODES" "query-nodes"
+    fi
+    
+    if [ "$NUM_INDEX_NODES" -gt 0 ]; then
+        create_node_pool "avs-index-pool" "$NUM_INDEX_NODES" "indexer-nodes"
+    fi
 
     # Create mixed nodes pool if needed
     local mixed_nodes=$((NUM_AVS_NODES - NUM_STANDALONE_NODES - NUM_QUERY_NODES - NUM_INDEX_NODES))
-    [ "$mixed_nodes" -gt 0 ] && create_node_pool "avs-mixed-pool" "$mixed_nodes" "default-nodes"
+    if [ "$mixed_nodes" -gt 0 ]; then
+        create_node_pool "avs-mixed-pool" "$mixed_nodes" "default-nodes"
+    fi
 }
 
 create_namespaces() {
@@ -465,10 +475,20 @@ create_namespaces() {
     kubectl create namespace avs || true
 }
 
+create_if_not_exists() {
+    output=$("$@" 2>&1) || {
+        if ! grep -q "already exists" <<<"$output"; then
+            echo "$output" >&2  # Print error if it's not "already exists"
+            return 1
+        fi
+        echo "ignoring already exists error."
+    }
+    return 0
+}
+
 setup_aerospike() {
     echo "Setting up namespaces..."
-
-    kubectl create namespace aerospike || true  # Idempotent namespace creation
+    create_if_not_exists kubectl create namespace aerospike
 
     echo "Deploying Aerospike Kubernetes Operator (AKO)..."
 
@@ -518,16 +538,16 @@ setup_aerospike() {
     done
 
     echo "Granting permissions to the target namespace..."
-    kubectl --namespace aerospike create serviceaccount aerospike-operator-controller-manager || true
-    kubectl create clusterrolebinding aerospike-cluster \
-        --clusterrole=aerospike-cluster --serviceaccount=aerospike:aerospike-operator-controller-manager || true
+    create_if_not_exists kubectl --namespace aerospike create serviceaccount aerospike-operator-controller-manager
+    create_if_not_exists kubectl create clusterrolebinding aerospike-cluster \
+        --clusterrole=aerospike-cluster --serviceaccount=aerospike:aerospike-operator-controller-manager
 
     echo "Setting secrets for Aerospike cluster..."
-    kubectl --namespace aerospike create secret generic aerospike-secret --from-file="$BUILD_DIR/secrets" || true
-    kubectl --namespace aerospike create secret generic auth-secret --from-literal=password='admin123' || true
+    create_if_not_exists kubectl --namespace aerospike create secret generic aerospike-secret --from-file="$BUILD_DIR/secrets"
+    create_if_not_exists kubectl --namespace aerospike create secret generic auth-secret --from-literal=password='admin123'
     if [[ "${RUN_INSECURE}" != 1 ]]; then
-        kubectl --namespace aerospike create secret generic aerospike-tls \
-            --from-file="$BUILD_DIR/certs" || true
+        create_if_not_exists kubectl --namespace aerospike create secret generic aerospike-tls \
+            --from-file="$BUILD_DIR/certs"
     fi
 
     echo "Adding storage class..."
@@ -537,32 +557,28 @@ setup_aerospike() {
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
 
     echo "Waiting for Aerospike cluster to be ready..."
-    local timeout=600  # 10 minutes timeout
+    local timeout=600
     local elapsed=0
-    
+
     while true; do
-        if kubectl get aerospikecluster -n aerospike aerocluster -o jsonpath='{.status.phase}' 2>/dev/null | grep -q "Running"; then
-            echo "Aerospike cluster is running."
+        status=$(kubectl get aerospikecluster -n aerospike aerocluster -o 'jsonpath={.status.phase}' 2>/dev/null)
+        if [[ "$status" == "Completed" ]]; then
+            echo "Aerospike cluster is ready (status: Completed)"
             break
-        fi
-        
-        echo "Waiting for Aerospike cluster to be ready... (${elapsed}s elapsed)"
-        
-        # Check for any errors in the status
-        local status=$(kubectl get aerospikecluster -n aerospike aerocluster -o jsonpath='{.status.phase}' 2>/dev/null)
-        if [[ "$status" == "Failed" ]]; then
+        elif [[ "$status" == "Failed" ]]; then
             echo "Error: Aerospike cluster deployment failed"
             kubectl describe aerospikecluster -n aerospike aerocluster
             exit 1
         fi
         
-        elapsed=$((elapsed + interval))
+        echo "Waiting for Aerospike cluster to be ready... ($elapsed seconds elapsed)"
+        elapsed=$((elapsed + 10))
         if [ "$elapsed" -ge "$timeout" ]; then
             echo "Error: Timeout waiting for Aerospike cluster to be ready"
             kubectl describe aerospikecluster -n aerospike aerocluster
             exit 1
         fi
-        sleep $interval
+        sleep 10
     done
 
     echo "Aerospike setup completed successfully"
@@ -686,10 +702,38 @@ create_node_pool() {
         "${ssd_args[@]}"
 
     echo "Labeling $pool_name nodes..."
+    local label_value
+    if [[ "$node_role" == "default-rack" ]]; then
+        label_value="default-rack"
+    else
+        label_value="avs"
+    fi
+
     kubectl get nodes -l cloud.google.com/gke-nodepool=$pool_name -o name | \
         xargs -I '{}' kubectl label '{}' \
-            aerospike.io/node-pool=$node_role \
+            aerospike.io/node-pool=$label_value \
             aerospike.io/role-label=$node_role --overwrite
+
+    echo "Waiting for nodes in pool $pool_name to be ready..."
+    local timeout=300
+    local interval=10
+    local elapsed=0
+    
+    while true; do
+        if kubectl get nodes -l cloud.google.com/gke-nodepool=$pool_name --no-headers 2>/dev/null | grep -q "Ready"; then
+            echo "Nodes in pool $pool_name are ready"
+            break
+        fi
+        
+        echo "Waiting for nodes to be ready... (${elapsed}s elapsed)"
+        elapsed=$((elapsed + interval))
+        if [ "$elapsed" -ge "$timeout" ]; then
+            echo "Error: Timeout waiting for nodes to be ready in pool $pool_name"
+            kubectl describe nodes -l cloud.google.com/gke-nodepool=$pool_name
+            return 1
+        fi
+        sleep $interval
+    done
 }
 
 validate_inputs() {
@@ -752,6 +796,25 @@ main() {
     deploy_avs_helm_chart
     setup_monitoring
     print_final_instructions
+}
+
+# Add this function for error handling
+handle_error() {
+    local exit_code=$?
+    local line_number=$1
+    echo "Error: Command failed with exit code $exit_code at line $line_number" >&2
+    
+    # Get the last few lines of kubectl logs if available
+    if command -v kubectl &> /dev/null; then
+        echo "Recent events:"
+        kubectl get events --sort-by='.lastTimestamp' --namespace aerospike 2>/dev/null | tail -n 5 || true
+        kubectl get events --sort-by='.lastTimestamp' --namespace avs 2>/dev/null | tail -n 5 || true
+        
+        echo "Pod status:"
+        kubectl get pods -A 2>/dev/null || true
+    fi
+    
+    exit $exit_code
 }
 
 main
