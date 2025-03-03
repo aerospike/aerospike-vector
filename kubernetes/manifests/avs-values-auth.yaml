@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 0 # must be set externally
 aerospikeVectorSearchConfig:
   cluster:
     cluster-name: "avs-db-1"
@@ -91,7 +91,7 @@ aerospikeVectorSearchNodeRoles:
     - query
   indexer-nodes:
     - index-update
-  standalone-nodes:
+  standalone-indexer-nodes:
     - standalone-indexer
   default-nodes:
     - query
