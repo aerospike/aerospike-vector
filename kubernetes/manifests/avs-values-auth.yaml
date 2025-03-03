@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 0 # must be set externally
 aerospikeVectorSearchConfig:
   cluster:
     cluster-name: "avs-db-1"
@@ -7,8 +7,6 @@ aerospikeVectorSearchConfig:
     metadata-namespace: "avs-meta"
     ports:
       5000:
-        addresses:
-          "0.0.0.0"
         tls-id: service-tls
   manage:
     ports:
@@ -16,7 +14,7 @@ aerospikeVectorSearchConfig:
 
   heartbeat:
     seeds:
-      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search.avs.svc.cluster.local
+      - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
         port: 5001
   interconnect:
     client-tls-id: interconnect-tls
@@ -33,7 +31,6 @@ aerospikeVectorSearchConfig:
         password-file: "/etc/aerospike-vector-search/secrets/aerospike-password.txt"
     seeds:
       - aerocluster-0-0.aerocluster.aerospike.svc.cluster.local:
-#          port: 3000
           port: 4333
           tls-name: "asd.aerospike.com"
   security:
@@ -74,6 +71,7 @@ aerospikeVectorSearchConfig:
         store-password-file: "/etc/ssl/certs/storepass"
         key-password-file: "/etc/ssl/certs/keypass"
 #      override-tls-hostname: "asd.aerospike.com"
+
   logging:
     #    file: /var/log/aerospike-vector-search/aerospike-vector-search.log
     enable-console-logging: false
@@ -84,14 +82,49 @@ aerospikeVectorSearchConfig:
       root: info
     ticker-interval: 10
 
+
+serviceAccount:
+  create: true
+
+aerospikeVectorSearchNodeRoles:
+  query-nodes:
+    - query
+  indexer-nodes:
+    - index-update
+  standalone-indexer-nodes:
+    - standalone-indexer
+  default-nodes:
+    - query
+    - index-update
+
 securityContext:
   allowPrivilegeEscalation: false
   runAsUser: 0
+
+## multiPodPerHost controls if connections will be made directly to the host. Some deployments might benefit from the default configuration and use NodePort 
+## for external access if it is needed.
+## Only set multipodPerHost: false if this host networking is desired
+multiPodPerHost: false
+service:
+  enabled: false
+  type: ClusterIP
+  ports:
+    - name: "svc-port"
+      port: 5000
+      targetPort: 5000
+
+
+initContainer:
+   image:
+     repository: aerospike.jfrog.io/container/avs-init-container
+     pullPolicy: Always
+
 image:
   repository: "aerospike/aerospike-vector-search"
   pullPolicy: "IfNotPresent"
   # Overrides the image tag whose default is the chart appVersion.
   tag: "1.0.0"
+
 extraSecretVolumeMounts:
   - name: aerospike-tls
     mountPath: "/etc/ssl/certs"
@@ -102,12 +135,14 @@ extraVolumes:
     secret:
       secretName: aerospike-tls
       optional: false
+
+
 affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.com/node-pool
+          - key: aerospike.io/node-pool
             operator: In
             values:
             - "avs"
