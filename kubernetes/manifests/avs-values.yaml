@@ -79,7 +79,7 @@ image:
 
 extraSecretVolumeMounts:
   - name: aerospike-tls
-    mountPath: "/etc/ssl/certs"
+    mountPath: "/etc/ssl/certs/"
     readOnly: true
 
 extraVolumes:

@@ -5,7 +5,18 @@
 # deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
 
 #!/usr/bin/env bash
+
+# Create unique log file in /tmp using username and project
+LOG_FILE="/tmp/avs-setup-${USERNAME}-${PROJECT_ID}-$(date +%Y%m%d_%H%M%S)-$$.log"
+# Set up logging - capture all stdout and stderr to file while still showing on console
+exec 1> >(tee "${LOG_FILE}")
+exec 2>&1
+
+echo "Logging to ${LOG_FILE}"
+
 set -eo pipefail
+# Add line numbers to debug output by modifying PS4
+export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 if [ -n "$DEBUG" ]; then set -x; fi
 trap 'echo "Error: $? at line $LINENO" >&2' ERR
 
@@ -545,7 +556,13 @@ deploy_avs_helm_chart() {
     helm_repo_args=(--username "$JFROG_USER" --password "$JFROG_TOKEN")
   fi
 
-  
+  if [[ -n $IMAGE_TAG ]]; then
+    helm_set_args+=(--set image.tag="$IMAGE_TAG")
+  fi
+
+  # Set logging level
+  helm_set_args+=(--set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL")
+
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
