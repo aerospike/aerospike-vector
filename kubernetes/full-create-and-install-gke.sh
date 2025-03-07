@@ -560,9 +560,6 @@ deploy_avs_helm_chart() {
     helm_set_args+=(--set image.tag="$IMAGE_TAG")
   fi
 
-  # Set logging level
-  helm_set_args+=(--set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL")
-
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
@@ -571,6 +568,8 @@ deploy_avs_helm_chart() {
     --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
+    --set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL" \
+    --set javaOpts="-XX:+UseContainerSupport -XX:MaxRAMPercentage=90.0 -XX:InitialRAMPercentage=60.0" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
 }
