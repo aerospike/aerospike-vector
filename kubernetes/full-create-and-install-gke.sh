@@ -10,7 +10,7 @@
 LOG_FILE="/tmp/avs-setup-${USERNAME}-${PROJECT_ID}-$(date +%Y%m%d_%H%M%S)-$$.log"
 # Set up logging - capture all stdout and stderr to file while still showing on console
 exec 1> >(tee "${LOG_FILE}")
-exec 2>&1
+exec 2> >(tee "${LOG_FILE}_err" >&2)
 
 echo "Logging to ${LOG_FILE}"
 
@@ -30,7 +30,7 @@ IMAGE_TAG=""
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"       # 4 vCPU, 16GB memory - AMD-based general purpose, good price/performance ratio
-DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-16"  # 16 vCPU, 64GB memory - Intel-based compute optimized, highest per-core performance
+DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-40"  # 40 vCPU, 160GB memory - Intel-based compute optimized, highest per-core performance
 DEFAULT_QUERY_MACHINE_TYPE="n2-standard-16"      # 16 vCPU, 64GB memory - Intel-based balanced performance, good for query processing
 DEFAULT_INDEX_MACHINE_TYPE="e2-standard-4"       # 4 vCPU, 16GB memory - Cost-optimized general purpose, good for lighter workloads
 DEFAULT_DEFAULT_MACHINE_TYPE="n2d-standard-4"    # 4 vCPU, 16GB memory - AMD-based general purpose, default for mixed workloads
