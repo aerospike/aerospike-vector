@@ -5,7 +5,18 @@
 # deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
 
 #!/usr/bin/env bash
+
+# Create unique log file in /tmp using username and project
+LOG_FILE="/tmp/avs-setup-${USERNAME}-${PROJECT_ID}-$(date +%Y%m%d_%H%M%S)-$$.log"
+# Set up logging - capture all stdout and stderr to file while still showing on console
+exec 1> >(tee "${LOG_FILE}")
+exec 2> >(tee "${LOG_FILE}_err" >&2)
+
+echo "Logging to ${LOG_FILE}"
+
 set -eo pipefail
+# Add line numbers to debug output by modifying PS4
+export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 if [ -n "$DEBUG" ]; then set -x; fi
 trap 'echo "Error: $? at line $LINENO" >&2' ERR
 
@@ -19,7 +30,7 @@ IMAGE_TAG=""
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"       # 4 vCPU, 16GB memory - AMD-based general purpose, good price/performance ratio
-DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-16"  # 16 vCPU, 64GB memory - Intel-based compute optimized, highest per-core performance
+DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-40"  # 40 vCPU, 160GB memory - Intel-based compute optimized, highest per-core performance
 DEFAULT_QUERY_MACHINE_TYPE="n2-standard-16"      # 16 vCPU, 64GB memory - Intel-based balanced performance, good for query processing
 DEFAULT_INDEX_MACHINE_TYPE="e2-standard-4"       # 4 vCPU, 16GB memory - Cost-optimized general purpose, good for lighter workloads
 DEFAULT_DEFAULT_MACHINE_TYPE="n2d-standard-4"    # 4 vCPU, 16GB memory - AMD-based general purpose, default for mixed workloads
@@ -618,9 +629,6 @@ deploy_avs_helm_chart() {
     helm_set_args+=(--set image.tag="$IMAGE_TAG")
   fi
 
-  # Set logging level
-  helm_set_args+=(--set logging.levels.root="$LOG_LEVEL")
-
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
@@ -629,6 +637,8 @@ deploy_avs_helm_chart() {
     --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
+    --set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL" \
+    --set javaOpts="-XX:+UseContainerSupport -XX:MaxRAMPercentage=90.0 -XX:InitialRAMPercentage=60.0" \
     --set replicaCount="$NUM_AVS_NODES" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
