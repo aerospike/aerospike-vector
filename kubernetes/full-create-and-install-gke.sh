@@ -638,7 +638,8 @@ deploy_avs_helm_chart() {
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
     --set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL" \
-    --set javaOpts="-XX:+UseContainerSupport -XX:MaxRAMPercentage=90.0 -XX:InitialRAMPercentage=60.0" \
+    --set "env[0].name=JAVA_TOOL_OPTIONS" \
+    --set "env[0].value=-XX:+UseContainerSupport -XX:MaxRAMPercentage=90.0 -XX:InitialRAMPercentage=60.0" \
     --set replicaCount="$NUM_AVS_NODES" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"

@@ -6,6 +6,13 @@
 
 #!/usr/bin/env bash
 
+# Add after the shebang and before the logging setup
+set -eo pipefail
+# Add line numbers to debug output by modifying PS4
+export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+if [ -n "$DEBUG" ]; then set -x; fi
+trap 'handle_error ${LINENO}' ERR
+
 # Create unique log file in /tmp using username and project
 LOG_FILE="/tmp/avs-setup-${USER}-$(date +%Y%m%d_%H%M%S)-$$.log"
 # Set up logging - capture all stdout and stderr to file while still showing on console
@@ -13,12 +20,6 @@ exec 1> >(tee "${LOG_FILE}")
 exec 2> >(tee "${LOG_FILE}_err")
 
 echo "Logging to ${LOG_FILE}"
-
-set -eo pipefail
-# Add line numbers to debug output by modifying PS4
-export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-if [ -n "$DEBUG" ]; then set -x; fi
-trap 'echo "Error: $? at line $LINENO" >&2' ERR
 
 WORKSPACE="$(pwd)"
 USERNAME=$(whoami)
@@ -663,9 +664,6 @@ deploy_avs_helm_chart() {
     helm_set_args+=(--set image.tag="$IMAGE_TAG")
   fi
 
-  # Set logging level
-  helm_set_args+=(--set aerospikeVectorSearchConfiglogging.levels.root="$LOG_LEVEL")
-
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
@@ -674,6 +672,9 @@ deploy_avs_helm_chart() {
     --set imagePullSecrets[0].name=jfrog-secret \
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
+    --set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL" \
+    --set "env[0].name=JAVA_TOOL_OPTIONS" \
+    --set "env[0].value=-XX:+UseContainerSupport -XX:MaxRAMPercentage=90.0 -XX:InitialRAMPercentage=60.0" \
     --set replicaCount="$NUM_AVS_NODES" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
@@ -749,9 +750,26 @@ create_node_pool() {
         label_value="avs"
     fi
 
-    # Wait for nodes to be ready before labeling
-    echo "Waiting for nodes to be ready..."
-    sleep 30  # Give some time for nodes to register
+    echo "Waiting for nodes in pool $pool_name to be ready..."
+    local timeout=300
+    local interval=10
+    local elapsed=0
+    
+    while true; do
+        if kubectl get nodes -l agentpool=${pool_name//-/} --no-headers 2>/dev/null | grep -q "Ready"; then
+            echo "Nodes in pool $pool_name are ready"
+            break
+        fi
+        
+        echo "Waiting for nodes to be ready... (${elapsed}s elapsed)"
+        elapsed=$((elapsed + interval))
+        if [ "$elapsed" -ge "$timeout" ]; then
+            echo "Error: Timeout waiting for nodes to be ready in pool $pool_name"
+            kubectl describe nodes -l agentpool=${pool_name//-/}
+            return 1
+        fi
+        sleep $interval
+    done
 
     kubectl get nodes -l agentpool=${pool_name//-/} -o name | \
         xargs -I '{}' kubectl label '{}' \
@@ -774,8 +792,43 @@ validate_inputs() {
         errors=$((errors + 1))
     fi
 
+    # Validate node counts
     if [[ "$NUM_AVS_NODES" -lt $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) ]]; then
         echo "Error: Total of standalone ($NUM_STANDALONE_NODES), query ($NUM_QUERY_NODES), and index ($NUM_INDEX_NODES) nodes exceeds NUM_AVS_NODES ($NUM_AVS_NODES)"
+        errors=$((errors + 1))
+    fi
+
+    # Validate machine types exist in Azure
+    local machine_types=("$MACHINE_TYPE" "$STANDALONE_MACHINE_TYPE" "$QUERY_MACHINE_TYPE" "$INDEX_MACHINE_TYPE")
+    for vm_size in "${machine_types[@]}"; do
+        if ! az vm list-sizes -l "$LOCATION" --query "[?name=='$vm_size']" -o tsv &> /dev/null; then
+            echo "Error: Machine type $vm_size is not available in location $LOCATION"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Check resource quotas
+    local total_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES))
+    local quota_check=$(az vm list-usage -l "$LOCATION" --query "[?name.value=='standardDSv3Family'].currentValue" -o tsv)
+    local quota_limit=$(az vm list-usage -l "$LOCATION" --query "[?name.value=='standardDSv3Family'].limit" -o tsv)
+    
+    if [[ -n "$quota_check" && -n "$quota_limit" ]]; then
+        if (( quota_check + total_nodes > quota_limit )); then
+            echo "Warning: Total requested nodes ($total_nodes) may exceed your quota limit ($quota_limit)"
+            echo "Current usage: $quota_check"
+            echo "Please verify your quota in Azure portal"
+        fi
+    fi
+
+    # Validate cluster name
+    if [[ ! "$CLUSTER_NAME" =~ ^[a-z0-9][-a-z0-9]*[a-z0-9]$ ]]; then
+        echo "Error: Cluster name '$CLUSTER_NAME' must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"
+        errors=$((errors + 1))
+    fi
+
+    # Validate resource group name doesn't already exist if not in cleanup mode
+    if [[ "${CLEANUP}" != 1 ]] && az group exists --name "$RESOURCE_GROUP" &> /dev/null; then
+        echo "Error: Resource group '$RESOURCE_GROUP' already exists. Please use a different name or run with --cleanup first"
         errors=$((errors + 1))
     fi
 
@@ -788,9 +841,63 @@ validate_inputs() {
 cleanup() {
     echo "Cleaning up resources..."
     
+    # First try to clean up Helm releases
+    if command -v helm &> /dev/null && kubectl get namespace avs &> /dev/null; then
+        echo "Removing Helm releases..."
+        helm uninstall avs-app -n avs || true
+        helm uninstall monitoring-stack -n monitoring || true
+    fi
+
+    # Try to remove namespaces
+    echo "Removing namespaces..."
+    kubectl delete namespace avs --timeout=60s || true
+    kubectl delete namespace aerospike --timeout=60s || true
+    kubectl delete namespace monitoring --timeout=60s || true
+
     # Delete the entire resource group
     echo "Deleting resource group $RESOURCE_GROUP..."
-    az group delete --name "$RESOURCE_GROUP" --yes --no-wait
+    if az group exists --name "$RESOURCE_GROUP"; then
+        echo "Deleting resource group and all resources..."
+        az group delete --name "$RESOURCE_GROUP" --yes --no-wait
+        echo "Resource group deletion initiated. This may take several minutes to complete."
+        echo "You can check the status in Azure portal or using:"
+        echo "az group show -n $RESOURCE_GROUP"
+    else
+        echo "Resource group $RESOURCE_GROUP not found. Nothing to delete."
+    fi
+}
+
+# Add error handling function
+handle_error() {
+    local exit_code=$?
+    local line_number=$1
+    echo "Error: Command failed with exit code $exit_code at line $line_number" >&2
+    
+    # Get the last few lines of kubectl logs if available
+    if command -v kubectl &> /dev/null; then
+        echo "Recent events:"
+        kubectl get events --sort-by='.lastTimestamp' --namespace aerospike 2>/dev/null | tail -n 5 || true
+        kubectl get events --sort-by='.lastTimestamp' --namespace avs 2>/dev/null | tail -n 5 || true
+        
+        echo "Pod status:"
+        kubectl get pods -A 2>/dev/null || true
+        
+        echo "Node status:"
+        kubectl get nodes 2>/dev/null || true
+        
+        echo "Resource usage:"
+        kubectl top nodes 2>/dev/null || true
+        kubectl top pods -A 2>/dev/null || true
+    fi
+
+    # Check Azure service health
+    if command -v az &> /dev/null; then
+        echo "Checking Azure service health..."
+        az monitor activity-log list --correlation-id "$CLUSTER_NAME" 2>/dev/null | \
+            jq -r '.[] | select(.level=="Error" or .level=="Critical") | .description' || true
+    fi
+    
+    exit $exit_code
 }
 
 #This script runs in this order.
@@ -815,25 +922,6 @@ main() {
     deploy_avs_helm_chart
     setup_monitoring
     print_final_instructions
-}
-
-# Add this function for error handling
-handle_error() {
-    local exit_code=$?
-    local line_number=$1
-    echo "Error: Command failed with exit code $exit_code at line $line_number" >&2
-    
-    # Get the last few lines of kubectl logs if available
-    if command -v kubectl &> /dev/null; then
-        echo "Recent events:"
-        kubectl get events --sort-by='.lastTimestamp' --namespace aerospike 2>/dev/null | tail -n 5 || true
-        kubectl get events --sort-by='.lastTimestamp' --namespace avs 2>/dev/null | tail -n 5 || true
-        
-        echo "Pod status:"
-        kubectl get pods -A 2>/dev/null || true
-    fi
-    
-    exit $exit_code
 }
 
 main
