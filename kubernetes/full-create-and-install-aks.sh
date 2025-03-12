@@ -4,22 +4,12 @@
 # It handles the creation of the AKS cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
 # deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
 
-#!/usr/bin/env bash
-
 # Add after the shebang and before the logging setup
 set -eo pipefail
 # Add line numbers to debug output by modifying PS4
 export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-if [ -n "$DEBUG" ]; then set -x; fi
+set -x;
 trap 'handle_error ${LINENO}' ERR
-
-# Create unique log file in /tmp using username and project
-LOG_FILE="/tmp/avs-setup-${USER}-$(date +%Y%m%d_%H%M%S)-$$.log"
-# Set up logging - capture all stdout and stderr to file while still showing on console
-exec 1> >(tee "${LOG_FILE}")
-exec 2> >(tee "${LOG_FILE}_err")
-
-echo "Logging to ${LOG_FILE}"
 
 WORKSPACE="$(pwd)"
 USERNAME=$(whoami)
@@ -81,7 +71,7 @@ while [[ "$#" -gt 0 ]]; do
             shift 2
             ;;
         --cluster-name|-c)
-            CLUSTER_NAME_OVERRIDE="$2"
+            CLUSTER_NAME="$2"
             shift 2
             ;;
         --image-tag|-g)
@@ -169,6 +159,32 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
+# After command line processing, set up cluster name and logging
+if [ -z "$CLUSTER_NAME" ]; then
+    CLUSTER_NAME="${USERNAME:-$(whoami)}-${DEFAULT_CLUSTER_NAME_SUFFIX:-avs}"
+fi
+
+# Create resource group name based on cluster name
+export RESOURCE_GROUP="${CLUSTER_NAME}-rg"
+
+# Create log directory if it doesn't exist
+LOG_DIR="/tmp/avs-logs"
+mkdir -p "$LOG_DIR"
+
+# Create unique log files with cluster name
+LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-$(date +%Y%m%d_%H%M%S)-$$"
+STDOUT_LOG="${LOG_PREFIX}.log"
+STDERR_LOG="${LOG_PREFIX}.err"
+
+# Set up logging
+# tee stdout to file while showing on console
+exec 1> >(tee "${STDOUT_LOG}")
+# redirect stderr to its own file
+exec 2> "${STDERR_LOG}"
+echo "Logging to:"
+echo "  stdout: ${STDOUT_LOG}"
+echo "  stderr: ${STDERR_LOG}"
+
 # Function to check if all required dependencies are installed
 check_dependencies() {
     local deps=("az" "kubectl" "helm" "openssl" "keytool" "curl" "jq")
@@ -223,13 +239,6 @@ print_env() {
 
 # Function to set environment variables
 set_env_variables() {
-    # Use provided cluster name or fallback to the default
-    if [ -n "$CLUSTER_NAME_OVERRIDE" ]; then
-        export CLUSTER_NAME="${USERNAME}-${CLUSTER_NAME_OVERRIDE}"
-    else
-        export CLUSTER_NAME="${USERNAME}-${DEFAULT_CLUSTER_NAME_SUFFIX}"
-    fi
-
     export NODE_POOL_NAME_AEROSPIKE="aerospike-pool"
     export NODE_POOL_NAME_AVS="avs-pool"
     export LOCATION="eastus"
@@ -246,9 +255,6 @@ set_env_variables() {
     export NUM_STANDALONE_NODES="${NUM_STANDALONE_NODES:-${DEFAULT_NUM_STANDALONE_NODES}}"
     export NUM_AEROSPIKE_NODES="${NUM_AEROSPIKE_NODES:-${DEFAULT_NUM_AEROSPIKE_NODES}}"
     export LOG_LEVEL="${LOG_LEVEL:-${DEFAULT_LOG_LEVEL}}"
-
-    # Create resource group name
-    export RESOURCE_GROUP="${CLUSTER_NAME}-rg"
 
     if [[ $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) -gt $NUM_AVS_NODES ]]; then
         NUM_AVS_NODES=$((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES))
@@ -467,14 +473,15 @@ generate_certs() {
 
 # Function to create AKS cluster
 create_aks_cluster() {
+    # Validate inputs before any resource creation
+    validate_inputs
+    
     if ! az aks show --name "$CLUSTER_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
         echo "Cluster $CLUSTER_NAME does not exist. Creating..."
     else
         echo "Error: Cluster $CLUSTER_NAME already exists. Please use a new cluster name or delete the existing cluster."
-        return
+        return 1
     fi
-    
-    validate_inputs
 
     # Create resource group
     echo "Creating resource group..."
@@ -485,9 +492,6 @@ create_aks_cluster() {
         --resource-group "$RESOURCE_GROUP" \
         --name "$CLUSTER_NAME" \
         --node-count 1 \
-        --enable-cluster-autoscaler \
-        --min-count 1 \
-        --max-count 5 \
         --node-vm-size "$MACHINE_TYPE"
 
     # Create Aerospike node pool
@@ -715,6 +719,31 @@ create_node_pool() {
     local node_role=$3
     local machine_type=$MACHINE_TYPE
 
+    # Convert pool name to valid AKS node pool name (max 12 chars, alphanumeric)
+    # Create clean abbreviations and ensure names are 6-12 chars
+    local aks_pool_name
+    case "$pool_name" in
+        "aerospike-pool")
+            aks_pool_name="aerospikep"
+            ;;
+        "avs-standalone-pool")
+            aks_pool_name="avsstandp"
+            ;;
+        "avs-query-pool")
+            aks_pool_name="avsqueryp"
+            ;;
+        "avs-index-pool")
+            aks_pool_name="avsindexp"
+            ;;
+        "avs-mixed-pool")
+            aks_pool_name="avsmixedp"
+            ;;
+        *)
+            # Fallback: remove hyphens and trim to 12 chars
+            aks_pool_name=$(echo "${pool_name}" | tr -d '-' | cut -c1-12)
+            ;;
+    esac
+    
     case $node_role in
         "default-rack")
             machine_type=$MACHINE_TYPE
@@ -730,17 +759,14 @@ create_node_pool() {
             ;;
     esac
 
-    echo "Creating $pool_name pool with machine type $machine_type..."
+    echo "Creating $pool_name pool (AKS name: $aks_pool_name) with machine type $machine_type..."
     
     az aks nodepool add \
         --resource-group "$RESOURCE_GROUP" \
         --cluster-name "$CLUSTER_NAME" \
-        --name "${pool_name//-/}" \
+        --name "$aks_pool_name" \
         --node-count "$node_count" \
-        --node-vm-size "$machine_type" \
-        --enable-cluster-autoscaler \
-        --min-count "$node_count" \
-        --max-count $((node_count * 2))
+        --node-vm-size "$machine_type"
 
     echo "Labeling $pool_name nodes..."
     local label_value
@@ -751,12 +777,14 @@ create_node_pool() {
     fi
 
     echo "Waiting for nodes in pool $pool_name to be ready..."
-    local timeout=300
-    local interval=10
+    local timeout=600
+    local interval=20
     local elapsed=0
     
     while true; do
-        if kubectl get nodes -l agentpool=${pool_name//-/} --no-headers 2>/dev/null | grep -q "Ready"; then
+        echo "Checking nodes in pool $pool_name..."
+        kubectl get nodes -l agentpool=$aks_pool_name --no-headers 
+        if kubectl get nodes -l agentpool=$aks_pool_name --no-headers 2>/dev/null | grep -q "Ready"; then
             echo "Nodes in pool $pool_name are ready"
             break
         fi
@@ -765,13 +793,13 @@ create_node_pool() {
         elapsed=$((elapsed + interval))
         if [ "$elapsed" -ge "$timeout" ]; then
             echo "Error: Timeout waiting for nodes to be ready in pool $pool_name"
-            kubectl describe nodes -l agentpool=${pool_name//-/}
+            kubectl describe nodes -l agentpool=$aks_pool_name
             return 1
         fi
         sleep $interval
     done
 
-    kubectl get nodes -l agentpool=${pool_name//-/} -o name | \
+    kubectl get nodes -l agentpool=$aks_pool_name -o name | \
         xargs -I '{}' kubectl label '{}' \
             aerospike.io/node-pool=$label_value \
             aerospike.io/role-label=$node_role --overwrite
@@ -826,14 +854,28 @@ validate_inputs() {
         errors=$((errors + 1))
     fi
 
-    # Validate resource group name doesn't already exist if not in cleanup mode
-    if [[ "${CLEANUP}" != 1 ]] && az group exists --name "$RESOURCE_GROUP" &> /dev/null; then
-        echo "Error: Resource group '$RESOURCE_GROUP' already exists. Please use a different name or run with --cleanup first"
-        errors=$((errors + 1))
+    # Check if resource group exists and handle appropriately
+    if az group exists --name "$RESOURCE_GROUP" &> /dev/null; then
+        if [[ "${CLEANUP}" == 1 ]]; then
+            echo "Resource group '$RESOURCE_GROUP' exists and will be cleaned up"
+        else
+            # Check if the resource group has an existing cluster
+            if az aks show --name "$CLUSTER_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Error: Cluster '$CLUSTER_NAME' already exists in resource group '$RESOURCE_GROUP'"
+                echo "Options:"
+                echo "  1. Use a different cluster name"
+                echo "  2. Run with --cleanup first to remove existing resources"
+                echo "  3. Delete the existing cluster manually:"
+                echo "     az aks delete --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP --yes"
+                errors=$((errors + 1))
+            else
+                echo "Warning: Resource group '$RESOURCE_GROUP' exists but no cluster found. Will attempt to use existing resource group."
+            fi
+        fi
     fi
 
     if [[ "$errors" -gt 0 ]]; then
-        echo "Found $errors error(s). Exiting."
+        echo "Found $errors error(s). Please fix the issues and try again."
         exit 1
     fi
 }
