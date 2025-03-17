@@ -6,6 +6,7 @@ import numpy
 import os
 import sys
 from threading import Thread
+import time
 import logging
 from tqdm import tqdm
 import tarfile
@@ -17,6 +18,25 @@ from aerospike_vector_search import types
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+def wait_for_indexing(timeout=30):
+    index = avs_client.index(
+        name=Config.AVS_INDEX_NAME,
+        namespace=Config.AVS_NAMESPACE
+    )
+    index_status = index.status()
+
+    timeout = float(timeout)
+    while index_status.readiness != types.IndexReadiness.READY:
+        time.sleep(0.5)
+        
+        timeout -= 0.5
+        if timeout <= 0:
+            raise Exception("timed out waiting for indexing to complete, "
+                            "maybe standalone indexing is not configured on this AVS cluster")
+
+        index_status = index.status()
 
 
 def read_csv(filename):
@@ -55,6 +75,9 @@ def create_index():
             vector_field="quote_embedding",
             dimensions=MODEL_DIM,
             vector_distance_metric=types.VectorDistanceMetric.COSINE,
+            # Use a standalone index so that initial data
+            # is indexes in a batch immediately after creation
+            mode=types.IndexMode.STANDALONE,
             index_storage=types.IndexStorage(namespace=Config.AVS_INDEX_NAMESPACE, set_name=Config.AVS_INDEX_SET),
         )
 
@@ -70,10 +93,6 @@ def either(c):
 
 def index_data():
     try:
-        logger.info("Creating index")
-        create_index()
-        logger.info("Successfully created the index")
-
         if Config.INDEXER_PARALLELISM <= 1:
             for quote in tqdm(
                 enumerate(dataset), "Indexing quotes", total=Config.NUM_QUOTES
@@ -89,6 +108,19 @@ def index_data():
                     total=Config.NUM_QUOTES,
                 ):
                     pass
+
+        # Create the standalone index after writing all initial data
+        # so that it will index it all in a batch
+        logger.info("Creating index")
+        create_index()
+        logger.info("Successfully created the index")
+
+        # Wait for initial indexing to complete
+        # This is mostly done so that clusters without standalone indexing
+        # enabled do not silently fail to index the initial data forever
+        logger.info("Waiting for indexing to complete")
+        wait_for_indexing()
+        logger.info("Indexing complete")
 
     except Exception as e:
         logger.warning("Error indexing:" + str(e))
