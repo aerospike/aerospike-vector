@@ -24,15 +24,15 @@ WORKSPACE="$(pwd)"
 PROJECT_ID="$(gcloud config get-value project)"
 # Prepend the current username to the cluster name
 USERNAME=$(whoami)
-CHART_VERSION="1.1.0"
+CHART_VERSION="1.2.0"
 REVERSE_DNS_AVS=""
 IMAGE_TAG=""
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
 DEFAULT_MACHINE_TYPE="n2d-standard-4"       # 4 vCPU, 16GB memory - AMD-based general purpose, good price/performance ratio
 DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-16"  # 16 vCPU, 64GB memory - Intel-based compute optimized, highest per-core performance
-DEFAULT_QUERY_MACHINE_TYPE="e2-standard-4"      # 4 vCPU, 16GB memory - Intel-based balanced performance, good for query processing
-DEFAULT_INDEX_MACHINE_TYPE="e2-standard-16"       # 16 vCPU, 64GB memory - Cost-optimized general purpose, good for lighter workloads
+DEFAULT_QUERY_MACHINE_TYPE="n2-standard-16"      # 16 vCPU, 64GB memory - Intel-based balanced performance, good for query processing
+DEFAULT_INDEX_MACHINE_TYPE="e2-standard-4"       # 4 vCPU, 16GB memory - Cost-optimized general purpose, good for lighter workloads
 DEFAULT_DEFAULT_MACHINE_TYPE="n2d-standard-4"    # 4 vCPU, 16GB memory - AMD-based general purpose, default for mixed workloads
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=1
@@ -628,6 +628,9 @@ deploy_avs_helm_chart() {
   if [[ -n $IMAGE_TAG ]]; then
     helm_set_args+=(--set image.tag="$IMAGE_TAG")
   fi
+
+  # Set logging level
+  helm_set_args+=(--set logging.levels.root="$LOG_LEVEL")
 
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
