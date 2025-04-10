@@ -13,7 +13,7 @@ trap 'handle_error ${LINENO}' ERR
 
 WORKSPACE="$(pwd)"
 USERNAME=$(whoami)
-CHART_VERSION="1.1.0"
+CHART_VERSION="1.2.0"
 REVERSE_DNS_AVS=""
 IMAGE_TAG=""
 
@@ -23,7 +23,6 @@ DEFAULT_MACHINE_TYPE="Standard_D4s_v3"       # 4 vCPU, 16GB memory - General pur
 DEFAULT_STANDALONE_MACHINE_TYPE="Standard_F32s_v2"  # 32 vCPU, 64GB memory - Compute optimized
 DEFAULT_QUERY_MACHINE_TYPE="Standard_D4s_v3"      # 4 vCPU, 16GB memory - General purpose
 DEFAULT_INDEX_MACHINE_TYPE="Standard_D4s_v3"       # 4 vCPU, 16GB memory - General purpose
-DEFAULT_DEFAULT_MACHINE_TYPE="Standard_D4s_v3"    # 4 vCPU, 16GB memory - General purpose
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=1
 DEFAULT_NUM_INDEX_NODES=1
@@ -603,7 +602,7 @@ setup_aerospike() {
     fi
 
     echo "Adding storage class..."
-    kubectl apply -f https://raw.githubusercontent.com/aerospike/aerospike-kubernetes-operator/master/config/samples/storage/gce_ssd_storage_class.yaml
+    kubectl apply -f ./manifests/aks-storage-class.yaml
 
     echo "Deploying Aerospike cluster..."
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
@@ -693,7 +692,7 @@ setup_monitoring() {
     helm repo update
     helm install monitoring-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
 
-    echo "Applying additional monitoring manifests..."
+    echo "Applying additional monitoring manifests..."_
     kubectl apply -f manifests/monitoring/aerospike-exporter-service.yaml
     kubectl apply -f manifests/monitoring/aerospike-servicemonitor.yaml
     kubectl apply -f manifests/monitoring/avs-servicemonitor.yaml

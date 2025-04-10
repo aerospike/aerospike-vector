@@ -1,0 +1,11 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: disk.csi.azure.com
+parameters:
+  skuName: StandardSSD_LRS # Or Premium_LRS, UltraSSD_LRS
+reclaimPolicy: Delete # Or Retain
+volumeBindingMode: WaitForFirstConsumer
