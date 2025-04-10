@@ -31,6 +31,23 @@ DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 DEFAULT_LOG_LEVEL="info"
+# Create log directory if it doesn't exist
+LOG_DIR="/tmp/avs-logs"
+mkdir -p "$LOG_DIR"
+
+# Create unique log files with cluster name
+LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-$(date +%Y%m%d_%H%M%S)-$$"
+STDOUT_LOG="${LOG_PREFIX}.log"
+STDERR_LOG="${LOG_PREFIX}.err"
+
+# Set up logging
+# tee stdout to file while showing on console
+exec 1> >(tee "${STDOUT_LOG}")
+# redirect stderr to its own file
+exec 2> "${STDERR_LOG}"
+echo "Logging to:"
+echo "  stdout: ${STDOUT_LOG}"
+echo "  stderr: ${STDERR_LOG}"
 
 usage() {
     echo "Usage: $0 [options]"
@@ -166,23 +183,6 @@ fi
 # Create resource group name based on cluster name
 export RESOURCE_GROUP="${CLUSTER_NAME}-rg"
 
-# Create log directory if it doesn't exist
-LOG_DIR="/tmp/avs-logs"
-mkdir -p "$LOG_DIR"
-
-# Create unique log files with cluster name
-LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-$(date +%Y%m%d_%H%M%S)-$$"
-STDOUT_LOG="${LOG_PREFIX}.log"
-STDERR_LOG="${LOG_PREFIX}.err"
-
-# Set up logging
-# tee stdout to file while showing on console
-exec 1> >(tee "${STDOUT_LOG}")
-# redirect stderr to its own file
-exec 2> "${STDERR_LOG}"
-echo "Logging to:"
-echo "  stdout: ${STDOUT_LOG}"
-echo "  stderr: ${STDERR_LOG}"
 
 # Function to check if all required dependencies are installed
 check_dependencies() {
