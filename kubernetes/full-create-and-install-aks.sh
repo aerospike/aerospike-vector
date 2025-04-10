@@ -494,6 +494,10 @@ create_aks_cluster() {
         --node-count 1 \
         --node-vm-size "$MACHINE_TYPE"
 
+    # Get credentials
+    az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME"
+
+
     # Create Aerospike node pool
     create_node_pool "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
 
@@ -516,8 +520,6 @@ create_aks_cluster() {
         create_node_pool "avs-mixed-pool" "$mixed_nodes" "default-nodes"
     fi
 
-    # Get credentials
-    az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME"
 }
 
 create_namespaces() {
