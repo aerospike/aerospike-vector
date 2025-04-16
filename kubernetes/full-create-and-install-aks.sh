@@ -1,39 +1,28 @@
 #!/bin/bash
 
-# This script sets up a GKE cluster with configurations for Aerospike and AVS node pools.
-# It handles the creation of the GKE cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
+# This script sets up an AKS cluster with configurations for Aerospike and AVS node pools.
+# It handles the creation of the AKS cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
 # deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
 
-#!/usr/bin/env bash
-
-# Create unique log file in /tmp using username and project
-LOG_FILE="/tmp/avs-setup-${USERNAME}-${PROJECT_ID}-$(date +%Y%m%d_%H%M%S)-$$.log"
-# Set up logging - capture all stdout and stderr to file while still showing on console
-exec 1> >(tee "${LOG_FILE}")
-exec 2> >(tee "${LOG_FILE}_err" >&2)
-
-echo "Logging to ${LOG_FILE}"
-
+# Add after the shebang and before the logging setup
 set -eo pipefail
 # Add line numbers to debug output by modifying PS4
 export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-if [ -n "$DEBUG" ]; then set -x; fi
-trap 'echo "Error: $? at line $LINENO" >&2' ERR
+set -x;
+trap 'handle_error ${LINENO}' ERR
 
 WORKSPACE="$(pwd)"
-PROJECT_ID="$(gcloud config get-value project)"
-# Prepend the current username to the cluster name
 USERNAME=$(whoami)
 CHART_VERSION="1.2.0"
 REVERSE_DNS_AVS=""
 IMAGE_TAG=""
+
 # Default values
 DEFAULT_CLUSTER_NAME_SUFFIX="avs"
-DEFAULT_MACHINE_TYPE="n2d-standard-4"       # 4 vCPU, 16GB memory - AMD-based general purpose, good price/performance ratio
-DEFAULT_STANDALONE_MACHINE_TYPE="c2-standard-16"  # 16 vCPU, 64GB memory - Intel-based compute optimized, highest per-core performance
-DEFAULT_QUERY_MACHINE_TYPE="n2-standard-16"      # 16 vCPU, 64GB memory - Intel-based balanced performance, good for query processing
-DEFAULT_INDEX_MACHINE_TYPE="e2-standard-4"       # 4 vCPU, 16GB memory - Cost-optimized general purpose, good for lighter workloads
-DEFAULT_DEFAULT_MACHINE_TYPE="n2d-standard-4"    # 4 vCPU, 16GB memory - AMD-based general purpose, default for mixed workloads
+DEFAULT_MACHINE_TYPE="Standard_D4s_v3"       # 4 vCPUs, 16 GiB RAM, Premium SSD - Good balance for general workload
+DEFAULT_STANDALONE_MACHINE_TYPE="Standard_E8_v3" # 8 vCPUs, 64 GiB RAM - Memory optimized for indexing
+DEFAULT_QUERY_MACHINE_TYPE="Standard_D4s_v3"      # 4 vCPUs, 16 GiB RAM - General purpose compute
+DEFAULT_INDEX_MACHINE_TYPE="Standard_D4s_v3"       # 4 vCPUs, 16 GiB RAM - General purpose compute
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=1
 DEFAULT_NUM_INDEX_NODES=1
@@ -42,6 +31,23 @@ DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 DEFAULT_LOG_LEVEL="info"
+# Create log directory if it doesn't exist
+LOG_DIR="/tmp/avs-logs"
+mkdir -p "$LOG_DIR"
+
+# Create unique log files with cluster name
+LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-$(date +%Y%m%d_%H%M%S)-$$"
+STDOUT_LOG="${LOG_PREFIX}.log"
+STDERR_LOG="${LOG_PREFIX}.err"
+
+# Set up logging
+# tee stdout to file while showing on console
+exec 1> >(tee "${STDOUT_LOG}")
+# redirect stderr to its own file
+exec 2> "${STDERR_LOG}"
+echo "Logging to:"
+echo "  stdout: ${STDOUT_LOG}"
+echo "  stderr: ${STDERR_LOG}"
 
 usage() {
     echo "Usage: $0 [options]"
@@ -66,14 +72,13 @@ usage() {
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)."
     echo "  --cleanup|-C                          Clean up the cluster and exit"
     echo "  --help, -h                            Show this help message"
-    echo "  --log-level, -L <level>          Set AVS logging level (default: ${DEFAULT_LOG_LEVEL})"
+    echo "  --log-level, -L <level>               Set AVS logging level (default: ${DEFAULT_LOG_LEVEL})"
     echo
     echo "Shell completion:"
-    echo "  Bash: source completions/avs-gke.bash"
-    echo "  Fish: source completions/avs-gke.fish"
+    echo "  Bash: source completions/avs-aks.bash"
+    echo "  Fish: source completions/avs-aks.fish"
     exit 1
 }
-
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -82,7 +87,7 @@ while [[ "$#" -gt 0 ]]; do
             shift 2
             ;;
         --cluster-name|-c)
-            CLUSTER_NAME_OVERRIDE="$2"
+            CLUSTER_NAME="$2"
             shift 2
             ;;
         --image-tag|-g)
@@ -170,11 +175,46 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
+# After command line processing, set up cluster name and logging
+if [ -z "$CLUSTER_NAME" ]; then
+    CLUSTER_NAME="${USERNAME:-$(whoami)}-${DEFAULT_CLUSTER_NAME_SUFFIX:-avs}"
+fi
+
+# Create resource group name based on cluster name
+export RESOURCE_GROUP="${CLUSTER_NAME}-rg"
+
+
+# Function to check if all required dependencies are installed
+check_dependencies() {
+    local deps=("az" "kubectl" "helm" "openssl" "keytool" "curl" "jq")
+    local missing=()
+    
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &> /dev/null; then
+            missing+=("$dep")
+        fi
+    done
+
+    if [ ${#missing[@]} -ne 0 ]; then
+        echo "Error: Missing dependencies: ${missing[*]}"
+        echo "Install with: sudo apt-get update && sudo apt-get install -y azure-cli kubectl helm openssl default-jdk curl jq"
+        echo "For cloud-specific tools:"
+        echo "Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli"
+        echo "kubectl: https://kubernetes.io/docs/tasks/tools/"
+        echo "Helm: https://helm.sh/docs/intro/install/"
+        exit 1
+    fi
+
+    # Quick version checks
+    echo "Versions:"
+    az version --output tsv --query '"azure-cli"' 2>/dev/null || echo "Azure CLI: unknown"
+    kubectl version --client --short 2>/dev/null || echo "kubectl: unknown"
+    helm version --short 2>/dev/null || echo "Helm: unknown"
+}
 
 # Function to print environment variables for verification
 print_env() {
     echo "Environment Variables:"
-    echo "export PROJECT_ID=$PROJECT_ID"
     echo "export CLUSTER_NAME=$CLUSTER_NAME"
     echo "export NODE_POOL_NAME_AEROSPIKE=$NODE_POOL_NAME_AEROSPIKE"
     echo "export NODE_POOL_NAME_AVS=$NODE_POOL_NAME_AVS"
@@ -198,16 +238,9 @@ print_env() {
 
 # Function to set environment variables
 set_env_variables() {
-    # Use provided cluster name or fallback to the default
-    if [ -n "$CLUSTER_NAME_OVERRIDE" ]; then
-        export CLUSTER_NAME="${USERNAME}-${CLUSTER_NAME_OVERRIDE}"
-    else
-        export CLUSTER_NAME="${USERNAME}-${PROJECT_ID}-${DEFAULT_CLUSTER_NAME_SUFFIX}"
-    fi
-
     export NODE_POOL_NAME_AEROSPIKE="aerospike-pool"
     export NODE_POOL_NAME_AVS="avs-pool"
-    export ZONE="us-central1-c"
+    export LOCATION="eastus"
     export FEATURES_CONF="$WORKSPACE/features.conf"
     export BUILD_DIR="$WORKSPACE/generated"
     export REVERSE_DNS_AVS="does.not.exist"
@@ -221,13 +254,11 @@ set_env_variables() {
     export NUM_STANDALONE_NODES="${NUM_STANDALONE_NODES:-${DEFAULT_NUM_STANDALONE_NODES}}"
     export NUM_AEROSPIKE_NODES="${NUM_AEROSPIKE_NODES:-${DEFAULT_NUM_AEROSPIKE_NODES}}"
     export LOG_LEVEL="${LOG_LEVEL:-${DEFAULT_LOG_LEVEL}}"
-    # Adjust NUM_AVS_NODES to be the sum of standalone, query, and index nodes if that total exceeds the current NUM_AVS_NODES value
+
     if [[ $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) -gt $NUM_AVS_NODES ]]; then
         NUM_AVS_NODES=$((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES))
         echo "NUM_AVS_NODES adjusted to: $NUM_AVS_NODES (the sum of standalone, query, and index nodes)"
-
     fi
-
 }
 
 reset_build() {
@@ -439,27 +470,35 @@ generate_certs() {
     -passin "pass:$PASSWORD"
 }
 
-# Function to create GKE cluster
-create_gke_cluster() {
-    if ! gcloud container clusters describe "$CLUSTER_NAME" --zone "$ZONE" &> /dev/null; then
+# Function to create AKS cluster
+create_aks_cluster() {
+    # Validate inputs before any resource creation
+    validate_inputs
+    
+    if ! az aks show --name "$CLUSTER_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
         echo "Cluster $CLUSTER_NAME does not exist. Creating..."
     else
         echo "Error: Cluster $CLUSTER_NAME already exists. Please use a new cluster name or delete the existing cluster."
-        return
+        return 1
     fi
-    
-    validate_inputs
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting GKE cluster creation..."
-    gcloud container clusters create "$CLUSTER_NAME" \
-        --project "$PROJECT_ID" \
-        --zone "$ZONE" \
-        --num-nodes 1 \
-        --disk-type "pd-standard" \
-        --disk-size "100"
+    # Create resource group
+    echo "Creating resource group..."
+    az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
 
-    # Create Aerospike node pool with SSD
-    create_node_pool "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack" true
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting AKS cluster creation..."
+    az aks create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$CLUSTER_NAME" \
+        --node-count 1 \
+        --node-vm-size "$MACHINE_TYPE"
+
+    # Get credentials
+    az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME"
+
+
+    # Create Aerospike node pool
+    create_node_pool "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
 
     # Create AVS node pools
     if [ "$NUM_STANDALONE_NODES" -gt 0 ]; then
@@ -479,6 +518,7 @@ create_gke_cluster() {
     if [ "$mixed_nodes" -gt 0 ]; then
         create_node_pool "avs-mixed-pool" "$mixed_nodes" "default-nodes"
     fi
+
 }
 
 create_namespaces() {
@@ -562,7 +602,7 @@ setup_aerospike() {
     fi
 
     echo "Adding storage class..."
-    kubectl apply -f https://raw.githubusercontent.com/aerospike/aerospike-kubernetes-operator/master/config/samples/storage/gce_ssd_storage_class.yaml
+    kubectl apply -f ./manifests/aks-storage-class.yaml
 
     echo "Deploying Aerospike cluster..."
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
@@ -629,9 +669,6 @@ deploy_avs_helm_chart() {
     helm_set_args+=(--set image.tag="$IMAGE_TAG")
   fi
 
-  # Set logging level
-  helm_set_args+=(--set logging.levels.root="$LOG_LEVEL")
-
   helm repo add aerospike-helm "$JFROG_HELM_REPO" --force-update "${helm_repo_args[@]}"
   helm repo update
 
@@ -641,8 +678,6 @@ deploy_avs_helm_chart() {
     --set initContainer.image.repository="$JFROG_DOCKER_REPO/avs-init-container" \
     --set initContainer.image.tag="$CHART_VERSION" \
     --set aerospikeVectorSearchConfig.logging.levels.root="$LOG_LEVEL" \
-    --set "env[0].name=JAVA_TOOL_OPTIONS" \
-    --set "env[0].value=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=60.0" \
     --set replicaCount="$NUM_AVS_NODES" \
     --values "$BUILD_DIR/manifests/avs-values.yaml" \
     --atomic --wait --debug --create-namespace "${helm_set_args[@]}"
@@ -655,7 +690,7 @@ setup_monitoring() {
     helm repo update
     helm install monitoring-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
 
-    echo "Applying additional monitoring manifests..."
+    echo "Applying additional monitoring manifests..."_
     kubectl apply -f manifests/monitoring/aerospike-exporter-service.yaml
     kubectl apply -f manifests/monitoring/aerospike-servicemonitor.yaml
     kubectl apply -f manifests/monitoring/avs-servicemonitor.yaml
@@ -681,9 +716,33 @@ create_node_pool() {
     local pool_name=$1
     local node_count=$2
     local node_role=$3
-    local include_ssd=${4:-false}
     local machine_type=$MACHINE_TYPE
 
+    # Convert pool name to valid AKS node pool name (max 12 chars, alphanumeric)
+    # Create clean abbreviations and ensure names are 6-12 chars
+    local aks_pool_name
+    case "$pool_name" in
+        "aerospike-pool")
+            aks_pool_name="aerospikep"
+            ;;
+        "avs-standalone-pool")
+            aks_pool_name="avsstandp"
+            ;;
+        "avs-query-pool")
+            aks_pool_name="avsqueryp"
+            ;;
+        "avs-index-pool")
+            aks_pool_name="avsindexp"
+            ;;
+        "avs-mixed-pool")
+            aks_pool_name="avsmixedp"
+            ;;
+        *)
+            # Fallback: remove hyphens and trim to 12 chars
+            aks_pool_name=$(echo "${pool_name}" | tr -d '-' | cut -c1-12)
+            ;;
+    esac
+    
     case $node_role in
         "default-rack")
             machine_type=$MACHINE_TYPE
@@ -699,21 +758,14 @@ create_node_pool() {
             ;;
     esac
 
-    echo "Creating $pool_name pool with machine type $machine_type..."
-    local ssd_args=()
-    if [ "$include_ssd" = true ]; then
-        ssd_args=(--local-ssd-count 1)
-    fi
-
-    gcloud container node-pools create "$pool_name" \
-        --cluster "$CLUSTER_NAME" \
-        --project "$PROJECT_ID" \
-        --zone "$ZONE" \
-        --num-nodes "$node_count" \
-        --disk-type "pd-standard" \
-        --disk-size "100" \
-        --machine-type "$machine_type" \
-        "${ssd_args[@]}"
+    echo "Creating $pool_name pool (AKS name: $aks_pool_name) with machine type $machine_type..."
+    
+    az aks nodepool add \
+        --resource-group "$RESOURCE_GROUP" \
+        --cluster-name "$CLUSTER_NAME" \
+        --name "$aks_pool_name" \
+        --node-count "$node_count" \
+        --node-vm-size "$machine_type"
 
     echo "Labeling $pool_name nodes..."
     local label_value
@@ -723,18 +775,15 @@ create_node_pool() {
         label_value="avs"
     fi
 
-    kubectl get nodes -l cloud.google.com/gke-nodepool=$pool_name -o name | \
-        xargs -I '{}' kubectl label '{}' \
-            aerospike.io/node-pool=$label_value \
-            aerospike.io/role-label=$node_role --overwrite
-
     echo "Waiting for nodes in pool $pool_name to be ready..."
-    local timeout=300
-    local interval=10
+    local timeout=600
+    local interval=20
     local elapsed=0
     
     while true; do
-        if kubectl get nodes -l cloud.google.com/gke-nodepool=$pool_name --no-headers 2>/dev/null | grep -q "Ready"; then
+        echo "Checking nodes in pool $pool_name..."
+        kubectl get nodes -l agentpool=$aks_pool_name --no-headers 
+        if kubectl get nodes -l agentpool=$aks_pool_name --no-headers 2>/dev/null | grep -q "Ready"; then
             echo "Nodes in pool $pool_name are ready"
             break
         fi
@@ -743,76 +792,123 @@ create_node_pool() {
         elapsed=$((elapsed + interval))
         if [ "$elapsed" -ge "$timeout" ]; then
             echo "Error: Timeout waiting for nodes to be ready in pool $pool_name"
-            kubectl describe nodes -l cloud.google.com/gke-nodepool=$pool_name
+            kubectl describe nodes -l agentpool=$aks_pool_name
             return 1
         fi
         sleep $interval
     done
+
+    kubectl get nodes -l agentpool=$aks_pool_name -o name | \
+        xargs -I '{}' kubectl label '{}' \
+            aerospike.io/node-pool=$label_value \
+            aerospike.io/role-label=$node_role --overwrite
 }
 
 validate_inputs() {
     local errors=0
     
-    if [[ -z "$PROJECT_ID" ]]; then
-        echo "Error: PROJECT_ID is not set"
+    # Check if Azure CLI is installed
+    if ! command -v az &> /dev/null; then
+        echo "Error: Azure CLI (az) is not installed"
         errors=$((errors + 1))
     fi
 
+    # Check if logged into Azure
+    if ! az account show &> /dev/null; then
+        echo "Error: Not logged into Azure. Please run 'az login' first"
+        errors=$((errors + 1))
+    fi
+
+    # Validate node counts
     if [[ "$NUM_AVS_NODES" -lt $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) ]]; then
         echo "Error: Total of standalone ($NUM_STANDALONE_NODES), query ($NUM_QUERY_NODES), and index ($NUM_INDEX_NODES) nodes exceeds NUM_AVS_NODES ($NUM_AVS_NODES)"
         errors=$((errors + 1))
     fi
 
+    # Validate machine types exist in Azure
+    local machine_types=("$MACHINE_TYPE" "$STANDALONE_MACHINE_TYPE" "$QUERY_MACHINE_TYPE" "$INDEX_MACHINE_TYPE")
+    for vm_size in "${machine_types[@]}"; do
+        if ! az vm list-sizes -l "$LOCATION" --query "[?name=='$vm_size']" -o tsv &> /dev/null; then
+            echo "Error: Machine type $vm_size is not available in location $LOCATION"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # Check resource quotas
+    local total_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES))
+    local quota_check=$(az vm list-usage -l "$LOCATION" --query "[?name.value=='standardDSv3Family'].currentValue" -o tsv)
+    local quota_limit=$(az vm list-usage -l "$LOCATION" --query "[?name.value=='standardDSv3Family'].limit" -o tsv)
+    
+    if [[ -n "$quota_check" && -n "$quota_limit" ]]; then
+        if (( quota_check + total_nodes > quota_limit )); then
+            echo "Warning: Total requested nodes ($total_nodes) may exceed your quota limit ($quota_limit)"
+            echo "Current usage: $quota_check"
+            echo "Please verify your quota in Azure portal"
+        fi
+    fi
+
+    # Validate cluster name
+    if [[ ! "$CLUSTER_NAME" =~ ^[a-z0-9][-a-z0-9]*[a-z0-9]$ ]]; then
+        echo "Error: Cluster name '$CLUSTER_NAME' must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"
+        errors=$((errors + 1))
+    fi
+
+    # Check if resource group exists and handle appropriately
+    if az group exists --name "$RESOURCE_GROUP" &> /dev/null; then
+        if [[ "${CLEANUP}" == 1 ]]; then
+            echo "Resource group '$RESOURCE_GROUP' exists and will be cleaned up"
+        else
+            # Check if the resource group has an existing cluster
+            if az aks show --name "$CLUSTER_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+                echo "Error: Cluster '$CLUSTER_NAME' already exists in resource group '$RESOURCE_GROUP'"
+                echo "Options:"
+                echo "  1. Use a different cluster name"
+                echo "  2. Run with --cleanup first to remove existing resources"
+                echo "  3. Delete the existing cluster manually:"
+                echo "     az aks delete --name $CLUSTER_NAME --resource-group $RESOURCE_GROUP --yes"
+                errors=$((errors + 1))
+            else
+                echo "Warning: Resource group '$RESOURCE_GROUP' exists but no cluster found. Will attempt to use existing resource group."
+            fi
+        fi
+    fi
+
     if [[ "$errors" -gt 0 ]]; then
-        echo "Found $errors error(s). Exiting."
+        echo "Found $errors error(s). Please fix the issues and try again."
         exit 1
     fi
 }
 
 cleanup() {
-    local cluster_name=$1
-    echo "Cleaning up cluster $cluster_name..."
+    echo "Cleaning up resources..."
     
-    # Delete node pools first
-    for pool in $(gcloud container node-pools list --cluster "$cluster_name" --zone "$ZONE" --format="value(name)"); do
-        echo "Deleting node pool $pool..."
-        gcloud container node-pools delete "$pool" \
-            --cluster "$cluster_name" \
-            --zone "$ZONE" \
-            --quiet
-    done
+    # First try to clean up Helm releases
+    if command -v helm &> /dev/null && kubectl get namespace avs &> /dev/null; then
+        echo "Removing Helm releases..."
+        helm uninstall avs-app -n avs || true
+        helm uninstall monitoring-stack -n monitoring || true
+    fi
 
-    # Delete cluster
-    echo "Deleting cluster $cluster_name..."
-    gcloud container clusters delete "$cluster_name" \
-        --zone "$ZONE" \
-        --quiet
+    # Try to remove namespaces
+    echo "Removing namespaces..."
+    kubectl delete namespace avs --timeout=60s || true
+    kubectl delete namespace aerospike --timeout=60s || true
+    kubectl delete namespace monitoring --timeout=60s || true
+
+    # Delete the entire resource group
+    echo "Deleting resource group $RESOURCE_GROUP..."
+    if az group exists --name "$RESOURCE_GROUP"; then
+        echo "Deleting resource group and all resources..."
+        az group delete --name "$RESOURCE_GROUP" --yes --no-wait
+        echo "Resource group deletion initiated. This may take several minutes to complete."
+        echo "You can check the status in Azure portal or using:"
+        echo "az group show -n $RESOURCE_GROUP"
+    else
+        echo "Resource group $RESOURCE_GROUP not found. Nothing to delete."
+    fi
 }
 
-#This script runs in this order.
-main() {
-    set_env_variables
-    print_env
-    
-    if [[ "${CLEANUP}" == 1 ]]; then
-        cleanup "$CLUSTER_NAME"
-        exit 0
-    fi
-    
-    reset_build
-    create_gke_cluster
-    create_namespaces
-    if [[ "${RUN_INSECURE}" != 1 ]]; then
-        generate_certs
-    fi
-    setup_aerospike
-    setup_avs
-    deploy_avs_helm_chart
-    setup_monitoring
-    print_final_instructions
-}
-
-# Add this function for error handling
+# Add error handling function
 handle_error() {
     local exit_code=$?
     local line_number=$1
@@ -826,9 +922,47 @@ handle_error() {
         
         echo "Pod status:"
         kubectl get pods -A 2>/dev/null || true
+        
+        echo "Node status:"
+        kubectl get nodes 2>/dev/null || true
+        
+        echo "Resource usage:"
+        kubectl top nodes 2>/dev/null || true
+        kubectl top pods -A 2>/dev/null || true
+    fi
+
+    # Check Azure service health
+    if command -v az &> /dev/null; then
+        echo "Checking Azure service health..."
+        az monitor activity-log list --correlation-id "$CLUSTER_NAME" 2>/dev/null | \
+            jq -r '.[] | select(.level=="Error" or .level=="Critical") | .description' || true
     fi
     
     exit $exit_code
+}
+
+#This script runs in this order.
+main() {
+    check_dependencies
+    set_env_variables
+    print_env
+    
+    if [[ "${CLEANUP}" == 1 ]]; then
+        cleanup
+        exit 0
+    fi
+    
+    reset_build
+    create_aks_cluster
+    create_namespaces
+    if [[ "${RUN_INSECURE}" != 1 ]]; then
+        generate_certs
+    fi
+    setup_aerospike
+    setup_avs
+    deploy_avs_helm_chart
+    setup_monitoring
+    print_final_instructions
 }
 
 main
