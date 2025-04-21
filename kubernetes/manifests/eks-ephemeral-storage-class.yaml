@@ -1,9 +1,0 @@
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: ephemeral
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "false"
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
-reclaimPolicy: Delete
