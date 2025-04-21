@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# This script sets up an EKS cluster with configurations for Aerospike and AVS node pools.
-# It handles the creation of the EKS cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
-# deploys the AVS cluster, and the deployment of necessary operators, configurations, node pools, and monitoring.
+# This script sets up a kind cluster with configurations for Aerospike and AVS.
+# It handles the creation of the kind cluster, the use of AKO (Aerospike Kubernetes Operator) to deploy an Aerospike cluster,
+# deploys the AVS cluster, and the deployment of necessary operators, configurations, and monitoring.
 
 set -eo pipefail
 export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
- set -x
+set -x
 trap 'handle_error ${LINENO}' ERR
 
 WORKSPACE="$(pwd)"
@@ -16,11 +16,7 @@ REVERSE_DNS_AVS=""
 IMAGE_TAG=""
 
 # Default values
-DEFAULT_CLUSTER_NAME_SUFFIX="avs"
-DEFAULT_MACHINE_TYPE="m5.xlarge"            # 4 vCPUs, 16 GiB RAM - General purpose
-DEFAULT_STANDALONE_MACHINE_TYPE="r5.2xlarge" # 8 vCPUs, 64 GiB RAM - Memory optimized
-DEFAULT_QUERY_MACHINE_TYPE="m5.xlarge"       # 4 vCPUs, 16 GiB RAM - General purpose
-DEFAULT_INDEX_MACHINE_TYPE="m5.xlarge"       # 4 vCPUs, 16 GiB RAM - General purpose
+DEFAULT_CLUSTER_NAME="avs-kind"
 DEFAULT_NUM_AVS_NODES=3
 DEFAULT_NUM_QUERY_NODES=1
 DEFAULT_NUM_INDEX_NODES=1
@@ -29,7 +25,6 @@ DEFAULT_NUM_AEROSPIKE_NODES=1
 JFROG_DOCKER_REPO="artifact.aerospike.io/container"
 JFROG_HELM_REPO="https://artifact.aerospike.io/helm"
 DEFAULT_LOG_LEVEL="info"
-DEFAULT_REGION="us-east-1"
 
 # Create log directory if it doesn't exist
 LOG_DIR="/tmp/avs-logs"
@@ -51,23 +46,18 @@ usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
     echo "  --chart-location, -l <path>           If specified, uses a local directory for AVS Helm chart (default: official repo)"
-    echo "  --cluster-name, -c <name>             Override the default cluster name"
+    echo "  --cluster-name, -c <name>             Override the default cluster name (default: ${DEFAULT_CLUSTER_NAME})"
     echo "  --image-tag, -g <tag>                 Docker image tag for AVS (default: chart default)"
     echo "  --jfrog-user, -u <name>               JFrog username for pulling unpublished images"
     echo "  --jfrog-token, -t <token>             JFrog token for pulling unpublished images"
     echo "  --jfrog-helm-repo, -H <repo_url>      JFrog Helm repository URL"
     echo "  --jfrog-docker-repo, -D <registry>    JFrog Docker registry prefix"
     echo "  --chart-version, -v <ver>             Helm chart version (default: ${CHART_VERSION})"
-    echo "  --machine-type, -m <type>             Specify the default machine type (default: ${DEFAULT_MACHINE_TYPE})"
-    echo "  --standalone-machine-type, -S <type>  Specify machine type for standalone nodes (default: ${DEFAULT_STANDALONE_MACHINE_TYPE})"
-    echo "  --query-machine-type, -Q <type>       Specify machine type for query nodes (default: ${DEFAULT_QUERY_MACHINE_TYPE})"
-    echo "  --index-machine-type, -X <type>       Specify machine type for index nodes (default: ${DEFAULT_INDEX_MACHINE_TYPE})"
     echo "  --num-avs-nodes, -a <num>             Specify the number of AVS nodes (default: ${DEFAULT_NUM_AVS_NODES})"
     echo "  --num-query-nodes, -q <num>           Specify the number of AVS query nodes (default: ${DEFAULT_NUM_QUERY_NODES})"
     echo "  --num-index-nodes, -i <num>           Specify the number of AVS index nodes (default: ${DEFAULT_NUM_INDEX_NODES})"
     echo "  --num-standalone-nodes, -d <num>      Specify the number of AVS standalone nodes (default: ${DEFAULT_NUM_STANDALONE_NODES})"
     echo "  --num-aerospike-nodes, -s <num>       Specify the number of Aerospike nodes (default: ${DEFAULT_NUM_AEROSPIKE_NODES})"
-    echo "  --region, -r <region>                 AWS region (default: ${DEFAULT_REGION})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)"
     echo "  --cleanup|-C                          Clean up the cluster and exit"
     echo "  --help, -h                            Show this help message"
@@ -86,16 +76,11 @@ while [[ "$#" -gt 0 ]]; do
         --jfrog-helm-repo|-H) JFROG_HELM_REPO="$2"; shift 2 ;;
         --jfrog-docker-repo|-D) JFROG_DOCKER_REPO="$2"; shift 2 ;;
         --chart-version|-v) CHART_VERSION="$2"; shift 2 ;;
-        --machine-type|-m) MACHINE_TYPE="$2"; shift 2 ;;
-        --standalone-machine-type|-S) STANDALONE_MACHINE_TYPE="$2"; shift 2 ;;
-        --query-machine-type|-Q) QUERY_MACHINE_TYPE="$2"; shift 2 ;;
-        --index-machine-type|-X) INDEX_MACHINE_TYPE="$2"; shift 2 ;;
         --num-avs-nodes|-a) NUM_AVS_NODES="$2"; shift 2 ;;
         --num-query-nodes|-q) NUM_QUERY_NODES="$2"; shift 2 ;;
         --num-index-nodes|-i) NUM_INDEX_NODES="$2"; shift 2 ;;
         --num-standalone-nodes|-d) NUM_STANDALONE_NODES="$2"; shift 2 ;;
         --num-aerospike-nodes|-s) NUM_AEROSPIKE_NODES="$2"; shift 2 ;;
-        --region|-r) REGION="$2"; shift 2 ;;
         --run-insecure|-I) RUN_INSECURE=1; shift ;;
         --cleanup|-C) CLEANUP=1; shift ;;
         --help|-h) usage ;;
@@ -106,7 +91,7 @@ done
 
 # Function to check dependencies
 check_dependencies() {
-    local deps=("eksctl" "kubectl" "helm" "aws" "openssl" "keytool" "curl" "jq")
+    local deps=("kind" "kubectl" "helm" "docker" "openssl" "keytool" "curl" "jq")
     local missing=()
     
     for dep in "${deps[@]}"; do
@@ -118,37 +103,30 @@ check_dependencies() {
     if [ ${#missing[@]} -ne 0 ]; then
         echo "Error: Missing dependencies: ${missing[*]}"
         echo "Install with:"
-        echo "eksctl: https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html"
+        echo "kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
         echo "kubectl: https://kubernetes.io/docs/tasks/tools/"
         echo "helm: https://helm.sh/docs/intro/install/"
-        echo "aws: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html"
+        echo "docker: https://docs.docker.com/engine/install/"
         echo "openssl, keytool, curl, jq: sudo apt-get update && sudo apt-get install -y openssl default-jdk curl jq"
         exit 1
     fi
 
     # Quick version checks
     echo "Versions:"
-    eksctl version || echo "eksctl: unknown"
+    kind version || echo "kind: unknown"
     kubectl version --client || echo "kubectl: unknown"
     helm version --short || echo "Helm: unknown"
-    aws --version || echo "AWS CLI: unknown"
+    docker version || echo "Docker: unknown"
 }
 
 # Function to set environment variables
 set_env_variables() {
     if [ -z "$CLUSTER_NAME" ]; then
-        CLUSTER_NAME="${USERNAME:-$(whoami)}-${DEFAULT_CLUSTER_NAME_SUFFIX:-avs}"
+        CLUSTER_NAME="${DEFAULT_CLUSTER_NAME}"
     fi
 
-    export NODE_POOL_NAME_AEROSPIKE="aerospike-pool"
-    export NODE_POOL_NAME_AVS="avs-pool"
-    export REGION="${REGION:-$DEFAULT_REGION}"
     export FEATURES_CONF="$WORKSPACE/features.conf"
     export BUILD_DIR="$WORKSPACE/generated"
-    export MACHINE_TYPE="${MACHINE_TYPE:-$DEFAULT_MACHINE_TYPE}"
-    export STANDALONE_MACHINE_TYPE="${STANDALONE_MACHINE_TYPE:-$DEFAULT_STANDALONE_MACHINE_TYPE}"
-    export QUERY_MACHINE_TYPE="${QUERY_MACHINE_TYPE:-$DEFAULT_QUERY_MACHINE_TYPE}"
-    export INDEX_MACHINE_TYPE="${INDEX_MACHINE_TYPE:-$DEFAULT_INDEX_MACHINE_TYPE}"
     export NUM_AVS_NODES="${NUM_AVS_NODES:-$DEFAULT_NUM_AVS_NODES}"
     export NUM_QUERY_NODES="${NUM_QUERY_NODES:-$DEFAULT_NUM_QUERY_NODES}"
     export NUM_INDEX_NODES="${NUM_INDEX_NODES:-$DEFAULT_NUM_INDEX_NODES}"
@@ -166,13 +144,6 @@ set_env_variables() {
 print_env() {
     echo "Environment Variables:"
     echo "export CLUSTER_NAME=$CLUSTER_NAME"
-    echo "export NODE_POOL_NAME_AEROSPIKE=$NODE_POOL_NAME_AEROSPIKE"
-    echo "export NODE_POOL_NAME_AVS=$NODE_POOL_NAME_AVS"
-    echo "export REGION=$REGION"
-    echo "export MACHINE_TYPE=$MACHINE_TYPE"
-    echo "export STANDALONE_MACHINE_TYPE=$STANDALONE_MACHINE_TYPE"
-    echo "export QUERY_MACHINE_TYPE=$QUERY_MACHINE_TYPE"
-    echo "export INDEX_MACHINE_TYPE=$INDEX_MACHINE_TYPE"
     echo "export NUM_AVS_NODES=$NUM_AVS_NODES"
     echo "export NUM_QUERY_NODES=$NUM_QUERY_NODES"
     echo "export NUM_INDEX_NODES=$NUM_INDEX_NODES"
@@ -181,202 +152,77 @@ print_env() {
     echo "export LOG_LEVEL=$LOG_LEVEL"
 }
 
-# Function to validate inputs
-validate_inputs() {
-    local errors=0
+# Function to create kind cluster
+create_kind_cluster() {
+    echo "Creating kind cluster..."
     
-    # Check if AWS CLI is installed and configured
-    if ! command -v aws &> /dev/null; then
-        echo "Error: AWS CLI is not installed"
-        errors=$((errors + 1))
-    fi
+    # Start building the kind config
+    local kind_config="kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  # Use a larger node image for control plane to handle Aerospike operator
+  image: kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72"
 
-    # Check if logged into AWS
-    if ! aws sts get-caller-identity &> /dev/null; then
-        echo "Error: Not logged into AWS. Please run 'aws configure' first"
-        errors=$((errors + 1))
-    fi
-
-    # Validate node counts
-    if [[ "$NUM_AVS_NODES" -lt $((NUM_STANDALONE_NODES + NUM_QUERY_NODES + NUM_INDEX_NODES)) ]]; then
-        echo "Error: Total of standalone ($NUM_STANDALONE_NODES), query ($NUM_QUERY_NODES), and index ($NUM_INDEX_NODES) nodes exceeds NUM_AVS_NODES ($NUM_AVS_NODES)"
-        errors=$((errors + 1))
-    fi
-
-    # Validate machine types exist in AWS
-    local machine_types=("$MACHINE_TYPE" "$STANDALONE_MACHINE_TYPE" "$QUERY_MACHINE_TYPE" "$INDEX_MACHINE_TYPE")
-    for instance_type in "${machine_types[@]}"; do
-        if ! aws ec2 describe-instance-types --instance-types "$instance_type" &> /dev/null; then
-            echo "Error: Machine type $instance_type is not available in AWS"
-            errors=$((errors + 1))
-        fi
+    # Add Aerospike nodes
+    for ((i=1; i<=NUM_AEROSPIKE_NODES; i++)); do
+        kind_config+="
+- role: worker
+  # Worker for Aerospike
+  labels:
+    aerospike.io/role: default-rack
+    aerospike.io/group: aerospike-pool"
     done
 
-    # Check EC2 instance limits
-    echo "Checking EC2 instance limits..."
-    local total_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES))
-    
-    # Get current running instances
-    local current_usage
-    current_usage=$(aws ec2 describe-instances \
-        --filters "Name=instance-state-name,Values=running" \
-        --query 'length(Reservations[*].Instances[*])' \
-        --output text) || {
-        echo "Warning: Could not check current EC2 usage"
-        return 0
-    }
-
-    # Get account quota
-    local quota_limit
-    quota_limit=$(aws ec2 describe-account-attributes \
-        --attribute-names max-instances \
-        --query 'AccountAttributes[0].AttributeValues[0].AttributeValue' \
-        --output text) || {
-        echo "Warning: Could not check EC2 quota limits"
-        return 0
-    }
-
-    if [[ -n "$current_usage" && -n "$quota_limit" ]]; then
-        # Convert to integer
-        current_usage=$(printf '%.0f' "$current_usage")
-        quota_limit=$(printf '%.0f' "$quota_limit")
-        
-        if ((current_usage + total_nodes > quota_limit)); then
-            echo "Warning: Total requested nodes ($total_nodes) may exceed your quota limit ($quota_limit)"
-            echo "Current usage: $current_usage"
-            echo "Please verify your quota in AWS console"
-            echo "You can request a quota increase at: https://console.aws.amazon.com/servicequotas"
-        fi
-    fi
-
-    # Validate cluster name
-    if [[ ! "$CLUSTER_NAME" =~ ^[a-z0-9][-a-z0-9]*[a-z0-9]$ ]]; then
-        echo "Error: Cluster name '$CLUSTER_NAME' must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"
-        errors=$((errors + 1))
-    fi
-
-    if [[ "$errors" -gt 0 ]]; then
-        echo "Found $errors error(s). Please fix the issues and try again."
-        exit 1
-    fi
-}
-
-# Function to create EKS cluster
-create_eks_cluster() {
-    # Validate inputs before any resource creation
-    validate_inputs
-    
-    if ! eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; then
-        echo "Cluster $CLUSTER_NAME does not exist. Creating..."
-    else
-        echo "Error: Cluster $CLUSTER_NAME already exists. Please use a new cluster name or delete the existing cluster."
-        return 1
-    fi
-
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting EKS cluster creation..."
-    
-    # Create cluster with initial node group
-    eksctl create cluster \
-        --name "$CLUSTER_NAME" \
-        --region "$REGION" \
-        --node-type "$MACHINE_TYPE" \
-        --nodes 1 \
-        --managed
-
-    # Create Aerospike node group
-    create_node_group "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
-
-    # Create AVS node groups
-    if [ "$NUM_STANDALONE_NODES" -gt 0 ]; then
-        create_node_group "avs-standalone-pool" "$NUM_STANDALONE_NODES" "standalone-indexer-nodes"
-    fi
-    
-    if [ "$NUM_QUERY_NODES" -gt 0 ]; then
-        create_node_group "avs-query-pool" "$NUM_QUERY_NODES" "query-nodes"
-    fi
-    
-    if [ "$NUM_INDEX_NODES" -gt 0 ]; then
-        create_node_group "avs-index-pool" "$NUM_INDEX_NODES" "indexer-nodes"
-    fi
-
-    # Create mixed nodes group if needed
-    local mixed_nodes=$((NUM_AVS_NODES - NUM_STANDALONE_NODES - NUM_QUERY_NODES - NUM_INDEX_NODES))
-    if [ "$mixed_nodes" -gt 0 ]; then
-        create_node_group "avs-mixed-pool" "$mixed_nodes" "default-nodes"
-    fi
-
-    # Update kubeconfig
-    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
-}
-
-create_node_group() {
-    local group_name=$1
-    local node_count=$2
-    local node_role=$3
-    local machine_type=$MACHINE_TYPE
-
-    case $node_role in
-        "default-rack")
-            machine_type=$MACHINE_TYPE
-            ;;
-        "standalone-indexer-nodes")
-            machine_type=$STANDALONE_MACHINE_TYPE
-            ;;
-        "query-nodes")
-            machine_type=$QUERY_MACHINE_TYPE
-            ;;
-        "indexer-nodes")
-            machine_type=$INDEX_MACHINE_TYPE
-            ;;
-    esac
-
-    echo "Creating $group_name node group with machine type $machine_type..."
-    
-    # Create node group
-    eksctl create nodegroup \
-        --cluster "$CLUSTER_NAME" \
-        --region "$REGION" \
-        --name "$group_name" \
-        --node-type "$machine_type" \
-        --nodes "$node_count" \
-        --managed
-
-    echo "Waiting for nodes in group $group_name to be ready..."
-    local timeout=600
-    local interval=20
-    local elapsed=0
-    
-    while true; do
-        if kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name --no-headers 2>/dev/null | grep -q "Ready"; then
-            echo "Nodes in group $group_name are ready"
-            break
-        fi
-        
-        echo "Waiting for nodes to be ready... (${elapsed}s elapsed)"
-        elapsed=$((elapsed + interval))
-        if [ "$elapsed" -ge "$timeout" ]; then
-            echo "Error: Timeout waiting for nodes to be ready in group $group_name"
-            kubectl describe nodes -l eks.amazonaws.com/nodegroup=$group_name
-            return 1
-        fi
-        sleep $interval
+    # Add AVS standalone nodes
+    for ((i=1; i<=NUM_STANDALONE_NODES; i++)); do
+        kind_config+="
+- role: worker
+  # Worker for AVS standalone
+  labels:
+    aerospike.io/role: standalone-indexer-nodes
+    aerospike.io/group: avs-standalone-pool"
     done
 
-    # Label nodes after creation
-    kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | \
-        xargs -I '{}' kubectl label '{}' \
-            aerospike.io/role=$node_role \
-            aerospike.io/group=$group_name --overwrite
+    # Add AVS query nodes
+    for ((i=1; i<=NUM_QUERY_NODES; i++)); do
+        kind_config+="
+- role: worker
+  # Worker for AVS query
+  labels:
+    aerospike.io/role: query-nodes
+    aerospike.io/group: avs-query-pool"
+    done
 
-    # Additional taints for specialized nodes
-    if [[ "$node_role" =~ ^(standalone-indexer-nodes|query-nodes|indexer-nodes)$ ]]; then
-        # Get just the node names without any additional output
-        local nodes
-        nodes=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | cut -d'/' -f2)
-        for node in $nodes; do
-            kubectl taint node "$node" aerospike.io/role=$node_role:NoSchedule --overwrite
-        done
-    fi
+    # Add AVS index nodes
+    for ((i=1; i<=NUM_INDEX_NODES; i++)); do
+        kind_config+="
+- role: worker
+  # Worker for AVS index
+  labels:
+    aerospike.io/role: indexer-nodes
+    aerospike.io/group: avs-index-pool"
+    done
+
+    # Create the cluster with the dynamic config
+    echo "$kind_config" | kind create cluster --name "$CLUSTER_NAME" --config=-
+
+    # Wait for cluster to be ready
+    kubectl wait --for=condition=Ready node --all --timeout=300s
+
+    # Add taints to specialized nodes
+    for role in standalone-indexer-nodes query-nodes indexer-nodes; do
+        kubectl get nodes -l aerospike.io/role=$role --no-headers | \
+            xargs -I '{}' kubectl taint node '{}' \
+                aerospike.io/role=$role:NoSchedule --overwrite
+    done
+}
+
+# Function to setup storage
+setup_storage() {
+    echo "Setting up local storage..."
+    kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+    kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 }
 
 # Function to create namespaces
@@ -403,7 +249,6 @@ setup_aerospike() {
     create_if_not_exists kubectl create namespace aerospike
 
     echo "Deploying Aerospike Kubernetes Operator (AKO)..."
-
     if ! kubectl get ns olm &> /dev/null; then
         echo "Installing OLM..."
         if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.31.0/install.sh | bash -s v0.31.0; then
@@ -462,9 +307,6 @@ setup_aerospike() {
             --from-file="$BUILD_DIR/certs"
     fi
 
-    echo "Adding storage class..."
-    kubectl apply -f ./manifests/eks-storage-class.yaml
-
     echo "Deploying Aerospike cluster..."
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
 
@@ -519,7 +361,7 @@ deploy_avs_helm_chart() {
             --docker-username="$JFROG_USER" \
             --docker-password="$JFROG_TOKEN" \
             --docker-email="$JFROG_USER" \
-            --namespace=avs\
+            --namespace=avs \
             --dry-run=client -o yaml | kubectl apply -f -
         helm_set_args=(--set jfrog.user="$JFROG_USER" --set jfrog.token="$JFROG_TOKEN")
         helm_repo_args=(--username "$JFROG_USER" --password "$JFROG_TOKEN")
@@ -561,7 +403,7 @@ print_final_instructions() {
     echo "Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec."
 
     echo "Use the asvec tool to change your password with"
-    echo -n asvec nodes ls --seeds "$(kubectl get nodes --selector=aerospike.io/node-pool=avs --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')"
+    echo -n asvec nodes ls --seeds "$(kubectl get nodes --selector=aerospike.io/role=default-nodes --output=jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')"
     echo
     
     if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
@@ -593,12 +435,6 @@ handle_error() {
         kubectl top nodes 2>/dev/null || true
         kubectl top pods -A 2>/dev/null || true
     fi
-
-    # Check AWS service health
-    if command -v aws &> /dev/null; then
-        echo "Checking AWS service health..."
-        aws cloudwatch describe-alarms --alarm-name-prefix "$CLUSTER_NAME" 2>/dev/null || true
-    fi
     
     exit $exit_code
 }
@@ -620,9 +456,9 @@ cleanup() {
     kubectl delete namespace aerospike --timeout=60s || true
     kubectl delete namespace monitoring --timeout=60s || true
 
-    # Delete the EKS cluster
-    echo "Deleting EKS cluster $CLUSTER_NAME..."
-    eksctl delete cluster --name "$CLUSTER_NAME" --region "$REGION"
+    # Delete the kind cluster
+    echo "Deleting kind cluster $CLUSTER_NAME..."
+    kind delete cluster --name "$CLUSTER_NAME"
 }
 
 reset_build() {
@@ -845,7 +681,8 @@ main() {
     fi
     
     reset_build
-    create_eks_cluster
+    create_kind_cluster
+    setup_storage
     create_namespaces
     if [[ "${RUN_INSECURE}" != 1 ]]; then
         generate_certs
@@ -858,4 +695,4 @@ main() {
 }
 
 # Run the main function
-main
+main 
