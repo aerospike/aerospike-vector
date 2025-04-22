@@ -6,10 +6,10 @@ aerospikeVectorSearchConfig:
   service:
     metadata-namespace: "avs-meta"
     ports:
-      5000: { }
+      5000: {}
   manage:
     ports:
-      5040: { }
+      5040: {}
 
   heartbeat:
     seeds:
@@ -19,8 +19,7 @@ aerospikeVectorSearchConfig:
     # client-tls-id: interconnect-tls
     ports:
       5001:
-        addresses:
-          "0.0.0.0"
+        addresses: "0.0.0.0"
         # tls-id: interconnect-tls
   storage:
     client-policy: {}
@@ -48,7 +47,6 @@ aerospikeVectorSearchNodeRoles:
     - query
     - index-update
 
-
 serviceAccount:
   create: true
 
@@ -66,16 +64,14 @@ service:
       port: 5000
       targetPort: 5000
 
-
 initContainer:
-   image:
-     repository: aerospike.jfrog.io/container/avs-init-container
-     pullPolicy: Always
+  image:
+    repository: aerospike.jfrog.io/container/avs-init-container
+    pullPolicy: Always
 
 image:
   repository: "aerospike/aerospike-vector-search"
   pullPolicy: "IfNotPresent"
-
 
 extraSecretVolumeMounts:
   - name: aerospike-tls
@@ -88,11 +84,15 @@ extraVolumes:
       secretName: aerospike-tls
       optional: false
 affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
         - matchExpressions:
-          - key: aerospike.io/node-pool
-            operator: In
-            values:
-            - "avs"
+            - key: aerospike.io/node-pool
+              operator: In
+              values:
+                - "standalone-indexer-nodes"
+                - "query-nodes"
+                - "indexer-nodes"
+                - "default-nodes"
+                - "avs"

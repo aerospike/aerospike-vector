@@ -35,10 +35,19 @@ DEFAULT_REGION="us-east-1"
 LOG_DIR="/tmp/avs-logs"
 mkdir -p "$LOG_DIR"
 
-# Create unique log files with cluster name
-LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-$(date +%Y%m%d_%H%M%S)-$$"
+# Set default cluster name if not provided
+if [ -z "$CLUSTER_NAME" ]; then
+    CLUSTER_NAME="${USERNAME:-$(whoami)}-${DEFAULT_CLUSTER_NAME_SUFFIX:-avs}"
+fi
+
+# Create unique log files with cluster name and timestamp for logs
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+LOG_PREFIX="${LOG_DIR}/avs-setup-${CLUSTER_NAME}-${TIMESTAMP}-$$"
 STDOUT_LOG="${LOG_PREFIX}.log"
 STDERR_LOG="${LOG_PREFIX}.err"
+
+# Checkpoint file is cluster-specific, not timestamp-specific
+CHECKPOINT_FILE="${LOG_DIR}/avs-setup-${CLUSTER_NAME}.checkpoint"
 
 # Set up logging
 exec 1> >(tee "${STDOUT_LOG}")
@@ -46,6 +55,18 @@ exec 2> "${STDERR_LOG}"
 echo "Logging to:"
 echo "  stdout: ${STDOUT_LOG}"
 echo "  stderr: ${STDERR_LOG}"
+echo "  checkpoint: ${CHECKPOINT_FILE}"
+
+# Define steps in order with their checkpoint names
+STEPS=(
+    "cluster_created:create_eks_cluster"
+    "namespaces_created:create_namespaces"
+    "certs_generated:generate_certs"
+    "aerospike_setup:setup_aerospike"
+    "avs_setup:setup_avs"
+    "helm_deployed:deploy_avs_helm_chart"
+    "monitoring_setup:setup_monitoring"
+)
 
 usage() {
     echo "Usage: $0 [options]"
@@ -70,6 +91,8 @@ usage() {
     echo "  --region, -r <region>                 AWS region (default: ${DEFAULT_REGION})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)"
     echo "  --cleanup|-C                          Clean up the cluster and exit"
+    echo "  --resume|-R                           Resume from last checkpoint"
+    echo "  --cleanup-partial|-CP                 Clean up only the failed stage"
     echo "  --help, -h                            Show this help message"
     echo "  --log-level, -L <level>               Set AVS logging level (default: ${DEFAULT_LOG_LEVEL})"
     exit 1
@@ -98,6 +121,8 @@ while [[ "$#" -gt 0 ]]; do
         --region|-r) REGION="$2"; shift 2 ;;
         --run-insecure|-I) RUN_INSECURE=1; shift ;;
         --cleanup|-C) CLEANUP=1; shift ;;
+        --resume|-R) RESUME=1; shift ;;
+        --cleanup-partial|-CP) CLEANUP_PARTIAL=1; shift ;;
         --help|-h) usage ;;
         --log-level|-L) LOG_LEVEL="$2"; shift 2 ;;
         *) echo "Unknown parameter passed: $1"; usage ;;
@@ -136,10 +161,6 @@ check_dependencies() {
 
 # Function to set environment variables
 set_env_variables() {
-    if [ -z "$CLUSTER_NAME" ]; then
-        CLUSTER_NAME="${USERNAME:-$(whoami)}-${DEFAULT_CLUSTER_NAME_SUFFIX:-avs}"
-    fi
-
     export NODE_POOL_NAME_AEROSPIKE="aerospike-pool"
     export NODE_POOL_NAME_AVS="avs-pool"
     export REGION="${REGION:-$DEFAULT_REGION}"
@@ -283,6 +304,14 @@ create_eks_cluster() {
         --nodes 1 \
         --managed
 
+    eksctl create iamserviceaccount \
+        --name ebs-csi-controller-sa \
+        --namespace kube-system \
+        --cluster "$CLUSTER_NAME" \
+        --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+        --approve \
+        --role-name AmazonEKS_EBS_CSI_DriverRole
+
     # Create Aerospike node group
     create_node_group "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
 
@@ -365,18 +394,9 @@ create_node_group() {
     # Label nodes after creation
     kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | \
         xargs -I '{}' kubectl label '{}' \
-            aerospike.io/role=$node_role \
+            aerospike.io/node-pool=$node_role \
             aerospike.io/group=$group_name --overwrite
 
-    # Additional taints for specialized nodes
-    if [[ "$node_role" =~ ^(standalone-indexer-nodes|query-nodes|indexer-nodes)$ ]]; then
-        # Get just the node names without any additional output
-        local nodes
-        nodes=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | cut -d'/' -f2)
-        for node in $nodes; do
-            kubectl taint node "$node" aerospike.io/role=$node_role:NoSchedule --overwrite
-        done
-    fi
 }
 
 # Function to create namespaces
@@ -607,22 +627,37 @@ handle_error() {
 cleanup() {
     echo "Cleaning up resources..."
     
-    # First try to clean up Helm releases
-    if command -v helm &> /dev/null && kubectl get namespace avs &> /dev/null; then
-        echo "Removing Helm releases..."
+    if [[ "${CLEANUP_PARTIAL}" == 1 ]]; then
+        # Get last checkpoint and clean up from there
+        local last_checkpoint
+        last_checkpoint=$(get_checkpoint)
+        case $last_checkpoint in
+            "helm_deployed")
+                helm uninstall avs-app -n avs || true
+                ;;
+            "avs_setup")
+                kubectl delete namespace avs --timeout=60s || true
+                ;;
+            "aerospike_setup")
+                kubectl delete namespace aerospike --timeout=60s || true
+                ;;
+            "namespaces_created")
+                kubectl delete namespace avs --timeout=60s || true
+                kubectl delete namespace aerospike --timeout=60s || true
+                ;;
+        esac
+    else
+        # Full cleanup
+        if [ -f "$CHECKPOINT_FILE" ]; then
+            rm "$CHECKPOINT_FILE"
+        fi
         helm uninstall avs-app -n avs || true
         helm uninstall monitoring-stack -n monitoring || true
-    fi
-
-    # Try to remove namespaces
-    echo "Removing namespaces..."
     kubectl delete namespace avs --timeout=60s || true
     kubectl delete namespace aerospike --timeout=60s || true
     kubectl delete namespace monitoring --timeout=60s || true
-
-    # Delete the EKS cluster
-    echo "Deleting EKS cluster $CLUSTER_NAME..."
-    eksctl delete cluster --name "$CLUSTER_NAME" --region "$REGION"
+        eksctl delete cluster --name "$CLUSTER_NAME" --region "$REGION" || true
+    fi
 }
 
 reset_build() {
@@ -833,27 +868,142 @@ generate_certs() {
     -passin "pass:$PASSWORD"
 }
 
+# Function to save checkpoint
+save_checkpoint() {
+    echo "$1" > "$CHECKPOINT_FILE"
+    echo "Checkpoint saved: $1"
+}
+
+# Function to get last checkpoint
+get_checkpoint() {
+    if [ -f "$CHECKPOINT_FILE" ]; then
+        cat "$CHECKPOINT_FILE"
+    else
+        echo "none"
+    fi
+}
+
+# Function to verify cluster state
+verify_cluster_state() {
+    local state=$1
+    case $state in
+        "cluster_created")
+            if ! eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; then
+                return 1
+            fi
+            # Check if all expected nodes are present
+            local expected_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES + 1)) # +1 for control plane
+            local actual_nodes
+            actual_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l)
+            if [ "$actual_nodes" -ne "$expected_nodes" ]; then
+                return 1
+            fi
+            ;;
+        "namespaces_created")
+            if ! kubectl get namespace aerospike &>/dev/null || ! kubectl get namespace avs &>/dev/null; then
+                return 1
+            fi
+            ;;
+        "aerospike_setup")
+            if ! kubectl get aerospikecluster -n aerospike aerocluster &>/dev/null; then
+                return 1
+            fi
+            ;;
+        "avs_setup")
+            if ! kubectl get secret -n avs auth-secret &>/dev/null; then
+                return 1
+            fi
+            ;;
+        "helm_deployed")
+            if ! helm status avs-app -n avs &>/dev/null; then
+                return 1
+            fi
+            ;;
+        "monitoring_setup")
+            if ! kubectl get namespace monitoring &>/dev/null; then
+                return 1
+            fi
+            ;;
+    esac
+    return 0
+}
+
+# Helper functions for step processing
+get_checkpoint_from_step() {
+    echo "${1%%:*}"
+}
+
+get_function_from_step() {
+    echo "${1#*:}"
+}
+
+# Function to get step index
+get_step_index() {
+    local checkpoint=$1
+    for i in "${!STEPS[@]}"; do
+        if [[ "$(get_checkpoint_from_step "${STEPS[$i]}")" == "$checkpoint" ]]; then
+            echo "$i"
+            return 0
+        fi
+    done
+    echo "-1"
+    return 1
+}
+
+# Function to execute steps from checkpoint
+execute_from_checkpoint() {
+    local start_index=0
+    
+    # If resuming, find where to start
+    if [[ "${RESUME}" == 1 && -f "${CHECKPOINT_FILE}" ]]; then
+        last_checkpoint=$(cat "${CHECKPOINT_FILE}")
+        echo "Debug: Found checkpoint: $last_checkpoint"
+        start_index=$(($(get_step_index "$last_checkpoint") + 1))
+        echo "Debug: Calculated start_index: $start_index"
+        
+        if [[ $start_index -eq 0 ]]; then
+            echo "Error: Invalid checkpoint found: $last_checkpoint"
+            exit 1
+        fi
+    else
+        echo "Debug: Not resuming or checkpoint file not found"
+        echo "Debug: RESUME=$RESUME"
+        echo "Debug: CHECKPOINT_FILE=$CHECKPOINT_FILE"
+    fi
+
+    # Execute steps in sequence
+    for ((i=start_index; 
+          i < ${#STEPS[@]}; 
+          i++)); do
+        
+        local step="${STEPS[$i]}"
+        local checkpoint="$(get_checkpoint_from_step "$step")"
+        local function_name="$(get_function_from_step "$step")"
+        
+        # Skip cert generation if running insecure
+        if [[ "$checkpoint" == "certs_generated" && "${RUN_INSECURE}" == 1 ]]; then
+            echo "Skipping certificate generation (running insecure)"
+            continue
+        fi
+
+        echo "Executing step $((i + 1))/${#STEPS[@]}: $function_name"
+        $function_name
+        save_checkpoint "$checkpoint"
+    done
+}
+
 # Main function
 main() {
     check_dependencies
     set_env_variables
     print_env
     
-    if [[ "${CLEANUP}" == 1 ]]; then
+    if [[ "${CLEANUP}" == 1 || "${CLEANUP_PARTIAL}" == 1 ]]; then
         cleanup
         exit 0
     fi
     
-    reset_build
-    create_eks_cluster
-    create_namespaces
-    if [[ "${RUN_INSECURE}" != 1 ]]; then
-        generate_certs
-    fi
-    setup_aerospike
-    setup_avs
-    deploy_avs_helm_chart
-    setup_monitoring
+    execute_from_checkpoint
     print_final_instructions
 }
 

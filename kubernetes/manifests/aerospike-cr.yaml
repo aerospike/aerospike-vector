@@ -64,27 +64,26 @@ spec:
 
   podSpec:
     sidecars:
-    - name: aerospike-prometheus-exporter
-      image: aerospike/aerospike-prometheus-exporter:v1.9.0
-      ports:
-        - containerPort: 9145
-          name: exporter
+      - name: aerospike-prometheus-exporter
+        image: aerospike/aerospike-prometheus-exporter:v1.9.0
+        ports:
+          - containerPort: 9145
+            name: exporter
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
           nodeSelectorTerms:
-          - matchExpressions:
-            - key: aerospike.io/node-pool
-              operator: In
-              values:
-              - "default-rack"
+            - matchExpressions:
+                - key: aerospike.io/node-pool
+                  operator: In
+                  values:
+                    - "default-rack"
     multiPodPerHost: false
-
 
   aerospikeConfig:
     service:
       feature-key-file: /etc/aerospike/secret/features.conf
-#    security: {}
+    #    security: {}
     network:
       service:
         port: 3000
