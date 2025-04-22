@@ -60,6 +60,8 @@ echo "  checkpoint: ${CHECKPOINT_FILE}"
 # Define steps in order with their checkpoint names
 STEPS=(
     "cluster_created:create_eks_cluster"
+    "nodes_created:create_node_groups"
+    "nodes_labeled:label_nodes"
     "namespaces_created:create_namespaces"
     "certs_generated:generate_certs"
     "aerospike_setup:setup_aerospike"
@@ -304,6 +306,14 @@ create_eks_cluster() {
         --nodes 1 \
         --managed
 
+    # Setup OIDC provider for IRSA
+    echo "Setting up OIDC provider for IRSA..."
+    eksctl utils associate-iam-oidc-provider \
+        --region "$REGION" \
+        --cluster "$CLUSTER_NAME" \
+        --approve
+
+    # Create service account and IAM role for EBS CSI driver
     eksctl create iamserviceaccount \
         --name ebs-csi-controller-sa \
         --namespace kube-system \
@@ -312,6 +322,42 @@ create_eks_cluster() {
         --approve \
         --role-name AmazonEKS_EBS_CSI_DriverRole
 
+    # Install EBS CSI Driver addon
+    echo "Installing EBS CSI Driver addon..."
+    aws eks create-addon \
+        --cluster-name "$CLUSTER_NAME" \
+        --addon-name aws-ebs-csi-driver \
+        --service-account-role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole" \
+        --region "$REGION" \
+        --resolve-conflicts OVERWRITE
+
+    # Wait for the addon to be active
+    echo "Waiting for EBS CSI Driver addon to be active..."
+    while true; do
+        status=$(aws eks describe-addon \
+            --cluster-name "$CLUSTER_NAME" \
+            --addon-name aws-ebs-csi-driver \
+            --query "addon.status" \
+            --output text)
+        
+        if [ "$status" = "ACTIVE" ]; then
+            echo "EBS CSI Driver addon is active"
+            break
+        elif [ "$status" = "DEGRADED" ] || [ "$status" = "ERROR" ]; then
+            echo "Error: EBS CSI Driver addon installation failed with status: $status"
+            return 1
+        fi
+        
+        echo "Waiting for EBS CSI Driver addon to be active (current status: $status)..."
+        sleep 10
+    done
+
+    # Update kubeconfig
+    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
+}
+
+# Function to create node groups
+create_node_groups() {
     # Create Aerospike node group
     create_node_group "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
 
@@ -333,11 +379,13 @@ create_eks_cluster() {
     if [ "$mixed_nodes" -gt 0 ]; then
         create_node_group "avs-mixed-pool" "$mixed_nodes" "default-nodes"
     fi
-
-    # Update kubeconfig
-    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
 }
 
+# Function to create a single node group
+# Arguments:
+#   $1: group_name - The name of the node group to create
+#   $2: node_count - The number of nodes to create in the group
+#   $3: node_role - The role to assign to the nodes (e.g., default-rack, standalone-indexer-nodes)
 create_node_group() {
     local group_name=$1
     local node_count=$2
@@ -370,6 +418,7 @@ create_node_group() {
         --nodes "$node_count" \
         --managed
 
+    # Wait for nodes to be ready
     echo "Waiting for nodes in group $group_name to be ready..."
     local timeout=600
     local interval=20
@@ -390,13 +439,42 @@ create_node_group() {
         fi
         sleep $interval
     done
+}
 
-    # Label nodes after creation
+# Function to label a single node group
+# Arguments:
+#   $1: group_name - The name of the node group to label
+#   $2: node_role - The role to assign to the nodes (e.g., default-rack, standalone-indexer-nodes)
+#   $3: node_pool - The node pool label to apply (e.g., default-rack, avs)
+label_node_group() {
+    local group_name=$1
+    local node_role=$2
+    local node_pool=$3
+
+    # Skip if this node group doesn't exist
+    if ! kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name &>/dev/null; then
+        return
+    fi
+    
     kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | \
         xargs -I '{}' kubectl label '{}' \
-            aerospike.io/node-pool=$node_role \
+            aerospike.io/node-pool=$node_pool \
+            aerospike.io/role=$node_role \
             aerospike.io/group=$group_name --overwrite
+}
 
+# Function to label all nodes
+label_nodes() {
+    echo "Labeling all nodes..."
+    
+    # Label Aerospike nodes
+    label_node_group "$NODE_POOL_NAME_AEROSPIKE" "default-rack" "default-rack"
+
+    # Label AVS nodes
+    label_node_group "avs-standalone-pool" "standalone-indexer-nodes" "avs"
+    label_node_group "avs-query-pool" "query-nodes" "avs"
+    label_node_group "avs-index-pool" "indexer-nodes" "avs"
+    label_node_group "avs-mixed-pool" "default-nodes" "avs"
 }
 
 # Function to create namespaces
@@ -406,6 +484,8 @@ create_namespaces() {
 }
 
 # Function to create resources if they don't exist
+# Arguments:
+#   $@: command - The command to execute
 create_if_not_exists() {
     output=$("$@" 2>&1) || {
         if ! grep -q "already exists" <<<"$output"; then
@@ -869,12 +949,16 @@ generate_certs() {
 }
 
 # Function to save checkpoint
+# Arguments:
+#   $1: checkpoint - The checkpoint name to save
 save_checkpoint() {
     echo "$1" > "$CHECKPOINT_FILE"
     echo "Checkpoint saved: $1"
 }
 
 # Function to get last checkpoint
+# Returns:
+#   The last checkpoint name or "none" if no checkpoint exists
 get_checkpoint() {
     if [ -f "$CHECKPOINT_FILE" ]; then
         cat "$CHECKPOINT_FILE"
@@ -884,6 +968,8 @@ get_checkpoint() {
 }
 
 # Function to verify cluster state
+# Arguments:
+#   $1: state - The state to verify (e.g., cluster_created, namespaces_created)
 verify_cluster_state() {
     local state=$1
     case $state in
@@ -928,16 +1014,9 @@ verify_cluster_state() {
     return 0
 }
 
-# Helper functions for step processing
-get_checkpoint_from_step() {
-    echo "${1%%:*}"
-}
-
-get_function_from_step() {
-    echo "${1#*:}"
-}
-
 # Function to get step index
+# Arguments:
+#   $1: checkpoint - The checkpoint name to find the index for
 get_step_index() {
     local checkpoint=$1
     for i in "${!STEPS[@]}"; do
@@ -958,6 +1037,14 @@ execute_from_checkpoint() {
     if [[ "${RESUME}" == 1 && -f "${CHECKPOINT_FILE}" ]]; then
         last_checkpoint=$(cat "${CHECKPOINT_FILE}")
         echo "Debug: Found checkpoint: $last_checkpoint"
+        
+        # Verify the state of the last checkpoint before resuming
+        if ! verify_cluster_state "$last_checkpoint"; then
+            echo "Error: Cluster state verification failed for checkpoint: $last_checkpoint"
+            echo "The cluster state does not match the checkpoint. Please clean up and start fresh."
+            exit 1
+        fi
+        
         start_index=$(($(get_step_index "$last_checkpoint") + 1))
         echo "Debug: Calculated start_index: $start_index"
         
@@ -988,6 +1075,14 @@ execute_from_checkpoint() {
 
         echo "Executing step $((i + 1))/${#STEPS[@]}: $function_name"
         $function_name
+        
+        # Verify the state after executing the function
+        if ! verify_cluster_state "$checkpoint"; then
+            echo "Error: Cluster state verification failed after executing: $function_name"
+            echo "The cluster state does not match the expected state for checkpoint: $checkpoint"
+            return 1
+        fi
+        
         save_checkpoint "$checkpoint"
     done
 }
