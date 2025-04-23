@@ -322,55 +322,14 @@ create_eks_cluster() {
     eksctl create cluster \
         --name "$CLUSTER_NAME" \
         --region "$REGION" \
+        --with-oidc \
         --node-type "$MACHINE_TYPE" \
         --nodes 1 \
-        --managed
+        --alb-ingress-access \
+        --external-dns-access \
+        --set-kubeconfig-context
 
-    # # Setup OIDC provider for IRSA
-    # echo "Setting up OIDC provider for IRSA..."
-    # eksctl utils associate-iam-oidc-provider \
-    #     --region "$REGION" \
-    #     --cluster "$CLUSTER_NAME" \
-    #     --approve
-
-    # # Create service account and IAM role for EBS CSI driver
-    # eksctl create iamserviceaccount \
-    #     --name ebs-csi-controller-sa \
-    #     --namespace kube-system \
-    #     --cluster "$CLUSTER_NAME" \
-    #     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
-    #     --approve \
-    #     --role-name AmazonEKS_EBS_CSI_DriverRole
-
-    # # Install EBS CSI Driver addon
-    # echo "Installing EBS CSI Driver addon..."
-    # aws eks create-addon \
-    #     --cluster-name "$CLUSTER_NAME" \
-    #     --addon-name aws-ebs-csi-driver \
-    #     --service-account-role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole" \
-    #     --region "$REGION" \
-    #     --resolve-conflicts OVERWRITE
-
-    # # Wait for the addon to be active
-    # echo "Waiting for EBS CSI Driver addon to be active..."
-    # while true; do
-    #     status=$(aws eks describe-addon \
-    #         --cluster-name "$CLUSTER_NAME" \
-    #         --addon-name aws-ebs-csi-driver \
-    #         --query "addon.status" \
-    #         --output text)
-        
-    #     if [ "$status" = "ACTIVE" ]; then
-    #         echo "EBS CSI Driver addon is active"
-    #         break
-    #     elif [ "$status" = "DEGRADED" ] || [ "$status" = "ERROR" ]; then
-    #         echo "Error: EBS CSI Driver addon installation failed with status: $status"
-    #         return 1
-    #     fi
-        
-    #     echo "Waiting for EBS CSI Driver addon to be active (current status: $status)..."
-    #     sleep 10
-    # done
+    eksctl create addon --name aws-ebs-csi-driver --cluster "$CLUSTER_NAME" --region "$REGION" --force
 
     # Update kubeconfig
     aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
