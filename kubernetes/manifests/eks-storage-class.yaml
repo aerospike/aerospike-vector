@@ -7,7 +7,7 @@ metadata:
 provisioner: ebs.csi.aws.com
 parameters:
   type: gp3
-  iopsPerGB: "3000"
+  iopsPerGB: "500"
   throughput: "125"
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
