@@ -6,7 +6,7 @@
 
 set -eo pipefail
 export PS4='+($LINENO): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
- set -x
+set -x
 trap 'handle_error ${LINENO}' ERR
 
 WORKSPACE="$(pwd)"
@@ -51,7 +51,13 @@ CHECKPOINT_FILE="${LOG_DIR}/avs-setup-${CLUSTER_NAME}.checkpoint"
 
 # Set up logging
 exec 1> >(tee "${STDOUT_LOG}")
-exec 2> "${STDERR_LOG}"
+
+if [ "${DEBUG}" = "1" ] || [ "${DEBUG}" = "true" ]; then
+    exec 2> >(tee "${STDERR_LOG}")
+else
+    exec 2> "${STDERR_LOG}"
+fi
+
 echo "Logging to:"
 echo "  stdout: ${STDOUT_LOG}"
 echo "  stderr: ${STDERR_LOG}"
@@ -69,6 +75,20 @@ STEPS=(
     "helm_deployed:deploy_avs_helm_chart"
     "monitoring_setup:setup_monitoring"
 )
+
+# Function to get checkpoint name from step string
+# Arguments:
+#   $1: step - The step string in format "checkpoint:function"
+get_checkpoint_from_step() {
+    echo "$1" | cut -d':' -f1
+}
+
+# Function to get function name from step string
+# Arguments:
+#   $1: step - The step string in format "checkpoint:function"
+get_function_from_step() {
+    echo "$1" | cut -d':' -f2
+}
 
 usage() {
     echo "Usage: $0 [options]"
@@ -306,51 +326,51 @@ create_eks_cluster() {
         --nodes 1 \
         --managed
 
-    # Setup OIDC provider for IRSA
-    echo "Setting up OIDC provider for IRSA..."
-    eksctl utils associate-iam-oidc-provider \
-        --region "$REGION" \
-        --cluster "$CLUSTER_NAME" \
-        --approve
+    # # Setup OIDC provider for IRSA
+    # echo "Setting up OIDC provider for IRSA..."
+    # eksctl utils associate-iam-oidc-provider \
+    #     --region "$REGION" \
+    #     --cluster "$CLUSTER_NAME" \
+    #     --approve
 
-    # Create service account and IAM role for EBS CSI driver
-    eksctl create iamserviceaccount \
-        --name ebs-csi-controller-sa \
-        --namespace kube-system \
-        --cluster "$CLUSTER_NAME" \
-        --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
-        --approve \
-        --role-name AmazonEKS_EBS_CSI_DriverRole
+    # # Create service account and IAM role for EBS CSI driver
+    # eksctl create iamserviceaccount \
+    #     --name ebs-csi-controller-sa \
+    #     --namespace kube-system \
+    #     --cluster "$CLUSTER_NAME" \
+    #     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+    #     --approve \
+    #     --role-name AmazonEKS_EBS_CSI_DriverRole
 
-    # Install EBS CSI Driver addon
-    echo "Installing EBS CSI Driver addon..."
-    aws eks create-addon \
-        --cluster-name "$CLUSTER_NAME" \
-        --addon-name aws-ebs-csi-driver \
-        --service-account-role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole" \
-        --region "$REGION" \
-        --resolve-conflicts OVERWRITE
+    # # Install EBS CSI Driver addon
+    # echo "Installing EBS CSI Driver addon..."
+    # aws eks create-addon \
+    #     --cluster-name "$CLUSTER_NAME" \
+    #     --addon-name aws-ebs-csi-driver \
+    #     --service-account-role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole" \
+    #     --region "$REGION" \
+    #     --resolve-conflicts OVERWRITE
 
-    # Wait for the addon to be active
-    echo "Waiting for EBS CSI Driver addon to be active..."
-    while true; do
-        status=$(aws eks describe-addon \
-            --cluster-name "$CLUSTER_NAME" \
-            --addon-name aws-ebs-csi-driver \
-            --query "addon.status" \
-            --output text)
+    # # Wait for the addon to be active
+    # echo "Waiting for EBS CSI Driver addon to be active..."
+    # while true; do
+    #     status=$(aws eks describe-addon \
+    #         --cluster-name "$CLUSTER_NAME" \
+    #         --addon-name aws-ebs-csi-driver \
+    #         --query "addon.status" \
+    #         --output text)
         
-        if [ "$status" = "ACTIVE" ]; then
-            echo "EBS CSI Driver addon is active"
-            break
-        elif [ "$status" = "DEGRADED" ] || [ "$status" = "ERROR" ]; then
-            echo "Error: EBS CSI Driver addon installation failed with status: $status"
-            return 1
-        fi
+    #     if [ "$status" = "ACTIVE" ]; then
+    #         echo "EBS CSI Driver addon is active"
+    #         break
+    #     elif [ "$status" = "DEGRADED" ] || [ "$status" = "ERROR" ]; then
+    #         echo "Error: EBS CSI Driver addon installation failed with status: $status"
+    #         return 1
+    #     fi
         
-        echo "Waiting for EBS CSI Driver addon to be active (current status: $status)..."
-        sleep 10
-    done
+    #     echo "Waiting for EBS CSI Driver addon to be active (current status: $status)..."
+    #     sleep 10
+    # done
 
     # Update kubeconfig
     aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
@@ -563,8 +583,8 @@ setup_aerospike() {
     fi
 
     echo "Adding storage class..."
-    kubectl apply -f ./manifests/eks-storage-class.yaml
-
+    # kubectl apply -f ./manifests/eks-storage-class.yaml
+    kubectl apply -f https://raw.githubusercontent.com/aerospike/aerospike-kubernetes-operator/refs/heads/master/config/samples/storage/eks_ssd_storage_class.yaml
     echo "Deploying Aerospike cluster..."
     kubectl apply -f $BUILD_DIR/manifests/aerospike-cr.yaml
 
@@ -977,8 +997,16 @@ verify_cluster_state() {
             if ! eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; then
                 return 1
             fi
-            # Check if all expected nodes are present
-            local expected_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES + 1)) # +1 for control plane
+            # Only check for the initial node after cluster creation
+            local actual_nodes
+            actual_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l)
+            if [ "$actual_nodes" -lt 1 ]; then
+                return 1
+            fi
+            ;;
+        "nodes_created")
+            # This is where we should check for all expected nodes
+            local expected_nodes=$((NUM_AVS_NODES + NUM_AEROSPIKE_NODES + 1))
             local actual_nodes
             actual_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l)
             if [ "$actual_nodes" -ne "$expected_nodes" ]; then
