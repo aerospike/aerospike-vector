@@ -55,7 +55,7 @@ exec 1> >(tee "${STDOUT_LOG}")
 if [ "${DEBUG}" = "1" ] || [ "${DEBUG}" = "true" ]; then
     exec 2> >(tee "${STDERR_LOG}")
 else
-    exec 2> "${STDERR_LOG}"
+exec 2> "${STDERR_LOG}"
 fi
 
 echo "Logging to:"
@@ -115,6 +115,7 @@ usage() {
     echo "  --cleanup|-C                          Clean up the cluster and exit"
     echo "  --resume|-R                           Resume from last checkpoint"
     echo "  --cleanup-partial|-CP                 Clean up only the failed stage"
+    echo "  --configure-security-group, -s        Configure security group with AVS ports (5000, 5040)"
     echo "  --help, -h                            Show this help message"
     echo "  --log-level, -L <level>               Set AVS logging level (default: ${DEFAULT_LOG_LEVEL})"
     exit 1
@@ -145,6 +146,7 @@ while [[ "$#" -gt 0 ]]; do
         --cleanup|-C) CLEANUP=1; shift ;;
         --resume|-R) RESUME=1; shift ;;
         --cleanup-partial|-CP) CLEANUP_PARTIAL=1; shift ;;
+        --configure-security-group|-s) CONFIGURE_SECURITY_GROUP=1; shift ;;
         --help|-h) usage ;;
         --log-level|-L) LOG_LEVEL="$2"; shift 2 ;;
         *) echo "Unknown parameter passed: $1"; usage ;;
@@ -306,19 +308,16 @@ validate_inputs() {
 
 # Function to create EKS cluster
 create_eks_cluster() {
-    # Validate inputs before any resource creation
     validate_inputs
     
-    if ! eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; then
-        echo "Cluster $CLUSTER_NAME does not exist. Creating..."
-    else
+    if eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; then
         echo "Error: Cluster $CLUSTER_NAME already exists. Please use a new cluster name or delete the existing cluster."
         return 1
     fi
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting EKS cluster creation..."
     
-    # Create cluster with initial node group
+    # Create the cluster first
     eksctl create cluster \
         --name "$CLUSTER_NAME" \
         --region "$REGION" \
@@ -329,6 +328,42 @@ create_eks_cluster() {
         --external-dns-access \
         --set-kubeconfig-context
 
+    # If security group configuration is enabled, create and configure it after cluster creation
+    if [[ "${CONFIGURE_SECURITY_GROUP}" == 1 ]]; then
+        echo "Creating and configuring security group for AVS..."
+        local sg_id
+        sg_id=$(aws ec2 create-security-group \
+            --group-name "eks-${CLUSTER_NAME}-avs-sg" \
+            --description "Security group for AVS in EKS cluster ${CLUSTER_NAME}" \
+            --query 'GroupId' \
+            --output text)
+        
+        # Add tags to the security group
+        aws ec2 create-tags \
+            --resources "$sg_id" \
+            --tags "Key=Name,Value=eks-${CLUSTER_NAME}-avs-sg" \
+                  "Key=kubernetes.io/cluster/${CLUSTER_NAME},Value=owned"
+        
+        # Add ingress rules
+        aws ec2 authorize-security-group-ingress \
+            --group-id "$sg_id" \
+            --ip-permissions '[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 5000,
+                    "ToPort": 5000,
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 5040,
+                    "ToPort": 5040,
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
+                }
+            ]'
+    fi
+
+    # Install EBS CSI driver
     eksctl create addon --name aws-ebs-csi-driver --cluster "$CLUSTER_NAME" --region "$REGION" --force
 
     # Update kubeconfig
@@ -438,7 +473,7 @@ label_node_group() {
     kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | \
         xargs -I '{}' kubectl label '{}' \
             aerospike.io/node-pool=$node_pool \
-            aerospike.io/role=$node_role \
+            aerospike.io/role-label=$node_role \
             aerospike.io/group=$group_name --overwrite
 }
 
@@ -686,6 +721,8 @@ handle_error() {
 cleanup() {
     echo "Cleaning up resources..."
     
+    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
+
     if [[ "${CLEANUP_PARTIAL}" == 1 ]]; then
         # Get last checkpoint and clean up from there
         local last_checkpoint
@@ -706,16 +743,78 @@ cleanup() {
                 ;;
         esac
     else
-        # Full cleanup
+        # Full cleanup - delete the cluster and all associated resources
         if [ -f "$CHECKPOINT_FILE" ]; then
             rm "$CHECKPOINT_FILE"
         fi
-        helm uninstall avs-app -n avs || true
-        helm uninstall monitoring-stack -n monitoring || true
-    kubectl delete namespace avs --timeout=60s || true
-    kubectl delete namespace aerospike --timeout=60s || true
-    kubectl delete namespace monitoring --timeout=60s || true
+
+        # Delete the cluster
         eksctl delete cluster --name "$CLUSTER_NAME" --region "$REGION" || true
+        
+        # Wait for cluster to be fully deleted before removing other resources
+        echo "Waiting for cluster deletion to complete..."
+        while eksctl get cluster --name "$CLUSTER_NAME" --region "$REGION" &> /dev/null; do
+            echo "Cluster still exists, waiting..."
+            sleep 10
+        done
+        
+        # Clean up any remaining EBS volumes
+        echo "Cleaning up EBS volumes..."
+        aws ec2 describe-volumes \
+            --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_NAME},Values=owned" \
+            --query 'Volumes[*].VolumeId' \
+            --output text | tr '\t' '\n' | while read -r volume_id; do
+            if [ -n "$volume_id" ]; then
+                echo "Deleting volume $volume_id..."
+                aws ec2 delete-volume --volume-id "$volume_id" || true
+            fi
+        done
+        
+        # Clean up any remaining load balancers
+        echo "Cleaning up load balancers..."
+        aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?contains(Tags[?Key=='kubernetes.io/cluster/${CLUSTER_NAME}'].Value, 'owned')].LoadBalancerArn" \
+            --output text | tr '\t' '\n' | while read -r lb_arn; do
+            if [ -n "$lb_arn" ]; then
+                echo "Deleting load balancer $lb_arn..."
+                aws elbv2 delete-load-balancer --load-balancer-arn "$lb_arn" || true
+            fi
+        done
+        
+        # Clean up all security groups associated with the cluster
+        echo "Cleaning up security groups..."
+        # Delete AVS-specific security group if it exists
+        aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=eks-${CLUSTER_NAME}-avs-sg" \
+            --query 'SecurityGroups[*].GroupId' \
+            --output text | tr '\t' '\n' | while read -r sg_id; do
+            if [ -n "$sg_id" ]; then
+                echo "Deleting security group $sg_id..."
+                aws ec2 delete-security-group --group-id "$sg_id" || true
+            fi
+        done
+
+        # Delete all security groups with cluster tags
+        aws ec2 describe-security-groups \
+            --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_NAME},Values=owned" \
+            --query 'SecurityGroups[*].GroupId' \
+            --output text | tr '\t' '\n' | while read -r sg_id; do
+            if [ -n "$sg_id" ]; then
+                echo "Deleting security group $sg_id..."
+                aws ec2 delete-security-group --group-id "$sg_id" || true
+            fi
+        done
+
+        # Delete all security groups with eksctl cluster tags
+        aws ec2 describe-security-groups \
+            --filters "Name=tag:eksctl.cluster.k8s.io/v1alpha1/cluster-name,Values=${CLUSTER_NAME}" \
+            --query 'SecurityGroups[*].GroupId' \
+            --output text | tr '\t' '\n' | while read -r sg_id; do
+            if [ -n "$sg_id" ]; then
+                echo "Deleting security group $sg_id..."
+                aws ec2 delete-security-group --group-id "$sg_id" || true
+            fi
+        done
     fi
 }
 
