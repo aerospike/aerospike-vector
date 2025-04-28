@@ -342,7 +342,7 @@ create_eks_cluster() {
     if [ -z "$sg_id" ]; then
         echo "Error: Failed to create security group"
         return 1
-    }
+    fi 
 
     # Tag the security group
     aws ec2 create-tags \
