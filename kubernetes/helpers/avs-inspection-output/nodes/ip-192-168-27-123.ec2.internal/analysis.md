@@ -1,82 +1,87 @@
-## 📋 Node Analysis: ip-192-168-27-123.ec2.internal
+### 🖥️ Node Analysis: ip-192-168-27-123.ec2.internal
 
-### 🖥️ Node Overview
-- **Instance Type**: m5.xlarge
-- **Region/Zone**: us-east-1/us-east-1b
-- **Capacity**: 
-  - CPU: 4 cores
-  - Memory: 15.8 GiB
-  - Pods: 58
-- **Allocatable Resources**:
-  - CPU: 3920m
-  - Memory: 14.8 GiB
-  - Pods: 58
-- **Node Conditions**: 
-  - No memory, disk, or PID pressure.
-  - Node is ready and healthy.
+#### Node Capacity & Conditions
+- **CPU**: 4 cores
+- **Memory**: 15.8 GiB
+- **Allocatable CPU**: 3920m
+- **Allocatable Memory**: 14.8 GiB
+- **Conditions**: No memory, disk, or PID pressure. Node is ready.
 
-### 🏷️ Cloud Provider Details
+#### Cloud Provider & Instance Type
 - **Provider**: AWS
-- **Instance ID**: i-061fa95344eaa63d0
+- **Instance Type**: m5.xlarge
+- **Region**: us-east-1
+- **Zone**: us-east-1b
 
-### 📊 Resource Allocation and Utilization
-- **CPU Requests**: 180m (4%)
-- **Memory Requests**: 120Mi (0%)
-- **Memory Limits**: 768Mi (5%)
+#### Resource Allocation & Utilization
+- **CPU Requests**: 180m (4% of allocatable)
+- **Memory Requests**: 120Mi (0% of allocatable)
+- **No OOM events**: System and Kubernetes OOM events are absent.
 
-### 🔍 Node-Level Issues or Warnings
-- No OOMKill events detected.
-- Node is operating under normal conditions with sufficient resources.
+#### Recommendations for Node-Level Optimizations
+1. **Resource Requests**: Increase resource requests for critical pods to ensure they have guaranteed resources.
+2. **Monitoring**: Implement monitoring for CPU and memory usage to optimize resource allocation.
+3. **Scaling**: Consider auto-scaling based on load to optimize resource utilization.
 
-## 🧵 Pod Analysis: avs-app-aerospike-vector-search-2
+---
 
-### 📄 Configuration Review
-- **Cluster Name**: avs-db-1
-- **Node Roles**: query
-- **Heartbeat Seeds**:
-  - avs-app-aerospike-vector-search-0
-  - avs-app-aerospike-vector-search-1
-- **Listener Addresses**: 0.0.0.0 on port 5001
-- **Advertised Listener**: IP 3.90.200.129, Port 5000
+### 🧵 Pod Analysis: avs-app-aerospike-vector-search-2
 
-### 📦 JVM Flags and Memory Settings
-- **JVM Memory Flags**:
-  - `-Xmx12419m` (Max Heap Size)
-  - `-XX:+UseZGC` (Garbage Collector)
-  - **Heap Info**: Used 338M, Max Capacity 12420M
-  - **Metaspace**: Used 76.6M, Reserved 1.1G
+#### Configuration Review: `aerospike-vector-search.yml`
+- **Node Roles**: Correctly set to `query`.
+- **Heartbeat Seeds**: Configured with two seeds, ensuring redundancy.
+- **Listener Addresses**: Correctly set to `0.0.0.0` for interconnect.
+- **Interconnect Settings**: Port `5001` is open and configured.
 
-### 📈 GC and Memory Analysis
-- **GC.heap_info**: No significant pressure or leaks detected.
-- **GC.class_histogram**: Not provided, but no immediate issues observed.
+#### JVM Configuration
+- **Memory Settings**:
+  - **Initial Heap Size (-Xms)**: Not explicitly set, defaults to JVM.
+  - **Maximum Heap Size (-Xmx)**: 12,419m
+  - **Soft Max Heap Size (-XX:SoftMaxHeapSize)**: 12,419m
+  - **Reserved Code Cache Size (-XX:ReservedCodeCacheSize)**: 240m
+  - **Code Heap Sizes**:
+    - NonNMethod: 5.8m
+    - NonProfiled: 122.9m
+    - Profiled: 122.9m
 
-### 🔍 Full Java Command Line
-- Includes several JVM flags for performance tuning, such as `-XX:+AlwaysPreTouch`, `-XX:+ExitOnOutOfMemoryError`, and `-XX:+UseZGC`.
+- **GC Settings**:
+  - **GC Type**: ZGC (`-XX:+UseZGC`)
+  - **GC Thread Counts**: Young and Old GC threads set to 1
+  - **GC-specific Flags**: `-XX:+ZGenerational`
 
-### 🛠️ Config-Injection Logs
-- Successfully configured heartbeat with 2 seeds.
-- No failed config-injection logs.
+- **Other Important Flags**:
+  - **NUMA Settings**: Disabled (`-XX:-UseNUMA`, `-XX:-UseNUMAInterleaving`)
+  - **Compressed Oops**: Disabled (`-XX:-UseCompressedOops`)
+  - **Pre-touch**: Enabled (`-XX:+AlwaysPreTouch`)
+  - **Compiler Settings**: `-XX:CICompilerCount=3`
+  - **Exit on OOM**: Enabled (`-XX:+ExitOnOutOfMemoryError`)
 
-## 📝 Recommendations
+- **Module and Package Settings**:
+  - **Added Modules**: `jdk.incubator.vector`
+  - **Opened Packages**: Several packages opened for unnamed modules.
+  - **Exported Packages**: Multiple packages exported.
 
-### 1. Node-Level Optimizations
-- **CPU and Memory**: Current utilization is low. Consider optimizing resource requests and limits to better reflect actual usage.
-- **Pod Scheduling**: Ensure that no taints or tolerations are preventing optimal pod distribution.
+#### GC.heap_info Analysis
+- **Current Heap Usage**: 2030M
+- **Heap Capacity**: 2030M
+- **Max Capacity**: 12,420M
+- **Metaspace Usage**: 77,249K
+- **Class Space Usage**: 8,479K
 
-### 2. Pod-Level Configurations
-- **Heartbeat Configuration**: Ensure all seed nodes are consistently reachable to avoid potential cluster issues.
-- **Listener Configuration**: Verify that the advertised listener IP and ports are correctly set for external access.
+#### Recommendations for Pod-Level Configurations
+1. **JVM Memory Settings**: Ensure initial heap size is set to avoid dynamic allocation overhead.
+2. **GC Threads**: Consider increasing GC threads if CPU resources allow, to improve garbage collection efficiency.
+3. **NUMA Settings**: Evaluate enabling NUMA if running on NUMA architecture for potential performance gains.
+4. **Compressed Oops**: Consider enabling if memory savings are needed and performance impact is minimal.
 
-### 3. Resource Allocation Adjustments
-- **Memory Limits**: Increase memory limits if the application is expected to scale or handle larger workloads.
-- **CPU Requests**: Adjust CPU requests to better match the actual usage, potentially freeing up resources for other pods.
+#### Performance Improvements
+1. **JVM Tuning**: Fine-tune JVM settings based on application profiling to optimize performance.
+2. **Resource Requests**: Set appropriate CPU and memory requests to prevent resource contention.
+3. **Monitoring**: Implement detailed monitoring for JVM metrics to proactively manage performance.
 
-### 4. Performance Improvements
-- **JVM Tuning**: Consider fine-tuning JVM flags based on application performance metrics.
-- **Garbage Collection**: Monitor ZGC performance and adjust threads if necessary (`-XX:ZOldGCThreads`, `-XX:ZYoungGCThreads`).
+---
 
-### 5. JVM Memory Settings
-- **Heap Size**: Current settings seem appropriate, but monitor application performance to ensure no memory-related issues arise.
-- **Metaspace**: Ensure sufficient space is reserved to avoid class loading issues.
-
-By addressing these recommendations, you can enhance the performance and reliability of your Aerospike Vector Search deployment on this Kubernetes node. 🚀
+### 📈 Summary
+- **Node**: Efficiently managed, but resource requests can be optimized.
+- **Pod**: Well-configured, but JVM settings can be further tuned for performance.
+- **Overall**: Implement monitoring and consider scaling strategies to optimize resource utilization and performance.

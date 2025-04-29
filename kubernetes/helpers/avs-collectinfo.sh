@@ -359,7 +359,7 @@ collect_node_aggregates
 # NEW CODE STARTS HERE
 # GPT prompt for node analysis
 NODE_PROMPT=$(cat <<EOF
-You are analyzing a Kubernetes node and its Aerospike Vector Search pods.
+You are analyzing a Kubernetes node running Aerospike Vector Search (AVS) pods.
 
 For this node:
 - 🖥️ Analyze node capacity, allocatable resources, and conditions
@@ -369,9 +369,33 @@ For this node:
 
 For each AVS pod on this node:
 - 🔍 Review 'aerospike-vector-search.yml': validate node roles, heartbeat seeds, listener addresses, and interconnect settings
-- 📦 Summarize JVM flags, especially memory/Garbage Collector settings. Include the Xms and Xmx settings.
-- 📈 Analyze GC.heap_info and GC.class_histogram for pressure or leaks
-- 🔍analyze the full java command line in jvm-info.txt for the pod and extract any JVM flags that are set
+- 📦 Analyze JVM configuration from the full command line:
+  * Memory Settings:
+    - Initial heap size (-Xms)
+    - Maximum heap size (-Xmx)
+    - Soft max heap size (-XX:SoftMaxHeapSize)
+    - Reserved code cache size (-XX:ReservedCodeCacheSize)
+    - Code heap sizes (NonNMethod, NonProfiled, Profiled)
+  * GC Settings:
+    - GC type (-XX:+UseZGC)
+    - GC thread counts (-XX:ZYoungGCThreads, -XX:ZOldGCThreads)
+    - GC-specific flags (e.g., -XX:+ZGenerational)
+  * Other Important Flags:
+    - NUMA settings (-XX:-UseNUMA, -XX:-UseNUMAInterleaving)
+    - Compressed oops (-XX:-UseCompressedOops)
+    - Pre-touch settings (-XX:+AlwaysPreTouch)
+    - Compiler settings (-XX:CICompilerCount)
+    - Exit on OOM (-XX:+ExitOnOutOfMemoryError)
+  * Module and Package Settings:
+    - Added modules (--add-modules)
+    - Opened packages (--add-opens)
+    - Exported packages (--add-exports)
+- 📈 Analyze GC.heap_info for:
+  * Current heap usage
+  * Heap capacity
+  * Max capacity
+  * Metaspace usage
+  * Class space usage
 - 🛠️ Highlight any failed config-injection logs
 
 Provide specific recommendations for:
@@ -575,78 +599,136 @@ You are analyzing an Aerospike Vector Search cluster deployment.
 
 Generate a comprehensive cluster analysis report with the following sections:
 
-1. Resource Overview Table
+1. 📊 AVS Index Analysis
+   - Detailed breakdown of each index configuration:
+     * Index name, namespace, and set
+     * Vector dimensions and distance metric
+     * HNSW parameters (ef, efConstruction, m)
+     * Batching and caching configurations
+     * Healer and merge parameters
+   - Recommendations for index optimization based on:
+     * Vector dimensions vs memory usage
+     * Caching parameters vs available memory
+     * Batching parameters vs cluster size
+
+2. 🌐 Cluster Configuration
+   - Node distribution and roles
+   - Endpoint configuration and visibility
+   - Version information
+   - Cluster ID and networking setup
+   - Analysis of node distribution vs index mode (DISTRIBUTED/STANDALONE)
+
+3. ⚙️ JVM Configuration Analysis
+   Create a detailed table for each node showing:
+   - Node name/ID
+   - Memory Configuration:
+     * Initial heap (-Xms)
+     * Maximum heap (-Xmx)
+     * Soft max heap (-XX:SoftMaxHeapSize)
+     * Code cache settings
+     * Other memory-related flags
+   - GC Configuration:
+     * GC type and version
+     * GC thread settings
+     * GC-specific flags
+   - Performance Settings:
+     * NUMA configuration
+     * Compressed oops
+     * Pre-touch settings
+     * Compiler settings
+   - Module/Package Configuration:
+     * Added modules
+     * Opened packages
+     * Exported packages
+   - Current Memory Usage:
+     * Used heap
+     * Heap capacity
+     * Max capacity
+     * Metaspace usage
+     * Class space usage
+
+4. 💾 Memory Analysis
+   For each node:
+   - Heap size vs container limits
+   - Memory distribution across different regions
+   - GC pressure indicators
+   - Memory efficiency recommendations
+   - Correlation between index parameters and memory usage
+
+5. 🔍 Performance Configuration Analysis
+   - Index caching vs JVM heap size
+   - Batching parameters vs available memory
+   - Thread settings vs available CPU
+   - Network configuration impact
+
+6. ⚠️ Potential Issues and Recommendations
+   - Memory configuration improvements
+   - Index parameter optimizations
+   - JVM flag adjustments
+   - Cluster balance suggestions
+   - Caching strategy improvements
+
+7. 📈 Scaling Considerations
+   - Current resource utilization
+   - Headroom for growth
+   - Bottleneck identification
+   - Scaling recommendations
+
+8. 🔄 Resource Overview
    - Create a table showing each node's:
      * Total Memory (from node-aggregates.json)
      * Allocatable Memory (from node-aggregates.json)
-     * AVS pods on node (with name and role from node-aggregates.json) and JVM Configuration:
+     * AVS pods on node (with name and role from node-aggregates.json)
      * Instance Type (from node-aggregates.json)
      * Status/Health (from node-aggregates.json)
-2. Node Overview Table
-    - Create a table showing details of each pod on each node:
-        * Name
-        * Roles
-        * JVM Flags (extracted from full java command line in jvm-info.txt)
-        * Memory Request
-        * Memory Limit
-        * Memory Used
-3. Cluster-wide AVS information:
-   * Cluster info:
-   * Indecies:
-4. Cluster Health Assessment
-   - Memory distribution across nodes (using node-aggregates.json)
-   - Resource allocation patterns (using node-aggregates.json)
-   - GC pressure indicators (from pod JVM info)
-   - Node conditions (from node-aggregates.json)
 
-5. Key Metrics
-   - Total cluster memory (sum from node-aggregates.json)
-   - Average memory per AVS pod (calculated from node-aggregates.json)
-   - Memory utilization percentages (calculated from node-aggregates.json)
-   - Resource efficiency (calculated from node-aggregates.json)
+9. 📊 Node Overview
+   - Create a table showing details of each pod on each node:
+     * Name
+     * Roles
+     * JVM Flags (extracted from full java command line in jvm-info.txt)
+     * Memory Request
+     * Memory Limit
+     * Memory Used
 
-6. Potential Issues
-   - Memory pressure points (from node conditions and OOM events)
-   - Resource imbalances (from node-aggregates.json)
-   - GC concerns (from pod JVM info)
-   - Configuration inconsistencies (from pod configs)
+10. ⚠️ OOMKill Analysis
+    - Detailed timeline of all OOMKill events found:
+      * Container restart history
+      * Previous termination states
+      * System OOM events
+      * Pod events
+    - For each OOMKill event analyze:
+      * JVM heap settings at the time
+      * Node memory capacity
+      * Whether it was an isolated incident or part of a pattern
+      * Correlation with memory pressure or other events
 
-7. OOMKill Analysis
-   - Detailed timeline of all OOMKill events found:
-     * Container restart history
-     * Previous termination states
-     * System OOM events
-     * Pod events
-   
-   - For each OOMKill event analyze:
-     * JVM heap settings at the time
-     * Node memory capacity
-     * Whether it was an isolated incident or part of a pattern
-     * Correlation with memory pressure or other events
+Format Requirements:
+- Use tables for comparing configurations across nodes
+- Include specific values and settings
+- Provide clear before/after recommendations
+- Use emojis for section headers
+- Include command examples for recommended changes
 
-8. Memory Configuration Assessment
-   - Compare nodes/pods with and without OOMKills
-   - Analyze if OOMKills correlate with:
-     * Higher heap/node memory ratios
-     * Specific workload patterns
-     * Time of day or specific events
-   
-9. Recommendations
-   - Specific memory configuration changes
-   - System-level improvements
-   - Monitoring enhancements
-   - Prevention strategies
-
-Provide a clear timeline of OOMKill events and their context.
-Highlight patterns and potential root causes.
+For each recommendation:
+1. Current setting
+2. Recommended value
+3. Rationale for change
+4. Impact assessment
+5. Implementation steps
 
 Pay special attention to:
+- Consistency of JVM settings across nodes
+- Alignment of index parameters with available resources
+- Memory allocation efficiency
+- GC behavior and settings
+- Cache size vs heap size ratios
 - Pod restart counts and timing
 - Last termination states and reasons
 - Exit codes (137 indicates OOMKill)
 - Time correlation between restarts and node pressure
 - Pattern of restarts across the cluster
-- Reletive uptime of the pods
+- Relative uptime of the pods
 
 When analyzing OOMKills:
 1. Look at both container termination states AND system events
@@ -654,9 +736,8 @@ When analyzing OOMKills:
 3. Compare memory settings of pods that restarted vs stable pods
 4. Consider the timing of restarts relative to pod age
 5. Consider the relative uptime of the pods (if nodes restart it looks like 0 restarts)
-Use the aggregated node information from node-aggregates.json to ensure accurate and consistent reporting of node resources, instance types, and cloud provider details.
 
-Format the report exactly as shown in the example, with proper markdown formatting and consistent spacing. Please make use of emojis to make the report more engaging.
+Use the aggregated node information from node-aggregates.json to ensure accurate and consistent reporting of node resources, instance types, and cloud provider details.
 EOF
 )
 

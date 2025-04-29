@@ -4,13 +4,12 @@
 - **Instance Type**: m5.xlarge
 - **Region/Zone**: us-east-1/us-east-1b
 - **Capacity**: 
-  - **CPU**: 4 cores
-  - **Memory**: 15.8 GiB
-  - **Ephemeral Storage**: ~80 GiB
+  - CPU: 4 cores
+  - Memory: 15,896,988 Ki (~15.2 Gi)
+  - Pods: 58
 - **Allocatable Resources**:
-  - **CPU**: 3920m
-  - **Memory**: 14.8 GiB
-  - **Pods**: 58
+  - CPU: 3920m
+  - Memory: 14,880,156 Ki (~14.2 Gi)
 
 #### Node Conditions
 - **MemoryPressure**: False (Sufficient memory available)
@@ -19,28 +18,31 @@
 - **Ready**: True (Node is ready)
 
 #### Resource Allocation
-- **CPU Requests**: 190m (4%)
-- **Memory Requests**: 170Mi (1%)
-- **Memory Limits**: 768Mi (5%)
+- **CPU Requests**: 190m (4% of allocatable)
+- **Memory Requests**: 170Mi (1% of allocatable)
+- **Memory Limits**: 768Mi (5% of allocatable)
 
 #### Observations
-- The node is underutilized in terms of CPU and memory.
-- No OOMKill events or system pressure issues detected.
+- The node is healthy with no pressure conditions.
+- Resource requests and limits are minimal compared to the node's capacity.
+- No OOMKill events detected, indicating stable memory usage.
 
-### Recommendations for Node-Level Optimizations
-1. **Resource Utilization**: Consider deploying additional workloads or resizing the node to better match resource demands.
-2. **Monitoring**: Continue monitoring for any changes in resource usage or pressure conditions.
+### 🚀 Recommendations for Node-Level Optimizations
+1. **Resource Utilization**: The node's resources are underutilized. Consider increasing the workload or consolidating nodes to optimize resource usage.
+2. **Scaling**: If the workload increases, monitor the node's performance and consider scaling up or adding more nodes.
 
-### 🚀 Pod-Level Analysis
-**Note**: No Aerospike Vector Search (AVS) pods were found on this node. Therefore, pod-level recommendations are not applicable.
+### 🛠️ Pod-Level Configurations
+- **AVS Pods**: No Aerospike Vector Search pods are currently running on this node. Ensure that the AVS pods are scheduled correctly and check the pod deployment configurations.
 
-### General Recommendations
-1. **Resource Allocation Adjustments**: 
-   - Evaluate the need for current resource requests and limits. Adjust them to reflect actual usage to optimize resource allocation.
-2. **Performance Improvements**:
-   - Ensure that the node is part of a balanced cluster with appropriate scaling policies to handle workload variations efficiently.
-3. **JVM Memory Settings**:
-   - For any future AVS pods, ensure JVM settings are optimized for memory usage and garbage collection. Typical settings include `-Xms` (initial heap size) and `-Xmx` (maximum heap size).
+### 📈 Resource Allocation Adjustments
+- **CPU and Memory**: Given the low resource utilization, you may adjust the requests and limits for existing pods to better utilize the node's capacity.
 
-### Conclusion
-The node `ip-192-168-26-117.ec2.internal` is healthy and underutilized. Consider optimizing resource allocation and monitoring for any potential changes in workload demands. No specific pod-level configurations are needed at this time due to the absence of AVS pods.
+### ⚙️ Performance Improvements
+- **Monitoring**: Implement monitoring tools to track resource usage trends over time, allowing for proactive scaling and resource allocation adjustments.
+- **Load Testing**: Conduct load testing to ensure the node can handle peak workloads efficiently.
+
+### 🧠 JVM Memory Settings
+- **JVM Configuration**: Since no AVS pods are running, there are no JVM settings to analyze. Ensure that when AVS pods are deployed, JVM settings are optimized for the workload.
+
+### 📜 Summary
+The node is in good health with ample resources available. However, the absence of AVS pods suggests a need to review deployment configurations. Optimize resource allocation and consider scaling strategies to improve efficiency.

@@ -4,7 +4,7 @@
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are analyzing a Kubernetes node and its Aerospike Vector Search pods.
+                    "content": "You are analyzing a Kubernetes node running Aerospike Vector Search (AVS) pods.
 
 For this node:
 - 🖥️ Analyze node capacity, allocatable resources, and conditions
@@ -14,9 +14,33 @@ For this node:
 
 For each AVS pod on this node:
 - 🔍 Review 'aerospike-vector-search.yml': validate node roles, heartbeat seeds, listener addresses, and interconnect settings
-- 📦 Summarize JVM flags, especially memory/Garbage Collector settings. Include the Xms and Xmx settings.
-- 📈 Analyze GC.heap_info and GC.class_histogram for pressure or leaks
-- 🔍analyze the full java command line in jvm-info.txt for the pod and extract any JVM flags that are set
+- 📦 Analyze JVM configuration from the full command line:
+  * Memory Settings:
+    - Initial heap size (-Xms)
+    - Maximum heap size (-Xmx)
+    - Soft max heap size (-XX:SoftMaxHeapSize)
+    - Reserved code cache size (-XX:ReservedCodeCacheSize)
+    - Code heap sizes (NonNMethod, NonProfiled, Profiled)
+  * GC Settings:
+    - GC type (-XX:+UseZGC)
+    - GC thread counts (-XX:ZYoungGCThreads, -XX:ZOldGCThreads)
+    - GC-specific flags (e.g., -XX:+ZGenerational)
+  * Other Important Flags:
+    - NUMA settings (-XX:-UseNUMA, -XX:-UseNUMAInterleaving)
+    - Compressed oops (-XX:-UseCompressedOops)
+    - Pre-touch settings (-XX:+AlwaysPreTouch)
+    - Compiler settings (-XX:CICompilerCount)
+    - Exit on OOM (-XX:+ExitOnOutOfMemoryError)
+  * Module and Package Settings:
+    - Added modules (--add-modules)
+    - Opened packages (--add-opens)
+    - Exported packages (--add-exports)
+- 📈 Analyze GC.heap_info for:
+  * Current heap usage
+  * Heap capacity
+  * Max capacity
+  * Metaspace usage
+  * Class space usage
 - 🛠️ Highlight any failed config-injection logs
 
 Provide specific recommendations for:
@@ -70,14 +94,14 @@ Unschedulable:      false
 Lease:
   HolderIdentity:  ip-192-168-53-124.ec2.internal
   AcquireTime:     <unset>
-  RenewTime:       Tue, 29 Apr 2025 13:55:45 -0700
+  RenewTime:       Tue, 29 Apr 2025 14:23:38 -0700
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:59:03 -0700   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Tue, 29 Apr 2025 14:22:06 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 14:22:06 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 14:22:06 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 14:22:06 -0700   Tue, 29 Apr 2025 11:59:03 -0700   KubeletReady                 kubelet is posting ready status
 Addresses:
   InternalIP:   192.168.53.124
   ExternalIP:   44.213.250.59
@@ -113,14 +137,14 @@ ProviderID:                   aws:///us-east-1d/i-06a1a8c247b423e45
 Non-terminated Pods:          (8 in total)
   Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
   ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
-  kube-system                 aws-node-m2dn4                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         117m
-  kube-system                 coredns-586b798467-9n7fr                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     121m
-  kube-system                 coredns-586b798467-nmhdq                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     121m
-  kube-system                 ebs-csi-controller-645d8c6c95-qwxt7                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   113m
-  kube-system                 ebs-csi-controller-645d8c6c95-zpfjv                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   113m
-  kube-system                 ebs-csi-node-fs4xm                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     113m
-  kube-system                 kube-proxy-mq2k2                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         117m
-  monitoring                  monitoring-stack-prometheus-node-exporter-cb9wg    0 (0%)        0 (0%)      0 (0%)           0 (0%)         97m
+  kube-system                 aws-node-m2dn4                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         145m
+  kube-system                 coredns-586b798467-9n7fr                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     149m
+  kube-system                 coredns-586b798467-nmhdq                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     149m
+  kube-system                 ebs-csi-controller-645d8c6c95-qwxt7                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   141m
+  kube-system                 ebs-csi-controller-645d8c6c95-zpfjv                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   141m
+  kube-system                 ebs-csi-node-fs4xm                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     141m
+  kube-system                 kube-proxy-mq2k2                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         145m
+  monitoring                  monitoring-stack-prometheus-node-exporter-cb9wg    0 (0%)        0 (0%)      0 (0%)           0 (0%)         125m
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
   Resource           Requests    Limits
@@ -155,7 +179,7 @@ Events:              <none>
 === Node Conditions ===
 [
   {
-    \"lastHeartbeatTime\": \"2025-04-29T20:51:30Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T21:22:06Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has sufficient memory available\",
     \"reason\": \"KubeletHasSufficientMemory\",
@@ -163,7 +187,7 @@ Events:              <none>
     \"type\": \"MemoryPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T20:51:30Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T21:22:06Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has no disk pressure\",
     \"reason\": \"KubeletHasNoDiskPressure\",
@@ -171,7 +195,7 @@ Events:              <none>
     \"type\": \"DiskPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T20:51:30Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T21:22:06Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has sufficient PID available\",
     \"reason\": \"KubeletHasSufficientPID\",
@@ -179,7 +203,7 @@ Events:              <none>
     \"type\": \"PIDPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T20:51:30Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T21:22:06Z\",
     \"lastTransitionTime\": \"2025-04-29T18:59:03Z\",
     \"message\": \"kubelet is posting ready status\",
     \"reason\": \"KubeletReady\",
