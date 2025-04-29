@@ -1,0 +1,214 @@
+{
+            "model": "gpt-4o",
+            "temperature": 0.3,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are analyzing a Kubernetes node and its Aerospike Vector Search pods.
+
+For this node:
+- 🖥️ Analyze node capacity, allocatable resources, and conditions
+- 🏷️ Review cloud provider details and instance type
+- 📊 Evaluate resource allocation and utilization
+- 🔍 Check for any node-level issues or warnings
+
+For each AVS pod on this node:
+- 🔍 Review 'aerospike-vector-search.yml': validate node roles, heartbeat seeds, listener addresses, and interconnect settings
+- 📦 Summarize JVM flags, especially memory/Garbage Collector settings. Include the Xms and Xmx settings.
+- 📈 Analyze GC.heap_info and GC.class_histogram for pressure or leaks
+- 🔍analyze the full java command line in jvm-info.txt for the pod and extract any JVM flags that are set
+- 🛠️ Highlight any failed config-injection logs
+
+Provide specific recommendations for:
+1. Node-level optimizations
+2. Pod-level configurations
+3. Resource allocation adjustments
+4. Performance improvements
+5. JVM memory settings
+
+Include specific identifiers for the node and pods in your analysis. 
+Include use of emojis to make the report more engaging."
+                },
+                {
+                    "role": "user",
+                    "content": "==============================
+🖥️ NODE: ip-192-168-26-117.ec2.internal
+==============================
+
+=== Node Information ===
+=== Node Description ===
+Name:               ip-192-168-26-117.ec2.internal
+Roles:              <none>
+Labels:             aerospike.io/group=aerospike-pool
+                    aerospike.io/node-pool=default-rack
+                    aerospike.io/role-label=default-rack
+                    alpha.eksctl.io/cluster-name=letsrememberopen2
+                    alpha.eksctl.io/nodegroup-name=aerospike-pool
+                    beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=m5.xlarge
+                    beta.kubernetes.io/os=linux
+                    eks.amazonaws.com/capacityType=ON_DEMAND
+                    eks.amazonaws.com/nodegroup=aerospike-pool
+                    eks.amazonaws.com/nodegroup-image=ami-01fc98868662094f9
+                    eks.amazonaws.com/sourceLaunchTemplateId=lt-001ef0e6c21956cd0
+                    eks.amazonaws.com/sourceLaunchTemplateVersion=1
+                    failure-domain.beta.kubernetes.io/region=us-east-1
+                    failure-domain.beta.kubernetes.io/zone=us-east-1b
+                    k8s.io/cloud-provider-aws=7b106a2a28f90fcf8e2b12bdb82ef1dc
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=ip-192-168-26-117.ec2.internal
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=m5.xlarge
+                    topology.ebs.csi.aws.com/zone=us-east-1b
+                    topology.k8s.aws/zone-id=use1-az4
+                    topology.kubernetes.io/region=us-east-1
+                    topology.kubernetes.io/zone=us-east-1b
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.26.117
+                    csi.volume.kubernetes.io/nodeid: {\"ebs.csi.aws.com\":\"i-05ce4cec70b161c88\"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 29 Apr 2025 12:03:47 -0700
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  ip-192-168-26-117.ec2.internal
+  AcquireTime:     <unset>
+  RenewTime:       Tue, 29 Apr 2025 13:55:01 -0700
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Tue, 29 Apr 2025 13:50:24 -0700   Tue, 29 Apr 2025 12:03:47 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 13:50:24 -0700   Tue, 29 Apr 2025 12:03:47 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 13:50:24 -0700   Tue, 29 Apr 2025 12:03:47 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 13:50:24 -0700   Tue, 29 Apr 2025 12:04:00 -0700   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:   192.168.26.117
+  ExternalIP:   52.90.154.47
+  InternalDNS:  ip-192-168-26-117.ec2.internal
+  Hostname:     ip-192-168-26-117.ec2.internal
+  ExternalDNS:  ec2-52-90-154-47.compute-1.amazonaws.com
+Capacity:
+  cpu:                4
+  ephemeral-storage:  83873772Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             15896988Ki
+  pods:               58
+Allocatable:
+  cpu:                3920m
+  ephemeral-storage:  76224326324
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             14880156Ki
+  pods:               58
+System Info:
+  Machine ID:                 ec297ff95b71c67905fd1e25e3f578e1
+  System UUID:                ec297ff9-5b71-c679-05fd-1e25e3f578e1
+  Boot ID:                    c59c91f5-7b43-4d2d-bda0-386d1e13e6be
+  Kernel Version:             5.10.235-227.919.amzn2.x86_64
+  OS Image:                   Amazon Linux 2
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.27
+  Kubelet Version:            v1.30.9-eks-5d632ec
+  Kube-Proxy Version:         v1.30.9-eks-5d632ec
+ProviderID:                   aws:///us-east-1b/i-05ce4cec70b161c88
+Non-terminated Pods:          (6 in total)
+  Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
+  aerospike                   aerocluster-0-0                                    0 (0%)        0 (0%)      0 (0%)           0 (0%)         98m
+  kube-system                 aws-node-xhc8h                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         111m
+  kube-system                 ebs-csi-node-rn9gl                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     111m
+  kube-system                 kube-proxy-j7zp7                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         111m
+  monitoring                  monitoring-stack-prometheus-node-exporter-fm2q9    0 (0%)        0 (0%)      0 (0%)           0 (0%)         97m
+  olm                         packageserver-7f68ff99c8-ww9n5                     10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         100m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                190m (4%)   0 (0%)
+  memory             170Mi (1%)  768Mi (5%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+=== Node Resources ===
+{
+  \"cpu\": \"4\",
+  \"ephemeral-storage\": \"83873772Ki\",
+  \"hugepages-1Gi\": \"0\",
+  \"hugepages-2Mi\": \"0\",
+  \"memory\": \"15896988Ki\",
+  \"pods\": \"58\"
+}
+
+=== Node Allocatable Resources ===
+{
+  \"cpu\": \"3920m\",
+  \"ephemeral-storage\": \"76224326324\",
+  \"hugepages-1Gi\": \"0\",
+  \"hugepages-2Mi\": \"0\",
+  \"memory\": \"14880156Ki\",
+  \"pods\": \"58\"
+}
+
+=== Node Conditions ===
+[
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:50:24Z\",
+    \"lastTransitionTime\": \"2025-04-29T19:03:47Z\",
+    \"message\": \"kubelet has sufficient memory available\",
+    \"reason\": \"KubeletHasSufficientMemory\",
+    \"status\": \"False\",
+    \"type\": \"MemoryPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:50:24Z\",
+    \"lastTransitionTime\": \"2025-04-29T19:03:47Z\",
+    \"message\": \"kubelet has no disk pressure\",
+    \"reason\": \"KubeletHasNoDiskPressure\",
+    \"status\": \"False\",
+    \"type\": \"DiskPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:50:24Z\",
+    \"lastTransitionTime\": \"2025-04-29T19:03:47Z\",
+    \"message\": \"kubelet has sufficient PID available\",
+    \"reason\": \"KubeletHasSufficientPID\",
+    \"status\": \"False\",
+    \"type\": \"PIDPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:50:24Z\",
+    \"lastTransitionTime\": \"2025-04-29T19:04:00Z\",
+    \"message\": \"kubelet is posting ready status\",
+    \"reason\": \"KubeletReady\",
+    \"status\": \"True\",
+    \"type\": \"Ready\"
+  }
+]
+
+=== Cloud Instance Information ===
+Cloud Provider: On-premises
+Instance Type: m5.xlarge
+Region: us-east-1
+Zone: us-east-1b
+
+=== OOMKill Events ===
+System OOM Events:
+No system OOM events found
+
+Kubernetes OOMKill Events:
+No Kubernetes OOM events found
+
+=== Node OOMKill Events ===
+System OOM Events (last 24h):
+No system OOM events found
+
+Pod OOMKills on this node:
+
+❌ No AVS pods found on this node"
+                }
+            ]
+        }

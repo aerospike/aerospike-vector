@@ -1,0 +1,337 @@
+==============================
+🖥️ NODE: ip-192-168-27-123.ec2.internal
+==============================
+
+=== Node Information ===
+=== Node Description ===
+Name:               ip-192-168-27-123.ec2.internal
+Roles:              <none>
+Labels:             aerospike.io/group=avs-query-pool
+                    aerospike.io/node-pool=avs
+                    aerospike.io/role-label=query-nodes
+                    alpha.eksctl.io/cluster-name=letsrememberopen2
+                    alpha.eksctl.io/nodegroup-name=avs-query-pool
+                    beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=m5.xlarge
+                    beta.kubernetes.io/os=linux
+                    eks.amazonaws.com/capacityType=ON_DEMAND
+                    eks.amazonaws.com/nodegroup=avs-query-pool
+                    eks.amazonaws.com/nodegroup-image=ami-01fc98868662094f9
+                    eks.amazonaws.com/sourceLaunchTemplateId=lt-0ded039a0982bbba3
+                    eks.amazonaws.com/sourceLaunchTemplateVersion=1
+                    failure-domain.beta.kubernetes.io/region=us-east-1
+                    failure-domain.beta.kubernetes.io/zone=us-east-1b
+                    k8s.io/cloud-provider-aws=7b106a2a28f90fcf8e2b12bdb82ef1dc
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=ip-192-168-27-123.ec2.internal
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=m5.xlarge
+                    topology.ebs.csi.aws.com/zone=us-east-1b
+                    topology.k8s.aws/zone-id=use1-az4
+                    topology.kubernetes.io/region=us-east-1
+                    topology.kubernetes.io/zone=us-east-1b
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.27.123
+                    csi.volume.kubernetes.io/nodeid: {"ebs.csi.aws.com":"i-061fa95344eaa63d0"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 29 Apr 2025 12:10:12 -0700
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  ip-192-168-27-123.ec2.internal
+  AcquireTime:     <unset>
+  RenewTime:       Tue, 29 Apr 2025 13:55:09 -0700
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Tue, 29 Apr 2025 13:52:49 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 13:52:49 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 13:52:49 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 13:52:49 -0700   Tue, 29 Apr 2025 12:10:24 -0700   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:   192.168.27.123
+  ExternalIP:   3.90.200.129
+  InternalDNS:  ip-192-168-27-123.ec2.internal
+  Hostname:     ip-192-168-27-123.ec2.internal
+  ExternalDNS:  ec2-3-90-200-129.compute-1.amazonaws.com
+Capacity:
+  cpu:                4
+  ephemeral-storage:  83873772Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             15896988Ki
+  pods:               58
+Allocatable:
+  cpu:                3920m
+  ephemeral-storage:  76224326324
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             14880156Ki
+  pods:               58
+System Info:
+  Machine ID:                 ec2af54649071adbcd4a4f8cd8a8f83d
+  System UUID:                ec2af546-4907-1adb-cd4a-4f8cd8a8f83d
+  Boot ID:                    809185be-2de5-43de-a0be-84c43edde0bc
+  Kernel Version:             5.10.235-227.919.amzn2.x86_64
+  OS Image:                   Amazon Linux 2
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.27
+  Kubelet Version:            v1.30.9-eks-5d632ec
+  Kube-Proxy Version:         v1.30.9-eks-5d632ec
+ProviderID:                   aws:///us-east-1b/i-061fa95344eaa63d0
+Non-terminated Pods:          (5 in total)
+  Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
+  avs                         avs-app-aerospike-vector-search-2                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         98m
+  kube-system                 aws-node-q6fz6                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         105m
+  kube-system                 ebs-csi-node-dhpkb                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     105m
+  kube-system                 kube-proxy-pg2m7                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         105m
+  monitoring                  monitoring-stack-prometheus-node-exporter-7lmgf    0 (0%)        0 (0%)      0 (0%)           0 (0%)         97m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                180m (4%)   0 (0%)
+  memory             120Mi (0%)  768Mi (5%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+=== Node Resources ===
+{
+  "cpu": "4",
+  "ephemeral-storage": "83873772Ki",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "15896988Ki",
+  "pods": "58"
+}
+
+=== Node Allocatable Resources ===
+{
+  "cpu": "3920m",
+  "ephemeral-storage": "76224326324",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "14880156Ki",
+  "pods": "58"
+}
+
+=== Node Conditions ===
+[
+  {
+    "lastHeartbeatTime": "2025-04-29T20:52:49Z",
+    "lastTransitionTime": "2025-04-29T19:10:12Z",
+    "message": "kubelet has sufficient memory available",
+    "reason": "KubeletHasSufficientMemory",
+    "status": "False",
+    "type": "MemoryPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:52:49Z",
+    "lastTransitionTime": "2025-04-29T19:10:12Z",
+    "message": "kubelet has no disk pressure",
+    "reason": "KubeletHasNoDiskPressure",
+    "status": "False",
+    "type": "DiskPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:52:49Z",
+    "lastTransitionTime": "2025-04-29T19:10:12Z",
+    "message": "kubelet has sufficient PID available",
+    "reason": "KubeletHasSufficientPID",
+    "status": "False",
+    "type": "PIDPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:52:49Z",
+    "lastTransitionTime": "2025-04-29T19:10:24Z",
+    "message": "kubelet is posting ready status",
+    "reason": "KubeletReady",
+    "status": "True",
+    "type": "Ready"
+  }
+]
+
+=== Cloud Instance Information ===
+Cloud Provider: On-premises
+Instance Type: m5.xlarge
+Region: us-east-1
+Zone: us-east-1b
+
+=== OOMKill Events ===
+System OOM Events:
+No system OOM events found
+
+Kubernetes OOMKill Events:
+No Kubernetes OOM events found
+
+=== Node OOMKill Events ===
+System OOM Events (last 24h):
+No system OOM events found
+
+Pod OOMKills on this node:
+
+=== AVS Pods on Node ===
+
+🧵 POD: avs-app-aerospike-vector-search-2
+------------------------------
+
+📄 FILE: config.yml
+------------------------------
+cluster:
+  cluster-name: avs-db-1
+  node-roles:
+  - query
+feature-key-file: /etc/aerospike-vector-search/secrets/features.conf
+heartbeat:
+  seeds:
+  - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
+    port: "5001"
+  - address: avs-app-aerospike-vector-search-1.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
+    port: "5001"
+interconnect:
+  ports:
+    "5001":
+      addresses: 0.0.0.0
+logging:
+  enable-console-logging: false
+  format: simple
+  levels:
+    metrics-ticker: debug
+    root: info
+  max-history: 30
+  ticker-interval: 10
+manage:
+  ports:
+    "5040": {}
+service:
+  metadata-namespace: avs-meta
+  ports:
+    "5000":
+      advertised-listeners:
+        default:
+        - address: 3.90.200.129
+          port: 5000
+storage:
+  client-policy: {}
+  seeds:
+  - aerocluster-0-0.aerocluster.aerospike.svc.cluster.local:
+      port: 3000
+
+📄 FILE: init-container.log
+------------------------------
+2025/04/29 19:17:12 Init container started
+2025/04/29 19:17:12 Initial configuration:
+{
+  "cluster": {
+    "cluster-name": "avs-db-1"
+  },
+  "feature-key-file": "/etc/aerospike-vector-search/secrets/features.conf",
+  "heartbeat": {
+    "seeds": [
+      {
+        "address": "avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local",
+        "port": 5001
+      }
+    ]
+  },
+  "interconnect": {
+    "ports": {
+      "5001": {
+        "addresses": "0.0.0.0"
+      }
+    }
+  },
+  "logging": {
+    "enable-console-logging": false,
+    "format": "simple",
+    "levels": {
+      "metrics-ticker": "debug",
+      "root": "info"
+    },
+    "max-history": 30,
+    "ticker-interval": 10
+  },
+  "manage": {
+    "ports": {
+      "5040": {}
+    }
+  },
+  "service": {
+    "metadata-namespace": "avs-meta",
+    "ports": {
+      "5000": {}
+    }
+  },
+  "storage": {
+    "client-policy": {},
+    "seeds": [
+      {
+        "aerocluster-0-0.aerocluster.aerospike.svc.cluster.local": {
+          "port": 3000
+        }
+      }
+    ]
+  }
+}
+2025/04/29 19:17:12 Starting setRoles()
+2025/04/29 19:17:12 Starting getAerospikeVectorSearchRoles()
+2025/04/29 19:17:12 Starting getNodeLabels()
+2025/04/29 19:17:12 Starting GetNodeInstance()
+2025/04/29 19:17:12 NODE_NAME: ip-192-168-27-123.ec2.internal
+2025/04/29 19:17:12 SERVICE_NAME: avs-app-aerospike-vector-search
+2025/04/29 19:17:12 POD_NAMESPACE: avs
+2025/04/29 19:17:12 In-cluster config obtained successfully
+2025/04/29 19:17:13 Fetched node: ip-192-168-27-123.ec2.internal
+2025/04/29 19:17:13 Service avs-app-aerospike-vector-search not found in namespace avs; proceeding with node only
+2025/04/29 19:17:13 Found node label: aerospike.io/role-label=query-nodes
+2025/04/29 19:17:13 Available roles: map[default-nodes:[query index-update] indexer-nodes:[index-update] query-nodes:[query] standalone-indexer-nodes:[standalone-indexer] standalone-nodes:[standalone-indexer]]
+2025/04/29 19:17:13 Found role for label query-nodes: [query]
+2025/04/29 19:17:13 Successfully set roles in cluster configuration
+2025/04/29 19:17:13 Starting setAdvertisedListeners()
+2025/04/29 19:17:13 Operating in NETWORK_MODE: hostnetwork
+2025/04/29 19:17:13 CONTAINER_PORT: 5000 for hostnetwork mode
+2025/04/29 19:17:13 Setting advertised listeners to IP: 3.90.200.129, Port: 5000
+2025/04/29 19:17:13 Setting advertised-listeners for port 5000
+2025/04/29 19:17:13 Updated ports configuration: {
+  "5000": {
+    "advertised-listeners": {
+      "default": [
+        {
+          "address": "3.90.200.129",
+          "port": 5000
+        }
+      ]
+    }
+  }
+}
+2025/04/29 19:17:13 Setting up heartbeat seeds...
+2025/04/29 19:17:13 Generating heartbeat seed DNS names...
+2025/04/29 19:17:13 Checking for heartbeat configuration...
+2025/04/29 19:17:13 Found heartbeat seed configuration: address=avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local, port=5001
+Pod ID: 2
+2025/04/29 19:17:13 Successfully configured heartbeat with 2 seed(s)
+2025/04/29 19:17:13 No real memory limit set, using system total memory: 16278515712 bytes
+2025/04/29 19:17:13 Calculated JVM options: -Xmx12419m
+2025/04/29 19:17:13 Set JAVA_OPTS to: -Xmx12419m
+2025/04/29 19:17:13 Wrote JVM options to file: /etc/aerospike-vector-search/jvm.opts
+2025/04/29 19:17:13 Init container completed successfully
+
+📄 FILE: jvm-info.txt
+------------------------------
+➡️ jcmd 9 VM.flags:
+9:
+-XX:+AlwaysPreTouch -XX:CICompilerCount=3 -XX:+ExitOnOutOfMemoryError -XX:InitialHeapSize=241172480 -XX:MaxHeapSize=13023313920 -XX:MinHeapDeltaBytes=2097152 -XX:MinHeapSize=8388608 -XX:NonNMethodCodeHeapSize=5832780 -XX:NonProfiledCodeHeapSize=122912730 -XX:ProfiledCodeHeapSize=122912730 -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:SoftMaxHeapSize=13023313920 -XX:-THPStackMitigation -XX:-UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:-UseNUMA -XX:-UseNUMAInterleaving -XX:+UseZGC -XX:+ZGenerational -XX:ZOldGCThreads=1 -XX:ZYoungGCThreads=1 
+
+➡️ jcmd 9 GC.heap_info:
+9:
+ ZHeap           used 338M, capacity 338M, max capacity 12420M
+ Metaspace       used 76637K, committed 77312K, reserved 1179648K
+  class space    used 8455K, committed 8768K, reserved 1048576K
+
+➡️ getting full java command line for pid 9:
+    PID TTY      STAT   TIME COMMAND
+      9 ?        Sl     2:07 /usr/lib/jvm/jre/bin/java -Djava.security.egd=file:/dev/./urandom -Dconnect.product.name=aerospike-vector-search -Dconnect.product.version=1.1.0 -XX:+ExitOnOutOfMemoryError -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch --add-modules jdk.incubator.vector --add-opens java.base/jdk.internal.util=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-exports java.base/sun.nio.ch=ALL-UNNAMED --add-exports jdk.unsupported/sun.misc=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED -DFMA_SUPPORTED=true -Xmx12419m -classpath /opt/aerospike-vector-search/lib/aerospike-vector-search-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-transact-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-clustering-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-index-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-security-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-cluster-common-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-storage-aerospike-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-embedded-client-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-common-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-manage-1.0.15.jar:/opt/aerospike-vector-search/lib/aerospike-aerospike-2.2.11.jar:/opt/aerospike-vector-search/lib/aerospike-tls-1.2.12.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-licensing-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-server-stub-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-metrics-1.0.9.jar:/opt/aerospike-vector-search/lib/aerospike-serde-1.1.12.jar:/opt/aerospike-vector-search/lib/aerospike-io-1.0.12.jar:/opt/aerospike-vector-search/lib/aerospike-logging-1.2.6.jar:/opt/aerospike-vector-search/lib/aerospike-undertow-patch-2.3.18.jar:/opt/aerospike-vector-search/lib/guice-assistedinject-6.0.0.jar:/opt/aerospike-vector-search/lib/guice-bridge-3.0.4.jar:/opt/aerospike-vector-search/lib/guice-servlet-6.0.0.jar:/opt/aerospike-vector-search/lib/guice-6.0.0.jar:/opt/aerospike-vector-search/lib/validation-api-2.0.1.Final.jar:/opt/aerospike-vector-search/lib/grpc-netty-1.71.0.jar:/opt/aerospike-vector-search/lib/netty-handler-proxy-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-http2-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-native-epoll-4.1.119.Final-linux-x86_64.jar:/opt/aerospike-vector-search/lib/netty-transport-native-kqueue-4.1.119.Final-osx-x86_64.jar:/opt/aerospike-vector-search/lib/netty-codec-socks-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-http-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-handler-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-classes-epoll-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-classes-kqueue-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-native-unix-common-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/grpc-kotlin-stub-1.4.1.jar:/opt/aerospike-vector-search/lib/kotlinx-coroutines-core-jvm-1.10.1.jar:/opt/aerospike-vector-search/lib/java-jwt-4.5.0.jar:/opt/aerospike-vector-search/lib/jackson-dataformat-yaml-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-dataformat-msgpack-0.9.8.jar:/opt/aerospike-vector-search/lib/jersey-media-json-jackson-3.1.5.jar:/opt/aerospike-vector-search/lib/metrics-json-4.2.25.jar:/opt/aerospike-vector-search/lib/jackson-module-jakarta-xmlbind-annotations-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-databind-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-annotations-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-core-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-module-kotlin-2.17.2.jar:/opt/aerospike-vector-search/lib/kotlin-reflect-2.1.10.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-jdk7-2.1.10.jar:/opt/aerospike-vector-search/lib/protobuf-kotlin-3.25.6.jar:/opt/aerospike-vector-search/lib/kotlin-logging-jvm-3.0.5.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-2.1.10.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-jdk8-2.1.10.jar:/opt/aerospike-vector-search/lib/grpc-util-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-core-1.71.0.jar:/opt/aerospike-vector-search/lib/protobuf-java-util-3.25.6.jar:/opt/aerospike-vector-search/lib/dsiutils-2.7.3.jar:/opt/aerospike-vector-search/lib/grpc-context-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-protobuf-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-stub-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-protobuf-lite-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-api-1.71.0.jar:/opt/aerospike-vector-search/lib/guava-33.4.0-jre.jar:/opt/aerospike-vector-search/lib/perfmark-api-0.27.0.jar:/opt/aerospike-vector-search/lib/picocli-4.7.6.jar:/opt/aerospike-vector-search/lib/caffeine-3.2.0.jar:/opt/aerospike-vector-search/lib/bcpkix-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/bcutil-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/bcprov-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/lombok-1.18.30.jar:/opt/aerospike-vector-search/lib/commons-lang3-3.13.0.jar:/opt/aerospike-vector-search/lib/commons-collections4-4.4.jar:/opt/aerospike-vector-search/lib/jul-to-slf4j-1.7.36.jar:/opt/aerospike-vector-search/lib/logback-json-classic-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-classic-1.5.15.jar:/opt/aerospike-vector-search/lib/cron-utils-9.2.1.jar:/opt/aerospike-vector-search/lib/chronicle-map-3.27ea0.jar:/opt/aerospike-vector-search/lib/reflections-0.10.2.jar:/opt/aerospike-vector-search/lib/metrics-jvm-4.2.25.jar:/opt/aerospike-vector-search/lib/metrics-core-4.2.25.jar:/opt/aerospike-vector-search/lib/chronicle-wire-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-threads-2.27ea0.jar:/opt/aerospike-vector-search/lib/affinity-3.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-values-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-algorithms-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-bytes-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-core-2.27ea0.jar:/opt/aerospike-vector-search/lib/posix-2.27ea0.jar:/opt/aerospike-vector-search/lib/compiler-2.27ea0.jar:/opt/aerospike-vector-search/lib/slf4j-api-2.0.15.jar:/opt/aerospike-vector-search/lib/logback-jackson-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-json-core-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-core-1.5.15.jar:/opt/aerospike-vector-search/lib/javax.inject-1.jar:/opt/aerospike-vector-search/lib/jersey-container-servlet-core-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-server-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-hk2-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-media-multipart-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-client-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-common-3.1.5.jar:/opt/aerospike-vector-search/lib/hk2-locator-3.0.5.jar:/opt/aerospike-vector-search/lib/hk2-api-3.0.5.jar:/opt/aerospike-vector-search/lib/hk2-utils-3.0.5.jar:/opt/aerospike-vector-search/lib/jakarta.inject-api-2.0.1.jar:/opt/aerospike-vector-search/lib/aopalliance-1.0.jar:/opt/aerospike-vector-search/lib/mbassador-1.3.2.jar:/opt/aerospike-vector-search/lib/vault-java-driver-5.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-client-jdk21-9.0.4.jar:/opt/aerospike-vector-search/lib/commons-math3-3.6.1.jar:/opt/aerospike-vector-search/lib/jbcrypt-0.4.jar:/opt/aerospike-vector-search/lib/animal-sniffer-annotations-1.24.jar:/opt/aerospike-vector-search/lib/gson-2.11.0.jar:/opt/aerospike-vector-search/lib/error_prone_annotations-2.36.0.jar:/opt/aerospike-vector-search/lib/netty-buffer-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-resolver-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-common-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/failureaccess-1.0.2.jar:/opt/aerospike-vector-search/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/opt/aerospike-vector-search/lib/jsr305-3.0.2.jar:/opt/aerospike-vector-search/lib/checker-qual-3.43.0.jar:/opt/aerospike-vector-search/lib/j2objc-annotations-3.0.0.jar:/opt/aerospike-vector-search/lib/annotations-4.1.1.4.jar:/opt/aerospike-vector-search/lib/jspecify-1.0.0.jar:/opt/aerospike-vector-search/lib/annotations-23.0.0.jar:/opt/aerospike-vector-search/lib/proto-google-common-protos-2.51.0.jar:/opt/aerospike-vector-search/lib/protobuf-java-3.25.6.jar:/opt/aerospike-vector-search/lib/simpleclient_dropwizard-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_servlet-0.16.0.jar:/opt/aerospike-vector-search/lib/undertow-servlet-2.3.18.Final.jar:/opt/aerospike-vector-search/lib/gnu-crypto-2.0.1.jar:/opt/aerospike-vector-search/lib/luaj-jse-3.0.1.jar:/opt/aerospike-vector-search/lib/aerospike-connect-outbound-sdk-2.2.0.jar:/opt/aerospike-vector-search/lib/commons-io-2.15.1.jar:/opt/aerospike-vector-search/lib/fastutil-8.5.12.jar:/opt/aerospike-vector-search/lib/jsap-20210129.jar:/opt/aerospike-vector-search/lib/jna-platform-5.5.0.jar:/opt/aerospike-vector-search/lib/jna-5.5.0.jar:/opt/aerospike-vector-search/lib/snakeyaml-2.2.jar:/opt/aerospike-vector-search/lib/msgpack-core-0.9.8.jar:/opt/aerospike-vector-search/lib/javax.annotation-api-1.3.2.jar:/opt/aerospike-vector-search/lib/simpleclient_servlet_common-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_common-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient-0.16.0.jar:/opt/aerospike-vector-search/lib/javassist-3.29.2-GA.jar:/opt/aerospike-vector-search/lib/mimepull-1.9.15.jar:/opt/aerospike-vector-search/lib/jersey-entity-filtering-3.1.5.jar:/opt/aerospike-vector-search/lib/jakarta.xml.bind-api-4.0.0.jar:/opt/aerospike-vector-search/lib/jakarta.servlet-api-6.0.0.jar:/opt/aerospike-vector-search/lib/jakarta.annotation-api-2.1.1.jar:/opt/aerospike-vector-search/lib/jakarta.ws.rs-api-3.1.0.jar:/opt/aerospike-vector-search/lib/jakarta.validation-api-3.0.2.jar:/opt/aerospike-vector-search/lib/xnio-nio-3.8.16.Final.jar:/opt/aerospike-vector-search/lib/xnio-api-3.8.16.Final.jar:/opt/aerospike-vector-search/lib/wildfly-client-config-1.0.1.Final.jar:/opt/aerospike-vector-search/lib/jboss-threads-3.5.0.Final.jar:/opt/aerospike-vector-search/lib/jboss-logging-3.4.3.Final.jar:/opt/aerospike-vector-search/lib/wildfly-common-1.5.4.Final.jar:/opt/aerospike-vector-search/lib/chronicle-analytics-2.27ea0.jar:/opt/aerospike-vector-search/lib/jnr-ffi-2.2.15.jar:/opt/aerospike-vector-search/lib/jnr-constants-0.10.4.jar:/opt/aerospike-vector-search/lib/javapoet-1.13.0.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_otel-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_otel_agent-0.16.0.jar:/opt/aerospike-vector-search/lib/osgi-resource-locator-1.0.3.jar:/opt/aerospike-vector-search/lib/aopalliance-repackaged-3.0.5.jar:/opt/aerospike-vector-search/lib/jakarta.activation-api-2.1.0.jar:/opt/aerospike-vector-search/lib/jffi-1.3.12.jar:/opt/aerospike-vector-search/lib/jffi-1.3.12-native.jar:/opt/aerospike-vector-search/lib/asm-9.2.jar:/opt/aerospike-vector-search/lib/jnr-a64asm-1.0.0.jar:/opt/aerospike-vector-search/lib/jnr-x86asm-1.0.2.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_common-0.16.0.jar com.aerospike.vector.VectorDbMainKt -f /etc/aerospike-vector-search/aerospike-vector-search.yml

@@ -1,0 +1,177 @@
+==============================
+🖥️ NODE: ip-192-168-53-124.ec2.internal
+==============================
+
+=== Node Information ===
+=== Node Description ===
+Name:               ip-192-168-53-124.ec2.internal
+Roles:              <none>
+Labels:             alpha.eksctl.io/cluster-name=letsrememberopen2
+                    alpha.eksctl.io/nodegroup-name=ng-f2f41c39
+                    beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=m5.xlarge
+                    beta.kubernetes.io/os=linux
+                    eks.amazonaws.com/capacityType=ON_DEMAND
+                    eks.amazonaws.com/nodegroup=ng-f2f41c39
+                    eks.amazonaws.com/nodegroup-image=ami-01fc98868662094f9
+                    eks.amazonaws.com/sourceLaunchTemplateId=lt-0c2aded4b853bf66d
+                    eks.amazonaws.com/sourceLaunchTemplateVersion=1
+                    failure-domain.beta.kubernetes.io/region=us-east-1
+                    failure-domain.beta.kubernetes.io/zone=us-east-1d
+                    k8s.io/cloud-provider-aws=7b106a2a28f90fcf8e2b12bdb82ef1dc
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=ip-192-168-53-124.ec2.internal
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=m5.xlarge
+                    topology.ebs.csi.aws.com/zone=us-east-1d
+                    topology.k8s.aws/zone-id=use1-az1
+                    topology.kubernetes.io/region=us-east-1
+                    topology.kubernetes.io/zone=us-east-1d
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.53.124
+                    csi.volume.kubernetes.io/nodeid: {"ebs.csi.aws.com":"i-06a1a8c247b423e45"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 29 Apr 2025 11:58:50 -0700
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  ip-192-168-53-124.ec2.internal
+  AcquireTime:     <unset>
+  RenewTime:       Tue, 29 Apr 2025 13:55:45 -0700
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 13:51:30 -0700   Tue, 29 Apr 2025 11:59:03 -0700   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:   192.168.53.124
+  ExternalIP:   44.213.250.59
+  InternalDNS:  ip-192-168-53-124.ec2.internal
+  Hostname:     ip-192-168-53-124.ec2.internal
+  ExternalDNS:  ec2-44-213-250-59.compute-1.amazonaws.com
+Capacity:
+  cpu:                4
+  ephemeral-storage:  83873772Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             15896988Ki
+  pods:               58
+Allocatable:
+  cpu:                3920m
+  ephemeral-storage:  76224326324
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             14880156Ki
+  pods:               58
+System Info:
+  Machine ID:                 ec200f1e0b9aff3d694d4e266833da07
+  System UUID:                ec200f1e-0b9a-ff3d-694d-4e266833da07
+  Boot ID:                    ebf5b6d7-bd28-4f01-8b4d-5fd131c3c27d
+  Kernel Version:             5.10.235-227.919.amzn2.x86_64
+  OS Image:                   Amazon Linux 2
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.27
+  Kubelet Version:            v1.30.9-eks-5d632ec
+  Kube-Proxy Version:         v1.30.9-eks-5d632ec
+ProviderID:                   aws:///us-east-1d/i-06a1a8c247b423e45
+Non-terminated Pods:          (8 in total)
+  Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
+  kube-system                 aws-node-m2dn4                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         117m
+  kube-system                 coredns-586b798467-9n7fr                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     121m
+  kube-system                 coredns-586b798467-nmhdq                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     121m
+  kube-system                 ebs-csi-controller-645d8c6c95-qwxt7                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   113m
+  kube-system                 ebs-csi-controller-645d8c6c95-zpfjv                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   113m
+  kube-system                 ebs-csi-node-fs4xm                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     113m
+  kube-system                 kube-proxy-mq2k2                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         117m
+  monitoring                  monitoring-stack-prometheus-node-exporter-cb9wg    0 (0%)        0 (0%)      0 (0%)           0 (0%)         97m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                500m (12%)  0 (0%)
+  memory             740Mi (5%)  4180Mi (28%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+=== Node Resources ===
+{
+  "cpu": "4",
+  "ephemeral-storage": "83873772Ki",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "15896988Ki",
+  "pods": "58"
+}
+
+=== Node Allocatable Resources ===
+{
+  "cpu": "3920m",
+  "ephemeral-storage": "76224326324",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "14880156Ki",
+  "pods": "58"
+}
+
+=== Node Conditions ===
+[
+  {
+    "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+    "lastTransitionTime": "2025-04-29T18:58:49Z",
+    "message": "kubelet has sufficient memory available",
+    "reason": "KubeletHasSufficientMemory",
+    "status": "False",
+    "type": "MemoryPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+    "lastTransitionTime": "2025-04-29T18:58:49Z",
+    "message": "kubelet has no disk pressure",
+    "reason": "KubeletHasNoDiskPressure",
+    "status": "False",
+    "type": "DiskPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+    "lastTransitionTime": "2025-04-29T18:58:49Z",
+    "message": "kubelet has sufficient PID available",
+    "reason": "KubeletHasSufficientPID",
+    "status": "False",
+    "type": "PIDPressure"
+  },
+  {
+    "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+    "lastTransitionTime": "2025-04-29T18:59:03Z",
+    "message": "kubelet is posting ready status",
+    "reason": "KubeletReady",
+    "status": "True",
+    "type": "Ready"
+  }
+]
+
+=== Cloud Instance Information ===
+Cloud Provider: On-premises
+Instance Type: m5.xlarge
+Region: us-east-1
+Zone: us-east-1d
+
+=== OOMKill Events ===
+System OOM Events:
+No system OOM events found
+
+Kubernetes OOMKill Events:
+No Kubernetes OOM events found
+
+=== Node OOMKill Events ===
+System OOM Events (last 24h):
+No system OOM events found
+
+Pod OOMKills on this node:
+
+❌ No AVS pods found on this node

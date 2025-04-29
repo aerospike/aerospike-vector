@@ -1,0 +1,38 @@
+Container Status Summary:
+Container: aerospike-vector-search
+Restart Count: 0
+Last State: {}
+Current State: {"running":{"startedAt":"2025-04-29T19:17:19Z"}}
+---
+
+Previous Terminations (including OOMKills):
+
+Pod Events History (last 1 hour):
+LAST SEEN   TYPE      REASON                            OBJECT                                  MESSAGE
+3m31s       Warning   FailedToRetrieveImagePullSecret   pod/avs-app-aerospike-vector-search-0   Unable to retrieve some image pull secrets (jfrog-secret); attempting to pull the image may not succeed.
+
+Node Conditions at Recent Restarts:
+{
+  "lastHeartbeatTime": "2025-04-29T20:56:26Z",
+  "lastTransitionTime": "2025-04-29T19:06:40Z",
+  "message": "kubelet has sufficient memory available",
+  "reason": "KubeletHasSufficientMemory",
+  "status": "False",
+  "type": "MemoryPressure"
+}
+{
+  "lastHeartbeatTime": "2025-04-29T20:56:26Z",
+  "lastTransitionTime": "2025-04-29T19:06:40Z",
+  "message": "kubelet has no disk pressure",
+  "reason": "KubeletHasNoDiskPressure",
+  "status": "False",
+  "type": "DiskPressure"
+}
+{
+  "lastHeartbeatTime": "2025-04-29T20:56:26Z",
+  "lastTransitionTime": "2025-04-29T19:06:40Z",
+  "message": "kubelet has sufficient PID available",
+  "reason": "KubeletHasSufficientPID",
+  "status": "False",
+  "type": "PIDPressure"
+}
