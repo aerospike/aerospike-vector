@@ -1,0 +1,395 @@
+{
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+        "annotations": {
+            "checksum/configmap": "eb2a071498b57ce1736e01dfe371e7a604f8cc175f1678bf47f1a6b6667b0467"
+        },
+        "creationTimestamp": "2025-04-29T19:17:11Z",
+        "generateName": "avs-app-aerospike-vector-search-",
+        "labels": {
+            "app": "avs-app-aerospike-vector-search",
+            "app.kubernetes.io/instance": "avs-app",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "aerospike-vector-search",
+            "app.kubernetes.io/version": "1.1.0",
+            "apps.kubernetes.io/pod-index": "1",
+            "controller-revision-hash": "avs-app-aerospike-vector-search-6cff64c57b",
+            "helm.sh/chart": "aerospike-vector-search-1.2.0",
+            "statefulset.kubernetes.io/pod-name": "avs-app-aerospike-vector-search-1"
+        },
+        "name": "avs-app-aerospike-vector-search-1",
+        "namespace": "avs",
+        "ownerReferences": [
+            {
+                "apiVersion": "apps/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "StatefulSet",
+                "name": "avs-app-aerospike-vector-search",
+                "uid": "6ad94bb0-a104-48c0-87fc-efb0dafb10f5"
+            }
+        ],
+        "resourceVersion": "6923",
+        "uid": "1158f75e-7ad3-44d0-81b5-f92e660ca2b4"
+    },
+    "spec": {
+        "affinity": {
+            "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "matchExpressions": [
+                                {
+                                    "key": "aerospike.io/node-pool",
+                                    "operator": "In",
+                                    "values": [
+                                        "avs"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "containers": [
+            {
+                "command": [
+                    "/bin/sh",
+                    "-c",
+                    "export JAVA_OPTS=$(cat /etc/aerospike-vector-search/jvm.opts) \u0026\u0026 exec /usr/bin/as-tini-static -r SIGUSR1 -t SIGTERM -e 143 -- /opt/aerospike-vector-search/bin/aerospike-vector-search -f /etc/aerospike-vector-search/aerospike-vector-search.yml"
+                ],
+                "image": "aerospike/aerospike-vector-search:1.1.0",
+                "imagePullPolicy": "IfNotPresent",
+                "livenessProbe": {
+                    "failureThreshold": 3,
+                    "httpGet": {
+                        "path": "/manage/rest/v1",
+                        "port": 5040,
+                        "scheme": "HTTP"
+                    },
+                    "initialDelaySeconds": 10,
+                    "periodSeconds": 10,
+                    "successThreshold": 1,
+                    "timeoutSeconds": 2
+                },
+                "name": "aerospike-vector-search",
+                "ports": [
+                    {
+                        "containerPort": 5000,
+                        "hostPort": 5000,
+                        "name": "svc-0",
+                        "protocol": "TCP"
+                    },
+                    {
+                        "containerPort": 5040,
+                        "hostPort": 5040,
+                        "name": "manage-0",
+                        "protocol": "TCP"
+                    },
+                    {
+                        "containerPort": 5001,
+                        "hostPort": 5001,
+                        "name": "interc-0",
+                        "protocol": "TCP"
+                    }
+                ],
+                "readinessProbe": {
+                    "failureThreshold": 3,
+                    "httpGet": {
+                        "path": "/manage/rest/v1",
+                        "port": 5040,
+                        "scheme": "HTTP"
+                    },
+                    "initialDelaySeconds": 10,
+                    "periodSeconds": 10,
+                    "successThreshold": 1,
+                    "timeoutSeconds": 2
+                },
+                "resources": {},
+                "securityContext": {
+                    "allowPrivilegeEscalation": false,
+                    "runAsUser": 0
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                    {
+                        "mountPath": "/etc/aerospike-vector-search",
+                        "name": "aerospike-vector-search"
+                    },
+                    {
+                        "mountPath": "/etc/aerospike-vector-search/secrets",
+                        "name": "aerospike-secret",
+                        "readOnly": true
+                    },
+                    {
+                        "mountPath": "/etc/ssl/certs/",
+                        "name": "aerospike-tls",
+                        "readOnly": true
+                    },
+                    {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-2v6fz",
+                        "readOnly": true
+                    }
+                ]
+            }
+        ],
+        "dnsPolicy": "ClusterFirstWithHostNet",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "hostname": "avs-app-aerospike-vector-search-1",
+        "imagePullSecrets": [
+            {
+                "name": "jfrog-secret"
+            }
+        ],
+        "initContainers": [
+            {
+                "env": [
+                    {
+                        "name": "AEROSPIKE_VECTOR_SEARCH_CONFIG",
+                        "value": "{\"cluster\":{\"cluster-name\":\"avs-db-1\"},\"feature-key-file\":\"/etc/aerospike-vector-search/secrets/features.conf\",\"heartbeat\":{\"seeds\":[{\"address\":\"avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local\",\"port\":5001}]},\"interconnect\":{\"ports\":{\"5001\":{\"addresses\":\"0.0.0.0\"}}},\"logging\":{\"enable-console-logging\":false,\"format\":\"simple\",\"levels\":{\"metrics-ticker\":\"debug\",\"root\":\"info\"},\"max-history\":30,\"ticker-interval\":10},\"manage\":{\"ports\":{\"5040\":{}}},\"service\":{\"metadata-namespace\":\"avs-meta\",\"ports\":{\"5000\":{}}},\"storage\":{\"client-policy\":{},\"seeds\":[{\"aerocluster-0-0.aerocluster.aerospike.svc.cluster.local\":{\"port\":3000}}]}}"
+                    },
+                    {
+                        "name": "NODE_NAME",
+                        "valueFrom": {
+                            "fieldRef": {
+                                "apiVersion": "v1",
+                                "fieldPath": "spec.nodeName"
+                            }
+                        }
+                    },
+                    {
+                        "name": "SERVICE_NAME",
+                        "value": "avs-app-aerospike-vector-search"
+                    },
+                    {
+                        "name": "POD_NAMESPACE",
+                        "valueFrom": {
+                            "fieldRef": {
+                                "apiVersion": "v1",
+                                "fieldPath": "metadata.namespace"
+                            }
+                        }
+                    },
+                    {
+                        "name": "NETWORK_MODE",
+                        "value": "hostnetwork"
+                    },
+                    {
+                        "name": "CONTAINER_PORT",
+                        "value": "5000"
+                    },
+                    {
+                        "name": "REPLICAS",
+                        "value": "3"
+                    },
+                    {
+                        "name": "POD_NAME",
+                        "valueFrom": {
+                            "fieldRef": {
+                                "apiVersion": "v1",
+                                "fieldPath": "metadata.name"
+                            }
+                        }
+                    },
+                    {
+                        "name": "AEROSPIKE_VECTOR_SEARCH_NODE_ROLES",
+                        "value": "{\"default-nodes\":[\"query\",\"index-update\"],\"indexer-nodes\":[\"index-update\"],\"query-nodes\":[\"query\"],\"standalone-indexer-nodes\":[\"standalone-indexer\"],\"standalone-nodes\":[\"standalone-indexer\"]}"
+                    }
+                ],
+                "image": "artifact.aerospike.io/container/avs-init-container:1.2.0",
+                "imagePullPolicy": "Always",
+                "name": "config-injector",
+                "resources": {},
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                    {
+                        "mountPath": "/etc/aerospike-vector-search",
+                        "name": "aerospike-vector-search"
+                    },
+                    {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-2v6fz",
+                        "readOnly": true
+                    }
+                ]
+            }
+        ],
+        "nodeName": "ip-192-168-28-89.ec2.internal",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "avs-app-aerospike-vector-search",
+        "serviceAccountName": "avs-app-aerospike-vector-search",
+        "subdomain": "avs-app-aerospike-vector-search-internal",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            },
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            }
+        ],
+        "volumes": [
+            {
+                "emptyDir": {},
+                "name": "aerospike-vector-search"
+            },
+            {
+                "name": "aerospike-secret",
+                "secret": {
+                    "defaultMode": 420,
+                    "optional": false,
+                    "secretName": "aerospike-secret"
+                }
+            },
+            {
+                "name": "aerospike-tls",
+                "secret": {
+                    "defaultMode": 420,
+                    "optional": false,
+                    "secretName": "aerospike-tls"
+                }
+            },
+            {
+                "name": "kube-api-access-2v6fz",
+                "projected": {
+                    "defaultMode": 420,
+                    "sources": [
+                        {
+                            "serviceAccountToken": {
+                                "expirationSeconds": 3607,
+                                "path": "token"
+                            }
+                        },
+                        {
+                            "configMap": {
+                                "items": [
+                                    {
+                                        "key": "ca.crt",
+                                        "path": "ca.crt"
+                                    }
+                                ],
+                                "name": "kube-root-ca.crt"
+                            }
+                        },
+                        {
+                            "downwardAPI": {
+                                "items": [
+                                    {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.namespace"
+                                        },
+                                        "path": "namespace"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2025-04-29T19:17:13Z",
+                "status": "True",
+                "type": "PodReadyToStartContainers"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2025-04-29T19:17:14Z",
+                "status": "True",
+                "type": "Initialized"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2025-04-29T19:17:31Z",
+                "status": "True",
+                "type": "Ready"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2025-04-29T19:17:31Z",
+                "status": "True",
+                "type": "ContainersReady"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2025-04-29T19:17:11Z",
+                "status": "True",
+                "type": "PodScheduled"
+            }
+        ],
+        "containerStatuses": [
+            {
+                "containerID": "containerd://86af21b82a0a854cbddb2db4d4626ff4ea7759a45264c487a03f0bb125c18352",
+                "image": "docker.io/aerospike/aerospike-vector-search:1.1.0",
+                "imageID": "docker.io/aerospike/aerospike-vector-search@sha256:ac44420b2cb43fe8872b115567ad948fd1189cee59a6abe47375b0a8f8bfebd3",
+                "lastState": {},
+                "name": "aerospike-vector-search",
+                "ready": true,
+                "restartCount": 0,
+                "started": true,
+                "state": {
+                    "running": {
+                        "startedAt": "2025-04-29T19:17:19Z"
+                    }
+                }
+            }
+        ],
+        "hostIP": "192.168.28.89",
+        "hostIPs": [
+            {
+                "ip": "192.168.28.89"
+            }
+        ],
+        "initContainerStatuses": [
+            {
+                "containerID": "containerd://e747aee82e383abc20273217e294125e549b12c9106bdf019d4ca4bc59de0d94",
+                "image": "artifact.aerospike.io/container/avs-init-container:1.2.0",
+                "imageID": "artifact.aerospike.io/container/avs-init-container@sha256:19e78c82485f0e6831b90e69ebede9387f008c07de558d86a0bd615c365d4daa",
+                "lastState": {},
+                "name": "config-injector",
+                "ready": true,
+                "restartCount": 0,
+                "started": false,
+                "state": {
+                    "terminated": {
+                        "containerID": "containerd://e747aee82e383abc20273217e294125e549b12c9106bdf019d4ca4bc59de0d94",
+                        "exitCode": 0,
+                        "finishedAt": "2025-04-29T19:17:13Z",
+                        "reason": "Completed",
+                        "startedAt": "2025-04-29T19:17:13Z"
+                    }
+                }
+            }
+        ],
+        "phase": "Running",
+        "podIP": "192.168.28.89",
+        "podIPs": [
+            {
+                "ip": "192.168.28.89"
+            }
+        ],
+        "qosClass": "BestEffort",
+        "startTime": "2025-04-29T19:17:11Z"
+    }
+}

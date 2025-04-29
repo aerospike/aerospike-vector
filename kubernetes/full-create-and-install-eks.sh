@@ -361,10 +361,10 @@ setup_aerospike() {
     echo "Waiting for AKO to be ready..."
     while true; do
         if kubectl --namespace operators get deployment/aerospike-operator-controller-manager &> /dev/null; then
-            echo "AKO is ready."
+                echo "AKO is ready."
             kubectl --namespace operators wait \
             --for=condition=available --timeout=180s deployment/aerospike-operator-controller-manager
-            break
+                break
         else
             echo "AKO setup is still in progress..."
             sleep 10
@@ -380,7 +380,7 @@ setup_aerospike() {
     kubectl --namespace aerospike create secret generic aerospike-secret --from-file="$BUILD_DIR/secrets"
     kubectl --namespace aerospike create secret generic auth-secret --from-literal=password='admin123'
     kubectl --namespace aerospike create secret generic aerospike-tls \
-        --from-file="$BUILD_DIR/certs"
+            --from-file="$BUILD_DIR/certs"
 
     echo "Adding storage class..."
     kubectl apply -f https://raw.githubusercontent.com/aerospike/aerospike-kubernetes-operator/refs/heads/master/config/samples/storage/eks_ssd_storage_class.yaml
