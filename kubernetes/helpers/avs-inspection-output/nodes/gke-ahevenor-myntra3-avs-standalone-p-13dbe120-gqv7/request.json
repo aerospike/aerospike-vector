@@ -1,0 +1,537 @@
+{
+            "model": "gpt-4o",
+            "temperature": 0.3,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are analyzing a Kubernetes node and its Aerospike Vector Search pods.
+
+For this node:
+- 🖥️ Analyze node capacity, allocatable resources, and conditions
+- 🏷️ Review cloud provider details and instance type
+- 📊 Evaluate resource allocation and utilization
+- 🔍 Check for any node-level issues or warnings
+
+For each AVS pod on this node:
+- 🔍 Review 'aerospike-vector-search.yml': validate node roles, heartbeat seeds, listener addresses, and interconnect settings
+- 📦 Summarize JVM flags, especially memory/Garbage Collector settings. Include the Xms and Xmx settings.
+- 📈 Analyze GC.heap_info and GC.class_histogram for pressure or leaks
+- 🔍analyze the full java command line in jvm-info.txt for the pod and extract any JVM flags that are set
+- 🛠️ Highlight any failed config-injection logs
+
+Provide specific recommendations for:
+1. Node-level optimizations
+2. Pod-level configurations
+3. Resource allocation adjustments
+4. Performance improvements
+5. JVM memory settings
+
+Include specific identifiers for the node and pods in your analysis. 
+Include use of emojis to make the report more engaging."
+                },
+                {
+                    "role": "user",
+                    "content": "==============================
+🖥️ NODE: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+==============================
+
+=== Node Information ===
+=== Node Description ===
+Name:               gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+Roles:              <none>
+Labels:             aerospike.io/node-pool=avs
+                    aerospike.io/role-label=standalone-indexer-nodes
+                    beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=c2-standard-16
+                    beta.kubernetes.io/os=linux
+                    cloud.google.com/gke-boot-disk=pd-standard
+                    cloud.google.com/gke-container-runtime=containerd
+                    cloud.google.com/gke-cpu-scaling-level=16
+                    cloud.google.com/gke-logging-variant=DEFAULT
+                    cloud.google.com/gke-max-pods-per-node=110
+                    cloud.google.com/gke-memory-gb-scaling-level=65
+                    cloud.google.com/gke-nodepool=avs-standalone-pool
+                    cloud.google.com/gke-os-distribution=cos
+                    cloud.google.com/gke-provisioning=standard
+                    cloud.google.com/gke-stack-type=IPV4
+                    cloud.google.com/machine-family=c2
+                    cloud.google.com/private-node=false
+                    failure-domain.beta.kubernetes.io/region=us-central1
+                    failure-domain.beta.kubernetes.io/zone=us-central1-c
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=c2-standard-16
+                    topology.gke.io/zone=us-central1-c
+                    topology.kubernetes.io/region=us-central1
+                    topology.kubernetes.io/zone=us-central1-c
+Annotations:        container.googleapis.com/instance_id: 7344493984458510158
+                    csi.volume.kubernetes.io/nodeid:
+                      {\"pd.csi.storage.gke.io\":\"projects/aerospike-product-vectortrial/zones/us-central1-c/instances/gke-ahevenor-myntra3-avs-standalone-p-13dbe...
+                    node.alpha.kubernetes.io/ttl: 0
+                    node.gke.io/last-applied-node-labels:
+                      cloud.google.com/gke-boot-disk=pd-standard,cloud.google.com/gke-container-runtime=containerd,cloud.google.com/gke-cpu-scaling-level=16,clo...
+                    node.gke.io/last-applied-node-taints: 
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Apr 2025 18:30:36 +0000
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+  AcquireTime:     <unset>
+  RenewTime:       Tue, 29 Apr 2025 20:35:21 +0000
+Conditions:
+  Type                                              Status  LastHeartbeatTime                 LastTransitionTime                Reason                                                       Message
+  ----                                              ------  -----------------                 ------------------                ------                                                       -------
+  FrequentUnregisterNetDevice                       False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   NoFrequentUnregisterNetDevice                                node is functioning properly
+  DeprecatedPullingSchemaV1Image                    False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedPullingSchemaV1ImageDetected                       No deprecation risk: did not pull any schema v1 images
+  FrequentContainerdRestart                         False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   NoFrequentContainerdRestart                                  containerd is functioning properly
+  CorruptDockerOverlay2                             False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   NoCorruptDockerOverlay2                                      docker overlay2 is functioning properly
+  DeprecatedOtherContainerdFeatures                 False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedOtherContainerdFeaturesNotDetected                 No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.
+  DeprecatedAuthsFieldInContainerdConfiguration     False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedAuthsFieldInContainerdConfigurationNotDetected     No deprecation risk: did not find any deprecated 'auths' field in containerd's config
+  DeprecatedMirrorsFieldInContainerdConfiguration   False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedMirrorsFieldInContainerdConfigurationNotDetected   No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config
+  FrequentDockerRestart                             False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   NoFrequentDockerRestart                                      docker is functioning properly
+  Swap                                              False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   SwapNotDetected                                              Swap is not active
+  ReadOnlyRootFileSystem                            False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   ReadOnlyRootFileSystemNotDetected                            Root filesystem is not read only
+  FrequentKubeletRestart                            False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   NoFrequentKubeletRestart                                     kubelet is functioning properly
+  DeprecatedConfigsFieldInContainerdConfiguration   False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedConfigsFieldInContainerdConfigurationNotDetected   No deprecation risk: did not find any deprecated 'configs' field in containerd's config
+  DeprecatedUsingV1Alpha2Cri                        False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   DeprecatedUsingV1Alpha2CriNotDetected                        No deprecation risk: did not use v1alpha2 CRI
+  SysctlChanged                                     True    Tue, 29 Apr 2025 20:31:20 +0000   Thu, 24 Apr 2025 00:30:36 +0000   NodeSysctlChange                                             {\"unmanaged\": {\"kernel.tainted\": \"512\"}}
+  KernelDeadlock                                    False   Tue, 29 Apr 2025 20:31:20 +0000   Wed, 23 Apr 2025 18:30:36 +0000   KernelHasNoDeadlock                                          kernel has no deadlock
+  NetworkUnavailable                                False   Wed, 23 Apr 2025 18:30:37 +0000   Wed, 23 Apr 2025 18:30:36 +0000   RouteCreated                                                 NodeController create implicit route
+  MemoryPressure                                    False   Tue, 29 Apr 2025 20:34:54 +0000   Wed, 23 Apr 2025 18:30:32 +0000   KubeletHasSufficientMemory                                   kubelet has sufficient memory available
+  DiskPressure                                      False   Tue, 29 Apr 2025 20:34:54 +0000   Wed, 23 Apr 2025 18:30:32 +0000   KubeletHasNoDiskPressure                                     kubelet has no disk pressure
+  PIDPressure                                       False   Tue, 29 Apr 2025 20:34:54 +0000   Wed, 23 Apr 2025 18:30:32 +0000   KubeletHasSufficientPID                                      kubelet has sufficient PID available
+  Ready                                             True    Tue, 29 Apr 2025 20:34:54 +0000   Wed, 23 Apr 2025 18:30:38 +0000   KubeletReady                                                 kubelet is posting ready status
+Addresses:
+  InternalIP:  10.128.0.51
+  ExternalIP:  34.59.64.172
+  Hostname:    gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+Capacity:
+  cpu:                16
+  ephemeral-storage:  98831908Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             65851344Ki
+  pods:               110
+Allocatable:
+  cpu:                15890m
+  ephemeral-storage:  47060071478
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             60043216Ki
+  pods:               110
+System Info:
+  Machine ID:                 3cd9970f9693d1eaee34baca86b01525
+  System UUID:                3cd9970f-9693-d1ea-ee34-baca86b01525
+  Boot ID:                    d8847432-4c18-4c48-a576-df406fe4b1b2
+  Kernel Version:             6.6.72+
+  OS Image:                   Container-Optimized OS from Google
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.24
+  Kubelet Version:            v1.32.2-gke.1182003
+  Kube-Proxy Version:         v1.32.2-gke.1182003
+PodCIDR:                      10.108.2.0/24
+PodCIDRs:                     10.108.2.0/24
+ProviderID:                   gce://aerospike-product-vectortrial/us-central1-c/gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+Non-terminated Pods:          (17 in total)
+  Namespace                   Name                                                              CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                              ------------  ----------  ---------------  -------------  ---
+  avs                         avs-app-aerospike-vector-search-2                                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d1h
+  gmp-system                  collector-xhhqd                                                   5m (0%)       0 (0%)      36M (0%)         3032M (4%)     6d2h
+  kube-system                 container-watcher-xmgt9                                           25m (0%)      125m (0%)   50Mi (0%)        350Mi (0%)     4d20h
+  kube-system                 fluentbit-gke-4wx4x                                               105m (0%)     1 (6%)      230Mi (0%)       565Mi (0%)     6d2h
+  kube-system                 gke-metrics-agent-c76gj                                           16m (0%)      1 (6%)      95Mi (0%)        130Mi (0%)     6d2h
+  kube-system                 konnectivity-agent-774965d74d-jdrvx                               15m (0%)      1 (6%)      60Mi (0%)        155Mi (0%)     6d2h
+  kube-system                 konnectivity-agent-774965d74d-zpw67                               15m (0%)      1 (6%)      60Mi (0%)        155Mi (0%)     6d2h
+  kube-system                 kube-proxy-gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7    100m (0%)     0 (0%)      0 (0%)           0 (0%)         6d2h
+  kube-system                 pdcsi-node-wnhlg                                                  10m (0%)      0 (0%)      20Mi (0%)        500Mi (0%)     6d2h
+  monitoring                  monitoring-stack-grafana-7c76d5f86-xpv8t                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d1h
+  monitoring                  monitoring-stack-kube-state-metrics-84bd8c79b5-kzddx              0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d1h
+  monitoring                  monitoring-stack-prometheus-node-exporter-5kq26                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d1h
+  olm                         catalog-operator-854976c98f-m7xk9                                 10m (0%)      0 (0%)      80Mi (0%)        0 (0%)         6d2h
+  olm                         olm-operator-699ffbd9b-tnmz6                                      10m (0%)      0 (0%)      160Mi (0%)       0 (0%)         6d2h
+  olm                         operatorhubio-catalog-vqcnr                                       10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         12h
+  olm                         packageserver-9bfc48b8f-tv9jr                                     10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         6d2h
+  operators                   aerospike-operator-controller-manager-f78bf58f9-zv8w4             10m (0%)      400m (2%)   64Mi (0%)        512Mi (0%)     6d2h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests        Limits
+  --------           --------        ------
+  cpu                341m (2%)       4525m (28%)
+  memory             999641344 (1%)  5513979392 (8%)
+  ephemeral-storage  0 (0%)          0 (0%)
+  hugepages-1Gi      0 (0%)          0 (0%)
+  hugepages-2Mi      0 (0%)          0 (0%)
+Events:
+  Type     Reason                    Age                     From               Message
+  ----     ------                    ----                    ----               -------
+  Warning  ReadOnlyLocalSSDDetected  5m7s (x1753 over 6d2h)  device-fs-monitor  
+
+=== Node Resources ===
+{
+  \"cpu\": \"16\",
+  \"ephemeral-storage\": \"98831908Ki\",
+  \"hugepages-1Gi\": \"0\",
+  \"hugepages-2Mi\": \"0\",
+  \"memory\": \"65851344Ki\",
+  \"pods\": \"110\"
+}
+
+=== Node Allocatable Resources ===
+{
+  \"cpu\": \"15890m\",
+  \"ephemeral-storage\": \"47060071478\",
+  \"hugepages-1Gi\": \"0\",
+  \"hugepages-2Mi\": \"0\",
+  \"memory\": \"60043216Ki\",
+  \"pods\": \"110\"
+}
+
+=== Node Conditions ===
+[
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"node is functioning properly\",
+    \"reason\": \"NoFrequentUnregisterNetDevice\",
+    \"status\": \"False\",
+    \"type\": \"FrequentUnregisterNetDevice\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not pull any schema v1 images\",
+    \"reason\": \"DeprecatedPullingSchemaV1ImageDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedPullingSchemaV1Image\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"containerd is functioning properly\",
+    \"reason\": \"NoFrequentContainerdRestart\",
+    \"status\": \"False\",
+    \"type\": \"FrequentContainerdRestart\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"docker overlay2 is functioning properly\",
+    \"reason\": \"NoCorruptDockerOverlay2\",
+    \"status\": \"False\",
+    \"type\": \"CorruptDockerOverlay2\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.\",
+    \"reason\": \"DeprecatedOtherContainerdFeaturesNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedOtherContainerdFeatures\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not find any deprecated 'auths' field in containerd's config\",
+    \"reason\": \"DeprecatedAuthsFieldInContainerdConfigurationNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedAuthsFieldInContainerdConfiguration\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config\",
+    \"reason\": \"DeprecatedMirrorsFieldInContainerdConfigurationNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedMirrorsFieldInContainerdConfiguration\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"docker is functioning properly\",
+    \"reason\": \"NoFrequentDockerRestart\",
+    \"status\": \"False\",
+    \"type\": \"FrequentDockerRestart\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"Swap is not active\",
+    \"reason\": \"SwapNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"Swap\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"Root filesystem is not read only\",
+    \"reason\": \"ReadOnlyRootFileSystemNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"ReadOnlyRootFileSystem\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"kubelet is functioning properly\",
+    \"reason\": \"NoFrequentKubeletRestart\",
+    \"status\": \"False\",
+    \"type\": \"FrequentKubeletRestart\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not find any deprecated 'configs' field in containerd's config\",
+    \"reason\": \"DeprecatedConfigsFieldInContainerdConfigurationNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedConfigsFieldInContainerdConfiguration\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"No deprecation risk: did not use v1alpha2 CRI\",
+    \"reason\": \"DeprecatedUsingV1Alpha2CriNotDetected\",
+    \"status\": \"False\",
+    \"type\": \"DeprecatedUsingV1Alpha2Cri\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-24T00:30:36Z\",
+    \"message\": \"{\\"unmanaged\\": {\\"kernel.tainted\\": \\"512\\"}}\",
+    \"reason\": \"NodeSysctlChange\",
+    \"status\": \"True\",
+    \"type\": \"SysctlChanged\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:31:20Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"kernel has no deadlock\",
+    \"reason\": \"KernelHasNoDeadlock\",
+    \"status\": \"False\",
+    \"type\": \"KernelDeadlock\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-23T18:30:37Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:36Z\",
+    \"message\": \"NodeController create implicit route\",
+    \"reason\": \"RouteCreated\",
+    \"status\": \"False\",
+    \"type\": \"NetworkUnavailable\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:34:54Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:32Z\",
+    \"message\": \"kubelet has sufficient memory available\",
+    \"reason\": \"KubeletHasSufficientMemory\",
+    \"status\": \"False\",
+    \"type\": \"MemoryPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:34:54Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:32Z\",
+    \"message\": \"kubelet has no disk pressure\",
+    \"reason\": \"KubeletHasNoDiskPressure\",
+    \"status\": \"False\",
+    \"type\": \"DiskPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:34:54Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:32Z\",
+    \"message\": \"kubelet has sufficient PID available\",
+    \"reason\": \"KubeletHasSufficientPID\",
+    \"status\": \"False\",
+    \"type\": \"PIDPressure\"
+  },
+  {
+    \"lastHeartbeatTime\": \"2025-04-29T20:34:54Z\",
+    \"lastTransitionTime\": \"2025-04-23T18:30:38Z\",
+    \"message\": \"kubelet is posting ready status\",
+    \"reason\": \"KubeletReady\",
+    \"status\": \"True\",
+    \"type\": \"Ready\"
+  }
+]
+
+=== Cloud Instance Information ===
+Cloud Provider: On-premises
+Instance Type: c2-standard-16
+Region: us-central1
+Zone: us-central1-c
+
+=== OOMKill Events ===
+System OOM Events:
+No system OOM events found
+
+Kubernetes OOMKill Events:
+No Kubernetes OOM events found
+
+=== Node OOMKill Events ===
+System OOM Events (last 24h):
+No system OOM events found
+
+Pod OOMKills on this node:
+
+=== AVS Pods on Node ===
+
+🧵 POD: avs-app-aerospike-vector-search-2
+------------------------------
+
+📄 FILE: config.yml
+------------------------------
+cluster:
+  cluster-name: avs-db-1
+  node-roles:
+  - standalone-indexer
+feature-key-file: /etc/aerospike-vector-search/secrets/features.conf
+heartbeat:
+  seeds:
+  - address: avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
+    port: \"5001\"
+  - address: avs-app-aerospike-vector-search-1.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local
+    port: \"5001\"
+interconnect:
+  ports:
+    \"5001\":
+      addresses: 0.0.0.0
+logging:
+  enable-console-logging: false
+  format: simple
+  levels:
+    metrics-ticker: debug
+    root: info
+  max-history: 30
+  ticker-interval: 10
+manage:
+  ports:
+    \"5040\": {}
+service:
+  metadata-namespace: avs-meta
+  ports:
+    \"5000\":
+      advertised-listeners:
+        default:
+        - address: 34.59.64.172
+          port: 5000
+storage:
+  client-policy: {}
+  seeds:
+  - aerocluster-0-0.aerocluster.aerospike.svc.cluster.local:
+      port: 3000
+
+📄 FILE: init-container.log
+------------------------------
+2025/04/23 18:36:35 Init container started
+2025/04/23 18:36:35 Initial configuration:
+{
+  \"cluster\": {
+    \"cluster-name\": \"avs-db-1\"
+  },
+  \"feature-key-file\": \"/etc/aerospike-vector-search/secrets/features.conf\",
+  \"heartbeat\": {
+    \"seeds\": [
+      {
+        \"address\": \"avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local\",
+        \"port\": 5001
+      }
+    ]
+  },
+  \"interconnect\": {
+    \"ports\": {
+      \"5001\": {
+        \"addresses\": \"0.0.0.0\"
+      }
+    }
+  },
+  \"logging\": {
+    \"enable-console-logging\": false,
+    \"format\": \"simple\",
+    \"levels\": {
+      \"metrics-ticker\": \"debug\",
+      \"root\": \"info\"
+    },
+    \"max-history\": 30,
+    \"ticker-interval\": 10
+  },
+  \"manage\": {
+    \"ports\": {
+      \"5040\": {}
+    }
+  },
+  \"service\": {
+    \"metadata-namespace\": \"avs-meta\",
+    \"ports\": {
+      \"5000\": {}
+    }
+  },
+  \"storage\": {
+    \"client-policy\": {},
+    \"seeds\": [
+      {
+        \"aerocluster-0-0.aerocluster.aerospike.svc.cluster.local\": {
+          \"port\": 3000
+        }
+      }
+    ]
+  }
+}
+2025/04/23 18:36:35 Starting setRoles()
+2025/04/23 18:36:35 Starting getAerospikeVectorSearchRoles()
+2025/04/23 18:36:35 Starting getNodeLabels()
+2025/04/23 18:36:35 Starting GetNodeInstance()
+2025/04/23 18:36:35 NODE_NAME: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+2025/04/23 18:36:35 SERVICE_NAME: avs-app-aerospike-vector-search
+2025/04/23 18:36:35 POD_NAMESPACE: avs
+2025/04/23 18:36:35 In-cluster config obtained successfully
+2025/04/23 18:36:35 Fetched node: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+2025/04/23 18:36:35 Service avs-app-aerospike-vector-search not found in namespace avs; proceeding with node only
+2025/04/23 18:36:35 Found node label: aerospike.io/role-label=standalone-indexer-nodes
+2025/04/23 18:36:35 Available roles: map[default-nodes:[query index-update] indexer-nodes:[index-update] query-nodes:[query] standalone-indexer-nodes:[standalone-indexer] standalone-nodes:[standalone-indexer]]
+2025/04/23 18:36:35 Found role for label standalone-indexer-nodes: [standalone-indexer]
+2025/04/23 18:36:35 Successfully set roles in cluster configuration
+2025/04/23 18:36:35 Starting setAdvertisedListeners()
+2025/04/23 18:36:35 Operating in NETWORK_MODE: hostnetwork
+2025/04/23 18:36:35 CONTAINER_PORT: 5000 for hostnetwork mode
+2025/04/23 18:36:35 Setting advertised listeners to IP: 34.59.64.172, Port: 5000
+2025/04/23 18:36:35 Setting advertised-listeners for port 5000
+2025/04/23 18:36:35 Updated ports configuration: {
+  \"5000\": {
+    \"advertised-listeners\": {
+      \"default\": [
+        {
+          \"address\": \"34.59.64.172\",
+          \"port\": 5000
+        }
+      ]
+    }
+  }
+}
+2025/04/23 18:36:35 Setting up heartbeat seeds...
+2025/04/23 18:36:35 Generating heartbeat seed DNS names...
+2025/04/23 18:36:35 Checking for heartbeat configuration...
+2025/04/23 18:36:35 Found heartbeat seed configuration: address=avs-app-aerospike-vector-search-0.avs-app-aerospike-vector-search-internal.avs.svc.cluster.local, port=5001
+2025/04/23 18:36:35 Successfully configured heartbeat with 2 seed(s)
+Pod ID: 2
+2025/04/23 18:36:35 Calculated JVM options: -Xmx51446m
+2025/04/23 18:36:35 Set JAVA_OPTS to: -Xmx51446m
+2025/04/23 18:36:35 Wrote JVM options to file: /etc/aerospike-vector-search/jvm.opts
+2025/04/23 18:36:35 Init container completed successfully
+
+📄 FILE: jvm-info.txt
+------------------------------
+➡️ jcmd 9 VM.flags:
+9:
+-XX:+AlwaysPreTouch -XX:CICompilerCount=12 -XX:+ExitOnOutOfMemoryError -XX:InitialHeapSize=40460353536 -XX:InitialRAMPercentage=60.000000 -XX:MaxHeapSize=53945040896 -XX:MaxRAM=67431776256 -XX:MaxRAMPercentage=75.000000 -XX:MinHeapDeltaBytes=2097152 -XX:MinHeapSize=8388608 -XX:NonNMethodCodeHeapSize=7602480 -XX:NonProfiledCodeHeapSize=122027880 -XX:ProfiledCodeHeapSize=122027880 -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:SoftMaxHeapSize=53945040896 -XX:-THPStackMitigation -XX:+UseContainerSupport -XX:+UseFastUnorderedTimeStamps -XX:-UseNUMA -XX:-UseNUMAInterleaving -XX:+UseZGC -XX:+ZGenerational -XX:ZOldGCThreads=4 -XX:ZYoungGCThreads=4 
+
+➡️ jcmd 9 GC.heap_info:
+9:
+ ZHeap           used 704M, capacity 900M, max capacity 51446M
+ Metaspace       used 83013K, committed 83712K, reserved 1179648K
+  class space    used 8857K, committed 9280K, reserved 1048576K
+
+➡️ getting full java command line for pid 9:
+    PID TTY      STAT   TIME COMMAND
+      9 ?        Sl   190:21 /usr/lib/jvm/jre/bin/java -Djava.security.egd=file:/dev/./urandom -Dconnect.product.name=aerospike-vector-search -Dconnect.product.version=1.1.0 -XX:+ExitOnOutOfMemoryError -XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch --add-modules jdk.incubator.vector --add-opens java.base/jdk.internal.util=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-exports java.base/sun.nio.ch=ALL-UNNAMED --add-exports jdk.unsupported/sun.misc=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED -DFMA_SUPPORTED=true -Xmx51446m -classpath /opt/aerospike-vector-search/lib/aerospike-vector-search-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-transact-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-clustering-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-index-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-security-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-cluster-common-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-storage-aerospike-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-embedded-client-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-common-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-manage-1.0.15.jar:/opt/aerospike-vector-search/lib/aerospike-aerospike-2.2.11.jar:/opt/aerospike-vector-search/lib/aerospike-tls-1.2.12.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-licensing-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-vector-search-server-stub-1.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-metrics-1.0.9.jar:/opt/aerospike-vector-search/lib/aerospike-serde-1.1.12.jar:/opt/aerospike-vector-search/lib/aerospike-io-1.0.12.jar:/opt/aerospike-vector-search/lib/aerospike-logging-1.2.6.jar:/opt/aerospike-vector-search/lib/aerospike-undertow-patch-2.3.18.jar:/opt/aerospike-vector-search/lib/guice-assistedinject-6.0.0.jar:/opt/aerospike-vector-search/lib/guice-bridge-3.0.4.jar:/opt/aerospike-vector-search/lib/guice-servlet-6.0.0.jar:/opt/aerospike-vector-search/lib/guice-6.0.0.jar:/opt/aerospike-vector-search/lib/validation-api-2.0.1.Final.jar:/opt/aerospike-vector-search/lib/grpc-netty-1.71.0.jar:/opt/aerospike-vector-search/lib/netty-handler-proxy-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-http2-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-native-epoll-4.1.119.Final-linux-x86_64.jar:/opt/aerospike-vector-search/lib/netty-transport-native-kqueue-4.1.119.Final-osx-x86_64.jar:/opt/aerospike-vector-search/lib/netty-codec-socks-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-http-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-handler-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-codec-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-classes-epoll-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-classes-kqueue-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-native-unix-common-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-transport-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/grpc-kotlin-stub-1.4.1.jar:/opt/aerospike-vector-search/lib/kotlinx-coroutines-core-jvm-1.10.1.jar:/opt/aerospike-vector-search/lib/java-jwt-4.5.0.jar:/opt/aerospike-vector-search/lib/jackson-dataformat-yaml-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-dataformat-msgpack-0.9.8.jar:/opt/aerospike-vector-search/lib/jersey-media-json-jackson-3.1.5.jar:/opt/aerospike-vector-search/lib/metrics-json-4.2.25.jar:/opt/aerospike-vector-search/lib/jackson-module-jakarta-xmlbind-annotations-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-databind-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-annotations-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-core-2.17.2.jar:/opt/aerospike-vector-search/lib/jackson-module-kotlin-2.17.2.jar:/opt/aerospike-vector-search/lib/kotlin-reflect-2.1.10.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-jdk7-2.1.10.jar:/opt/aerospike-vector-search/lib/protobuf-kotlin-3.25.6.jar:/opt/aerospike-vector-search/lib/kotlin-logging-jvm-3.0.5.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-2.1.10.jar:/opt/aerospike-vector-search/lib/kotlin-stdlib-jdk8-2.1.10.jar:/opt/aerospike-vector-search/lib/grpc-util-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-core-1.71.0.jar:/opt/aerospike-vector-search/lib/protobuf-java-util-3.25.6.jar:/opt/aerospike-vector-search/lib/dsiutils-2.7.3.jar:/opt/aerospike-vector-search/lib/grpc-context-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-protobuf-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-stub-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-protobuf-lite-1.71.0.jar:/opt/aerospike-vector-search/lib/grpc-api-1.71.0.jar:/opt/aerospike-vector-search/lib/guava-33.4.0-jre.jar:/opt/aerospike-vector-search/lib/perfmark-api-0.27.0.jar:/opt/aerospike-vector-search/lib/picocli-4.7.6.jar:/opt/aerospike-vector-search/lib/caffeine-3.2.0.jar:/opt/aerospike-vector-search/lib/bcpkix-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/bcutil-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/bcprov-jdk18on-1.80.jar:/opt/aerospike-vector-search/lib/lombok-1.18.30.jar:/opt/aerospike-vector-search/lib/commons-lang3-3.13.0.jar:/opt/aerospike-vector-search/lib/commons-collections4-4.4.jar:/opt/aerospike-vector-search/lib/jul-to-slf4j-1.7.36.jar:/opt/aerospike-vector-search/lib/logback-json-classic-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-classic-1.5.15.jar:/opt/aerospike-vector-search/lib/cron-utils-9.2.1.jar:/opt/aerospike-vector-search/lib/chronicle-map-3.27ea0.jar:/opt/aerospike-vector-search/lib/reflections-0.10.2.jar:/opt/aerospike-vector-search/lib/metrics-jvm-4.2.25.jar:/opt/aerospike-vector-search/lib/metrics-core-4.2.25.jar:/opt/aerospike-vector-search/lib/chronicle-wire-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-threads-2.27ea0.jar:/opt/aerospike-vector-search/lib/affinity-3.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-values-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-algorithms-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-bytes-2.27ea0.jar:/opt/aerospike-vector-search/lib/chronicle-core-2.27ea0.jar:/opt/aerospike-vector-search/lib/posix-2.27ea0.jar:/opt/aerospike-vector-search/lib/compiler-2.27ea0.jar:/opt/aerospike-vector-search/lib/slf4j-api-2.0.15.jar:/opt/aerospike-vector-search/lib/logback-jackson-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-json-core-0.1.5.jar:/opt/aerospike-vector-search/lib/logback-core-1.5.15.jar:/opt/aerospike-vector-search/lib/javax.inject-1.jar:/opt/aerospike-vector-search/lib/jersey-container-servlet-core-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-server-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-hk2-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-media-multipart-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-client-3.1.5.jar:/opt/aerospike-vector-search/lib/jersey-common-3.1.5.jar:/opt/aerospike-vector-search/lib/hk2-locator-3.0.5.jar:/opt/aerospike-vector-search/lib/hk2-api-3.0.5.jar:/opt/aerospike-vector-search/lib/hk2-utils-3.0.5.jar:/opt/aerospike-vector-search/lib/jakarta.inject-api-2.0.1.jar:/opt/aerospike-vector-search/lib/aopalliance-1.0.jar:/opt/aerospike-vector-search/lib/mbassador-1.3.2.jar:/opt/aerospike-vector-search/lib/vault-java-driver-5.1.0.jar:/opt/aerospike-vector-search/lib/aerospike-client-jdk21-9.0.4.jar:/opt/aerospike-vector-search/lib/commons-math3-3.6.1.jar:/opt/aerospike-vector-search/lib/jbcrypt-0.4.jar:/opt/aerospike-vector-search/lib/animal-sniffer-annotations-1.24.jar:/opt/aerospike-vector-search/lib/gson-2.11.0.jar:/opt/aerospike-vector-search/lib/error_prone_annotations-2.36.0.jar:/opt/aerospike-vector-search/lib/netty-buffer-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-resolver-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/netty-common-4.1.119.Final.jar:/opt/aerospike-vector-search/lib/failureaccess-1.0.2.jar:/opt/aerospike-vector-search/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/opt/aerospike-vector-search/lib/jsr305-3.0.2.jar:/opt/aerospike-vector-search/lib/checker-qual-3.43.0.jar:/opt/aerospike-vector-search/lib/j2objc-annotations-3.0.0.jar:/opt/aerospike-vector-search/lib/annotations-4.1.1.4.jar:/opt/aerospike-vector-search/lib/jspecify-1.0.0.jar:/opt/aerospike-vector-search/lib/annotations-23.0.0.jar:/opt/aerospike-vector-search/lib/proto-google-common-protos-2.51.0.jar:/opt/aerospike-vector-search/lib/protobuf-java-3.25.6.jar:/opt/aerospike-vector-search/lib/simpleclient_dropwizard-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_servlet-0.16.0.jar:/opt/aerospike-vector-search/lib/undertow-servlet-2.3.18.Final.jar:/opt/aerospike-vector-search/lib/gnu-crypto-2.0.1.jar:/opt/aerospike-vector-search/lib/luaj-jse-3.0.1.jar:/opt/aerospike-vector-search/lib/aerospike-connect-outbound-sdk-2.2.0.jar:/opt/aerospike-vector-search/lib/commons-io-2.15.1.jar:/opt/aerospike-vector-search/lib/fastutil-8.5.12.jar:/opt/aerospike-vector-search/lib/jsap-20210129.jar:/opt/aerospike-vector-search/lib/jna-platform-5.5.0.jar:/opt/aerospike-vector-search/lib/jna-5.5.0.jar:/opt/aerospike-vector-search/lib/snakeyaml-2.2.jar:/opt/aerospike-vector-search/lib/msgpack-core-0.9.8.jar:/opt/aerospike-vector-search/lib/javax.annotation-api-1.3.2.jar:/opt/aerospike-vector-search/lib/simpleclient_servlet_common-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_common-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient-0.16.0.jar:/opt/aerospike-vector-search/lib/javassist-3.29.2-GA.jar:/opt/aerospike-vector-search/lib/mimepull-1.9.15.jar:/opt/aerospike-vector-search/lib/jersey-entity-filtering-3.1.5.jar:/opt/aerospike-vector-search/lib/jakarta.xml.bind-api-4.0.0.jar:/opt/aerospike-vector-search/lib/jakarta.servlet-api-6.0.0.jar:/opt/aerospike-vector-search/lib/jakarta.annotation-api-2.1.1.jar:/opt/aerospike-vector-search/lib/jakarta.ws.rs-api-3.1.0.jar:/opt/aerospike-vector-search/lib/jakarta.validation-api-3.0.2.jar:/opt/aerospike-vector-search/lib/xnio-nio-3.8.16.Final.jar:/opt/aerospike-vector-search/lib/xnio-api-3.8.16.Final.jar:/opt/aerospike-vector-search/lib/wildfly-client-config-1.0.1.Final.jar:/opt/aerospike-vector-search/lib/jboss-threads-3.5.0.Final.jar:/opt/aerospike-vector-search/lib/jboss-logging-3.4.3.Final.jar:/opt/aerospike-vector-search/lib/wildfly-common-1.5.4.Final.jar:/opt/aerospike-vector-search/lib/chronicle-analytics-2.27ea0.jar:/opt/aerospike-vector-search/lib/jnr-ffi-2.2.15.jar:/opt/aerospike-vector-search/lib/jnr-constants-0.10.4.jar:/opt/aerospike-vector-search/lib/javapoet-1.13.0.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_otel-0.16.0.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_otel_agent-0.16.0.jar:/opt/aerospike-vector-search/lib/osgi-resource-locator-1.0.3.jar:/opt/aerospike-vector-search/lib/aopalliance-repackaged-3.0.5.jar:/opt/aerospike-vector-search/lib/jakarta.activation-api-2.1.0.jar:/opt/aerospike-vector-search/lib/jffi-1.3.12.jar:/opt/aerospike-vector-search/lib/jffi-1.3.12-native.jar:/opt/aerospike-vector-search/lib/asm-9.2.jar:/opt/aerospike-vector-search/lib/jnr-a64asm-1.0.0.jar:/opt/aerospike-vector-search/lib/jnr-x86asm-1.0.2.jar:/opt/aerospike-vector-search/lib/simpleclient_tracer_common-0.16.0.jar com.aerospike.vector.VectorDbMainKt -f /etc/aerospike-vector-search/aerospike-vector-search.yml"
+                }
+            ]
+        }

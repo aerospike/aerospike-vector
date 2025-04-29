@@ -520,7 +520,28 @@ CLUSTER_RESPONSE_FILE="$OUTPUT_DIR/cluster-response.json"
             echo "    No AVS pods"
         fi
     done
-
+    echo -e "\n=== Cluster-wide avs information ==="
+    {
+        echo "Running asvec to get cluster-wide avs information"
+        echo "cluster info:"
+        kubectl run asvec \
+            --restart=Never \
+            --rm -i \
+            --tty \
+            --image artifact.aerospike.io/docker/asvec:3.3.0 \
+            -n "$NAMESPACE" \
+            -- --host avs-app-aerospike-vector-search-internal \
+                nodes ls | tee "$OUTPUT_DIR/avs-cluster-info.txt"
+        echo "indecies:"
+        kubectl run asvec -q -o yaml\
+            --restart=Never \
+            --rm -i \
+            --tty \
+            --image artifact.aerospike.io/docker/asvec:3.3.0 \
+            -n "$NAMESPACE" \
+            --  --host avs-app-aerospike-vector-search-internal \
+                index ls --verbose --yaml | tee "$OUTPUT_DIR/avs-indices.yaml"
+    }
     echo -e "\n=== Cluster-wide OOMKill Analysis ==="
     {
         echo "Summary of Pod Restarts and OOMKills across cluster:"
@@ -558,29 +579,39 @@ Generate a comprehensive cluster analysis report with the following sections:
    - Create a table showing each node's:
      * Total Memory (from node-aggregates.json)
      * Allocatable Memory (from node-aggregates.json)
-     * AVS pods on node (with name from node-aggregates.json) and JVM Configuration JVM Flags:
+     * AVS pods on node (with name and role from node-aggregates.json) and JVM Configuration:
      * Instance Type (from node-aggregates.json)
      * Status/Health (from node-aggregates.json)
-
-2. Cluster Health Assessment
+2. Node Overview Table
+    - Create a table showing details of each pod on each node:
+        * Name
+        * Roles
+        * JVM Flags (extracted from full java command line in jvm-info.txt)
+        * Memory Request
+        * Memory Limit
+        * Memory Used
+3. Cluster-wide AVS information:
+   * Cluster info:
+   * Indecies:
+4. Cluster Health Assessment
    - Memory distribution across nodes (using node-aggregates.json)
    - Resource allocation patterns (using node-aggregates.json)
    - GC pressure indicators (from pod JVM info)
    - Node conditions (from node-aggregates.json)
 
-3. Key Metrics
+5. Key Metrics
    - Total cluster memory (sum from node-aggregates.json)
    - Average memory per AVS pod (calculated from node-aggregates.json)
    - Memory utilization percentages (calculated from node-aggregates.json)
    - Resource efficiency (calculated from node-aggregates.json)
 
-4. Potential Issues
+6. Potential Issues
    - Memory pressure points (from node conditions and OOM events)
    - Resource imbalances (from node-aggregates.json)
    - GC concerns (from pod JVM info)
    - Configuration inconsistencies (from pod configs)
 
-5. OOMKill Analysis
+7. OOMKill Analysis
    - Detailed timeline of all OOMKill events found:
      * Container restart history
      * Previous termination states
@@ -593,14 +624,14 @@ Generate a comprehensive cluster analysis report with the following sections:
      * Whether it was an isolated incident or part of a pattern
      * Correlation with memory pressure or other events
 
-6. Memory Configuration Assessment
+8. Memory Configuration Assessment
    - Compare nodes/pods with and without OOMKills
    - Analyze if OOMKills correlate with:
      * Higher heap/node memory ratios
      * Specific workload patterns
      * Time of day or specific events
    
-7. Recommendations
+9. Recommendations
    - Specific memory configuration changes
    - System-level improvements
    - Monitoring enhancements

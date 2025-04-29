@@ -1,0 +1,116 @@
+indices:
+    - dimensions: 2
+      field: vector
+      hnswParams:
+        batchingParams:
+            indexInterval: 30000
+            maxIndexRecords: 100000
+            maxReindexRecords: 10000
+            reindexInterval: 30000
+        ef: 100
+        efConstruction: 100
+        enableVectorIntegrityCheck: true
+        healerParams:
+            maxScanPageSize: 10000
+            maxScanRatePerNode: 1000
+            parallelism: 1
+            reindexPercent: 10
+            schedule: 0 0/15 * ? * * *
+        indexCachingParams:
+            expiry: "3600000"
+            maxEntries: "2000000"
+        m: 16
+        maxMemQueueSize: 1e+06
+        mergeParams:
+            indexParallelism: 160
+            reIndexParallelism: 53
+      id:
+        name: basic_index
+        namespace: avs-data
+      mode: DISTRIBUTED
+      setFilter: basic-data
+      standaloneIndexParams: {}
+      storage:
+        namespace: avs-index
+        set: basic-index
+      type: HNSW
+      vectorDistanceMetric: SQUARED_EUCLIDEAN
+    - dimensions: 20
+      field: HDF_embedding
+      hnswParams:
+        batchingParams:
+            indexInterval: 30000
+            maxIndexRecords: 100000
+            maxReindexRecords: 10000
+            reindexInterval: 30000
+        ef: 100
+        efConstruction: 100
+        enableVectorIntegrityCheck: true
+        healerParams:
+            maxScanPageSize: 40000
+            maxScanRatePerNode: 20000
+            parallelism: 64
+            reindexPercent: 100
+            schedule: 0 0/15 * ? * * *
+        indexCachingParams:
+            expiry: "3600000"
+            maxEntries: "2000000"
+        m: 16
+        maxMemQueueSize: 1e+06
+        mergeParams:
+            indexParallelism: 160
+            reIndexParallelism: 53
+        recordCachingParams:
+            expiry: "3600000"
+            maxEntries: "2000000"
+      id:
+        name: test
+        namespace: avs-data
+      mode: DISTRIBUTED
+      setFilter: random-xs-20-angular
+      standaloneIndexParams: {}
+      storage:
+        namespace: avs-index
+        set: test
+      type: HNSW
+      vectorDistanceMetric: COSINE
+    - dimensions: 128
+      field: HDF_embedding
+      hnswParams:
+        batchingParams:
+            indexInterval: 30000
+            maxIndexRecords: 100000
+            maxReindexRecords: 10000
+            reindexInterval: 30000
+        ef: 100
+        efConstruction: 100
+        enableVectorIntegrityCheck: false
+        healerParams:
+            maxScanPageSize: 40000
+            maxScanRatePerNode: 20000
+            parallelism: 64
+            reindexPercent: 100
+            schedule: 0 0 0 1 1 ?
+        indexCachingParams:
+            expiry: "-1"
+            maxEntries: "2000000"
+        m: 16
+        maxMemQueueSize: 1e+06
+        mergeParams:
+            indexParallelism: 160
+            reIndexParallelism: 53
+        recordCachingParams:
+            expiry: "-1"
+            maxEntries: "2000000"
+      id:
+        name: sift
+        namespace: avs-data
+      mode: DISTRIBUTED
+      setFilter: sift-128-euclidean
+      standaloneIndexParams: {}
+      storage:
+        namespace: avs-index
+        set: sift
+      type: HNSW
+      vectorDistanceMetric: SQUARED_EUCLIDEAN
+

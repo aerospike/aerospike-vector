@@ -1,0 +1,2 @@
+LAST SEEN   TYPE      REASON                            OBJECT                                  MESSAGE
+3m44s       Warning   FailedToRetrieveImagePullSecret   pod/avs-app-aerospike-vector-search-0   Unable to retrieve some image pull secrets (jfrog-secret); attempting to pull the image may not succeed.

@@ -1,0 +1,210 @@
+{
+            "model": "gpt-4o",
+            "temperature": 0.3,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are analyzing an Aerospike Vector Search cluster deployment.
+
+Generate a comprehensive cluster analysis report with the following sections:
+
+1. Resource Overview Table
+   - Create a table showing each node's:
+     * Total Memory (from node-aggregates.json)
+     * Allocatable Memory (from node-aggregates.json)
+     * AVS pods on node (with name and role from node-aggregates.json) and JVM Configuration:
+     * Instance Type (from node-aggregates.json)
+     * Status/Health (from node-aggregates.json)
+2. Node Overview Table
+    - Create a table showing details of each pod on each node:
+        * Name
+        * Roles
+        * JVM Flags (extracted from full java command line in jvm-info.txt)
+        * Memory Request
+        * Memory Limit
+        * Memory Used
+3. Cluster-wide AVS information:
+   * Cluster info:
+   * Indecies:
+4. Cluster Health Assessment
+   - Memory distribution across nodes (using node-aggregates.json)
+   - Resource allocation patterns (using node-aggregates.json)
+   - GC pressure indicators (from pod JVM info)
+   - Node conditions (from node-aggregates.json)
+
+5. Key Metrics
+   - Total cluster memory (sum from node-aggregates.json)
+   - Average memory per AVS pod (calculated from node-aggregates.json)
+   - Memory utilization percentages (calculated from node-aggregates.json)
+   - Resource efficiency (calculated from node-aggregates.json)
+
+6. Potential Issues
+   - Memory pressure points (from node conditions and OOM events)
+   - Resource imbalances (from node-aggregates.json)
+   - GC concerns (from pod JVM info)
+   - Configuration inconsistencies (from pod configs)
+
+7. OOMKill Analysis
+   - Detailed timeline of all OOMKill events found:
+     * Container restart history
+     * Previous termination states
+     * System OOM events
+     * Pod events
+   
+   - For each OOMKill event analyze:
+     * JVM heap settings at the time
+     * Node memory capacity
+     * Whether it was an isolated incident or part of a pattern
+     * Correlation with memory pressure or other events
+
+8. Memory Configuration Assessment
+   - Compare nodes/pods with and without OOMKills
+   - Analyze if OOMKills correlate with:
+     * Higher heap/node memory ratios
+     * Specific workload patterns
+     * Time of day or specific events
+   
+9. Recommendations
+   - Specific memory configuration changes
+   - System-level improvements
+   - Monitoring enhancements
+   - Prevention strategies
+
+Provide a clear timeline of OOMKill events and their context.
+Highlight patterns and potential root causes.
+
+Pay special attention to:
+- Pod restart counts and timing
+- Last termination states and reasons
+- Exit codes (137 indicates OOMKill)
+- Time correlation between restarts and node pressure
+- Pattern of restarts across the cluster
+- Reletive uptime of the pods
+
+When analyzing OOMKills:
+1. Look at both container termination states AND system events
+2. Check if restarts happened close to memory pressure events
+3. Compare memory settings of pods that restarted vs stable pods
+4. Consider the timing of restarts relative to pod age
+5. Consider the relative uptime of the pods (if nodes restart it looks like 0 restarts)
+Use the aggregated node information from node-aggregates.json to ensure accurate and consistent reporting of node resources, instance types, and cloud provider details.
+
+Format the report exactly as shown in the example, with proper markdown formatting and consistent spacing. Please make use of emojis to make the report more engaging."
+                },
+                {
+                    "role": "user",
+                    "content": "Summary of Pod Restarts and OOMKills across cluster:
+Pod: avs-app-aerospike-vector-search-0
+Node: gke-ahevenor-myntra3-avs-query-pool-8235afd2-jfdd
+Restarts: 0
+Age: 2025-04-23T18:36:32Z
+Pod: avs-app-aerospike-vector-search-1
+Node: null
+Restarts: null
+Age: 2025-04-29T20:33:09Z
+Pod: avs-app-aerospike-vector-search-2
+Node: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+Restarts: 0
+Age: 2025-04-23T18:36:32Z
+
+Detailed Restart Analysis:
+
+Node Memory Pressure Events:
+
+Node: gke-ahevenor-myntra3-aerospike-pool-161ba45a-gxgz
+No memory pressure events found
+
+Node: gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz
+4m8s        Warning   EvictionThresholdMet       node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Attempting to reclaim memory
+48m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3115028 (java) total-vm:230742664kB, anon-rss:942684kB, file-rss:13876kB, shmem-rss:12382208kB, UID:0 pgtables:26912kB oom_score_adj:1000
+48m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3115013 (as-tini-static) total-vm:1156kB, anon-rss:0kB, file-rss:256kB, shmem-rss:0kB, UID:0 pgtables:32kB oom_score_adj:1000
+48m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3115260 (epollEventLoopG) total-vm:230742664kB, anon-rss:942684kB, file-rss:13876kB, shmem-rss:12382208kB, UID:0 pgtables:26912kB oom_score_adj:1000
+28m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3122359 (java) total-vm:230724552kB, anon-rss:900920kB, file-rss:14028kB, shmem-rss:12398080kB, UID:0 pgtables:26860kB oom_score_adj:1000
+28m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3122345 (as-tini-static) total-vm:1156kB, anon-rss:0kB, file-rss:128kB, shmem-rss:0kB, UID:0 pgtables:36kB oom_score_adj:1000
+28m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3122541 (epollEventLoopG) total-vm:230724552kB, anon-rss:900920kB, file-rss:14028kB, shmem-rss:12398080kB, UID:0 pgtables:26860kB oom_score_adj:1000
+20m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3125219 (java) total-vm:230738468kB, anon-rss:920316kB, file-rss:13788kB, shmem-rss:12375296kB, UID:0 pgtables:26880kB oom_score_adj:1000
+20m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3125205 (as-tini-static) total-vm:1156kB, anon-rss:0kB, file-rss:256kB, shmem-rss:0kB, UID:0 pgtables:32kB oom_score_adj:1000
+20m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3125372 (epollEventLoopG) total-vm:230738468kB, anon-rss:920316kB, file-rss:13788kB, shmem-rss:12375296kB, UID:0 pgtables:26880kB oom_score_adj:1000
+16m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3128193 (java) total-vm:230603108kB, anon-rss:735100kB, file-rss:13696kB, shmem-rss:12566016kB, UID:0 pgtables:26940kB oom_score_adj:1000
+16m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3128179 (as-tini-static) total-vm:1156kB, anon-rss:0kB, file-rss:128kB, shmem-rss:0kB, UID:0 pgtables:32kB oom_score_adj:1000
+16m         Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3128256 (ZWorkerYoung#0) total-vm:230603108kB, anon-rss:735100kB, file-rss:13696kB, shmem-rss:12566016kB, UID:0 pgtables:26940kB oom_score_adj:1000
+4m7s        Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3131074 (java) total-vm:230740792kB, anon-rss:932988kB, file-rss:13900kB, shmem-rss:12390400kB, UID:0 pgtables:26908kB oom_score_adj:1000
+4m7s        Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3131060 (as-tini-static) total-vm:1156kB, anon-rss:0kB, file-rss:128kB, shmem-rss:0kB, UID:0 pgtables:32kB oom_score_adj:1000
+4m7s        Warning   OOMKilling                 node/gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz   Memory cgroup out of memory: Killed process 3131137 (ZWorkerYoung#0) total-vm:230740792kB, anon-rss:932988kB, file-rss:13900kB, shmem-rss:12390400kB, UID:0 pgtables:26908kB oom_score_adj:1000
+
+Node: gke-ahevenor-myntra3-avs-query-pool-8235afd2-jfdd
+No memory pressure events found
+
+Node: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+No memory pressure events found
+
+Node: gke-ahevenor-myntra3-default-pool-f66e6796-8wtd
+No memory pressure events found\n\nNode-Specific Analysis:\n
+### Node: gke-ahevenor-myntra3-aerospike-pool-161ba45a-gxgz
+
+
+### Node: gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz
+null
+
+### Node: gke-ahevenor-myntra3-avs-query-pool-8235afd2-jfdd
+null
+
+### Node: gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7
+null
+
+### Node: gke-ahevenor-myntra3-default-pool-f66e6796-8wtd
+### 🖥️ Node Analysis: gke-ahevenor-myntra3-default-pool-f66e6796-8wtd
+
+#### Node Capacity & Allocatable Resources:
+- **CPU**: 2 cores
+- **Memory**: 4015484 KiB
+- **Allocatable CPU**: 940m
+- **Allocatable Memory**: 2869628 KiB
+- **Pods**: 110
+
+#### Node Conditions:
+- **Ready**: ✅ True
+- **MemoryPressure**: ❌ False
+- **DiskPressure**: ❌ False
+- **PIDPressure**: ❌ False
+- **NetworkUnavailable**: ❌ False
+
+#### Cloud Provider Details:
+- **Provider**: Google Cloud Platform
+- **Instance Type**: e2-medium
+- **Region**: us-central1
+- **Zone**: us-central1-c
+
+#### Resource Allocation & Utilization:
+- **CPU Requests**: 738m (78% of allocatable)
+- **CPU Limits**: 5168m (549% of allocatable, overcommitted)
+- **Memory Requests**: 1031932800 (35% of allocatable)
+- **Memory Limits**: 7695383040 (261% of allocatable, overcommitted)
+
+#### Node-Level Issues or Warnings:
+- **Warning**: ReadOnlyLocalSSDDetected (72s ago, repeated 1755 times over 6d2h)
+
+### Recommendations for Node-Level Optimizations:
+1. **CPU & Memory Overcommitment**: The node is significantly overcommitted on CPU and memory limits. Consider adjusting the limits or scaling the node pool to prevent potential resource contention. ⚠️
+2. **ReadOnlyLocalSSDDetected Warning**: Investigate the cause of the ReadOnlyLocalSSDDetected warning, as it might affect disk operations. 🛠️
+
+### Pod-Level Analysis:
+- **AVS Pods**: ❌ No AVS pods found on this node.
+
+### Recommendations for Pod-Level Configurations:
+- Since there are no AVS pods on this node, no specific pod-level recommendations can be provided. Ensure that AVS pods are scheduled on nodes with sufficient resources and appropriate configurations.
+
+### Resource Allocation Adjustments:
+- **CPU & Memory**: Re-evaluate the resource requests and limits for the existing pods to ensure they align with actual usage patterns. This will help in reducing overcommitment. 📊
+
+### Performance Improvements:
+- **Node Scaling**: Consider scaling the node pool to accommodate the high resource limits if necessary. This can help in balancing the load and preventing potential performance bottlenecks. 🚀
+
+### JVM Memory Settings:
+- No JVM settings to analyze as there are no AVS pods on this node.
+
+### Conclusion:
+The node is generally healthy but exhibits overcommitment in CPU and memory limits. Addressing these issues and investigating the ReadOnlyLocalSSDDetected warning will help in maintaining optimal performance. Ensure that any future AVS pods are configured with appropriate resource requests and limits. 🌟"
+                }
+            ]
+        }

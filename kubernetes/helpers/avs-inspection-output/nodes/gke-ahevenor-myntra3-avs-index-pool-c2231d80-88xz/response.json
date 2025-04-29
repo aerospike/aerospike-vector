@@ -1,0 +1,8 @@
+{
+    "error": {
+        "message": "We could not parse the JSON body of your request. (HINT: This likely means you aren't using your HTTP library correctly. The OpenAI API expects a JSON payload, but what was sent was not valid JSON. If you have trouble figuring out how to fix this, please contact us through our help center at help.openai.com.)",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": null
+    }
+}
