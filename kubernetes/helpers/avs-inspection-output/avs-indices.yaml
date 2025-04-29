@@ -13,7 +13,7 @@ indices:
         healerParams:
             maxScanPageSize: 40000
             maxScanRatePerNode: 20000
-            parallelism: 16
+            parallelism: 32
             reindexPercent: 100
             schedule: 0 0/15 * ? * * *
         indexCachingParams:
@@ -30,7 +30,7 @@ indices:
       id:
         name: swiftyfan
         namespace: avs-data
-      mode: STANDALONE
+      mode: DISTRIBUTED
       setFilter: sift-128-euclidean
       standaloneIndexParams: {}
       storage:
