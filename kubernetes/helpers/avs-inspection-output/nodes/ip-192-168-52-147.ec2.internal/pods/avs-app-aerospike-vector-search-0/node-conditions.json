@@ -1,5 +1,5 @@
 {
-  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+  "lastHeartbeatTime": "2025-04-29T22:19:31Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has sufficient memory available",
   "reason": "KubeletHasSufficientMemory",
@@ -7,7 +7,7 @@
   "type": "MemoryPressure"
 }
 {
-  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+  "lastHeartbeatTime": "2025-04-29T22:19:31Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has no disk pressure",
   "reason": "KubeletHasNoDiskPressure",
@@ -15,7 +15,7 @@
   "type": "DiskPressure"
 }
 {
-  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+  "lastHeartbeatTime": "2025-04-29T22:19:31Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has sufficient PID available",
   "reason": "KubeletHasSufficientPID",

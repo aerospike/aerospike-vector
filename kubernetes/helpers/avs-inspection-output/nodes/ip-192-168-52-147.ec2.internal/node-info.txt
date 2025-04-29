@@ -35,14 +35,14 @@ Unschedulable:      false
 Lease:
   HolderIdentity:  ip-192-168-52-147.ec2.internal
   AcquireTime:     <unset>
-  RenewTime:       Tue, 29 Apr 2025 15:10:17 -0700
+  RenewTime:       Tue, 29 Apr 2025 15:22:01 -0700
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Tue, 29 Apr 2025 15:09:18 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Tue, 29 Apr 2025 15:09:18 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Tue, 29 Apr 2025 15:09:18 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Tue, 29 Apr 2025 15:09:18 -0700   Tue, 29 Apr 2025 12:06:55 -0700   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Tue, 29 Apr 2025 15:19:31 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 15:19:31 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 15:19:31 -0700   Tue, 29 Apr 2025 12:06:40 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 15:19:31 -0700   Tue, 29 Apr 2025 12:06:55 -0700   KubeletReady                 kubelet is posting ready status
 Addresses:
   InternalIP:   192.168.52.147
   ExternalIP:   3.238.188.22
@@ -78,21 +78,21 @@ ProviderID:                   aws:///us-east-1d/i-00c6a97714db38acc
 Non-terminated Pods:          (15 in total)
   Namespace                   Name                                                      CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
   ---------                   ----                                                      ------------  ----------  ---------------  -------------  ---
-  avs                         avs-app-aerospike-vector-search-0                         0 (0%)        0 (0%)      0 (0%)           0 (0%)         173m
-  kube-system                 aws-node-qsfx9                                            50m (0%)      0 (0%)      0 (0%)           0 (0%)         3h3m
-  kube-system                 ebs-csi-node-x9s4v                                        30m (0%)      0 (0%)      120Mi (0%)       768Mi (1%)     3h3m
-  kube-system                 kube-proxy-528ls                                          100m (1%)     0 (0%)      0 (0%)           0 (0%)         3h3m
-  monitoring                  alertmanager-monitoring-stack-kube-prom-alertmanager-0    0 (0%)        0 (0%)      200Mi (0%)       0 (0%)         172m
-  monitoring                  monitoring-stack-grafana-86dbbf556b-sft9w                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
-  monitoring                  monitoring-stack-kube-prom-operator-78588cb66f-xmq6g      0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
-  monitoring                  monitoring-stack-kube-state-metrics-5f78d49cb9-7z65l      0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
-  monitoring                  monitoring-stack-prometheus-node-exporter-cwpkp           0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
-  monitoring                  prometheus-monitoring-stack-kube-prom-prometheus-0        0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
-  olm                         catalog-operator-86f5bc67bb-7k545                         10m (0%)      0 (0%)      80Mi (0%)        0 (0%)         175m
-  olm                         olm-operator-69cdd96c89-dhhzh                             10m (0%)      0 (0%)      160Mi (0%)       0 (0%)         175m
-  olm                         operatorhubio-catalog-kcvj4                               10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         175m
-  olm                         packageserver-7f68ff99c8-dq99m                            10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         175m
-  operators                   aerospike-operator-controller-manager-67f5b6bfd4-7h2l9    10m (0%)      400m (5%)   64Mi (0%)        512Mi (0%)     174m
+  avs                         avs-app-aerospike-vector-search-0                         0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h5m
+  kube-system                 aws-node-qsfx9                                            50m (0%)      0 (0%)      0 (0%)           0 (0%)         3h15m
+  kube-system                 ebs-csi-node-x9s4v                                        30m (0%)      0 (0%)      120Mi (0%)       768Mi (1%)     3h15m
+  kube-system                 kube-proxy-528ls                                          100m (1%)     0 (0%)      0 (0%)           0 (0%)         3h15m
+  monitoring                  alertmanager-monitoring-stack-kube-prom-alertmanager-0    0 (0%)        0 (0%)      200Mi (0%)       0 (0%)         3h4m
+  monitoring                  monitoring-stack-grafana-86dbbf556b-sft9w                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h4m
+  monitoring                  monitoring-stack-kube-prom-operator-78588cb66f-xmq6g      0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h4m
+  monitoring                  monitoring-stack-kube-state-metrics-5f78d49cb9-7z65l      0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h4m
+  monitoring                  monitoring-stack-prometheus-node-exporter-cwpkp           0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h4m
+  monitoring                  prometheus-monitoring-stack-kube-prom-prometheus-0        0 (0%)        0 (0%)      0 (0%)           0 (0%)         3h4m
+  olm                         catalog-operator-86f5bc67bb-7k545                         10m (0%)      0 (0%)      80Mi (0%)        0 (0%)         3h7m
+  olm                         olm-operator-69cdd96c89-dhhzh                             10m (0%)      0 (0%)      160Mi (0%)       0 (0%)         3h7m
+  olm                         operatorhubio-catalog-kcvj4                               10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         3h7m
+  olm                         packageserver-7f68ff99c8-dq99m                            10m (0%)      0 (0%)      50Mi (0%)        0 (0%)         3h7m
+  operators                   aerospike-operator-controller-manager-67f5b6bfd4-7h2l9    10m (0%)      400m (5%)   64Mi (0%)        512Mi (0%)     3h6m
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
   Resource           Requests    Limits
@@ -127,7 +127,7 @@ Events:              <none>
 === Node Conditions ===
 [
   {
-    "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+    "lastHeartbeatTime": "2025-04-29T22:19:31Z",
     "lastTransitionTime": "2025-04-29T19:06:40Z",
     "message": "kubelet has sufficient memory available",
     "reason": "KubeletHasSufficientMemory",
@@ -135,7 +135,7 @@ Events:              <none>
     "type": "MemoryPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+    "lastHeartbeatTime": "2025-04-29T22:19:31Z",
     "lastTransitionTime": "2025-04-29T19:06:40Z",
     "message": "kubelet has no disk pressure",
     "reason": "KubeletHasNoDiskPressure",
@@ -143,7 +143,7 @@ Events:              <none>
     "type": "DiskPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+    "lastHeartbeatTime": "2025-04-29T22:19:31Z",
     "lastTransitionTime": "2025-04-29T19:06:40Z",
     "message": "kubelet has sufficient PID available",
     "reason": "KubeletHasSufficientPID",
@@ -151,7 +151,7 @@ Events:              <none>
     "type": "PIDPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T22:09:18Z",
+    "lastHeartbeatTime": "2025-04-29T22:19:31Z",
     "lastTransitionTime": "2025-04-29T19:06:55Z",
     "message": "kubelet is posting ready status",
     "reason": "KubeletReady",
