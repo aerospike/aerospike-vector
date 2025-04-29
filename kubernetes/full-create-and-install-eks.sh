@@ -317,105 +317,50 @@ create_eks_cluster() {
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting EKS cluster creation..."
     
-    # Get VPC ID for the default VPC if not specified
-    local vpc_id
-    vpc_id=$(aws ec2 describe-vpcs \
-        --filters "Name=isDefault,Values=true" \
-        --query 'Vpcs[0].VpcId' \
-        --output text)
-
-    if [ -z "$vpc_id" ]; then
-        echo "Error: Could not find default VPC"
-        return 1
-    fi
-
-    # Create security group first
-    echo "Creating security group for AVS..."
-    local sg_id
-    sg_id=$(aws ec2 create-security-group \
-        --group-name "eks-${CLUSTER_NAME}-avs-sg" \
-        --description "Security group for AVS in EKS cluster ${CLUSTER_NAME}" \
-        --vpc-id "$vpc_id" \
-        --query 'GroupId' \
-        --output text)
-
-    if [ -z "$sg_id" ]; then
-        echo "Error: Failed to create security group"
-        return 1
-    }
-
-    # Tag the security group
-    aws ec2 create-tags \
-        --resources "$sg_id" \
-        --tags "Key=Name,Value=eks-${CLUSTER_NAME}-avs-sg" \
-              "Key=kubernetes.io/cluster/${CLUSTER_NAME},Value=owned"
-
-    # Add necessary inbound rules with more restrictive CIDR
-    aws ec2 authorize-security-group-ingress \
-        --group-id "$sg_id" \
-        --ip-permissions "[
-            {
-                \"IpProtocol\": \"tcp\",
-                \"FromPort\": 3000,
-                \"ToPort\": 3004,
-                \"IpRanges\": [{\"CidrIp\": \"10.0.0.0/8\"}]
-            },
-            {
-                \"IpProtocol\": \"tcp\",
-                \"FromPort\": 5000,
-                \"ToPort\": 5000,
-                \"IpRanges\": [{\"CidrIp\": \"10.0.0.0/8\"}]
-            },
-            {
-                \"IpProtocol\": \"tcp\",
-                \"FromPort\": 5040,
-                \"ToPort\": 5040,
-                \"IpRanges\": [{\"CidrIp\": \"10.0.0.0/8\"}]
-            },
-            {
-                \"IpProtocol\": \"tcp\",
-                \"FromPort\": 30000,
-                \"ToPort\": 32767,
-                \"IpRanges\": [{\"CidrIp\": \"10.0.0.0/8\"}]
-            }
-        ]"
-
-    # Get subnet IDs
-    local private_subnets
-    local public_subnets
-    private_subnets=$(aws ec2 describe-subnets \
-        --filters "Name=vpc-id,Values=$vpc_id" "Name=tag:Name,Values=*private*" \
-        --query 'Subnets[*].SubnetId' \
-        --output text | tr '\t' ',')
-    
-    public_subnets=$(aws ec2 describe-subnets \
-        --filters "Name=vpc-id,Values=$vpc_id" "Name=tag:Name,Values=*public*" \
-        --query 'Subnets[*].SubnetId' \
-        --output text | tr '\t' ',')
-
-    # Create the cluster with improved security configuration
-    if ! eksctl create cluster \
+    # Create the cluster first
+    eksctl create cluster \
         --name "$CLUSTER_NAME" \
         --region "$REGION" \
         --with-oidc \
         --node-type "$MACHINE_TYPE" \
         --nodes 1 \
-        --node-security-groups "$sg_id" \
-        --vpc-private-subnets "$private_subnets" \
-        --vpc-public-subnets "$public_subnets" \
-        --managed \
         --alb-ingress-access \
         --external-dns-access \
-        --set-kubeconfig-context; then
-        echo "Error: Failed to create EKS cluster"
-        return 1
-    fi
+        --set-kubeconfig-context
 
-    # Wait for cluster to be ready
-    echo "Waiting for cluster to be ready..."
-    if ! eksctl utils wait-for-cluster --name "$CLUSTER_NAME" --region "$REGION"; then
-        echo "Error: Cluster failed to become ready"
-        return 1
+    # If security group configuration is enabled, create and configure it after cluster creation
+    if [[ "${CONFIGURE_SECURITY_GROUP}" == 1 ]]; then
+        echo "Creating and configuring security group for AVS..."
+        local sg_id
+        sg_id=$(aws ec2 create-security-group \
+            --group-name "eks-${CLUSTER_NAME}-avs-sg" \
+            --description "Security group for AVS in EKS cluster ${CLUSTER_NAME}" \
+            --query 'GroupId' \
+            --output text)
+        
+        # Add tags to the security group
+        aws ec2 create-tags \
+            --resources "$sg_id" \
+            --tags "Key=Name,Value=eks-${CLUSTER_NAME}-avs-sg" \
+                  "Key=kubernetes.io/cluster/${CLUSTER_NAME},Value=owned"
+        
+        # Add ingress rules
+        aws ec2 authorize-security-group-ingress \
+            --group-id "$sg_id" \
+            --ip-permissions '[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 5000,
+                    "ToPort": 5000,
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 5040,
+                    "ToPort": 5040,
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
+                }
+            ]'
     fi
 
     # Install EBS CSI driver
