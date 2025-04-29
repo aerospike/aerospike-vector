@@ -139,10 +139,6 @@ affinity:
             - key: aerospike.io/node-pool
               operator: In
               values:
-                - "standalone-indexer-nodes"
-                - "query-nodes"
-                - "indexer-nodes"
-                - "default-nodes"
                 - "avs"
 # podAntiAffinity:
 #     requiredDuringSchedulingIgnoredDuringExecution:
