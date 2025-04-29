@@ -1,1 +1,0 @@
-❌ jcmd not available in avs-app-aerospike-vector-search-1

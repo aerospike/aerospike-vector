@@ -1,183 +1,55 @@
 {
   "nodes": [
     {
-      "name": "gke-ahevenor-myntra3-aerospike-pool-161ba45a-gxgz",
+      "name": "ip-192-168-26-117.ec2.internal",
       "capacity": {
         "cpu": "4",
-        "ephemeral-storage": "98831908Ki",
+        "ephemeral-storage": "83873772Ki",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "16382856Ki",
-        "pods": "110"
+        "memory": "15896988Ki",
+        "pods": "58"
       },
       "allocatable": {
         "cpu": "3920m",
-        "ephemeral-storage": "47060071478",
+        "ephemeral-storage": "76224326324",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "13594504Ki",
-        "pods": "110"
+        "memory": "14880156Ki",
+        "pods": "58"
       },
       "cloud_provider": "On-premises",
-      "instance_type": "n2d-standard-4",
-      "region": "us-central1",
-      "zone": "us-central1-c",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
       "conditions": [
         {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "kernel has no deadlock",
-          "reason": "KernelHasNoDeadlock",
-          "status": "False",
-          "type": "KernelDeadlock"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "containerd is functioning properly",
-          "reason": "NoFrequentContainerdRestart",
-          "status": "False",
-          "type": "FrequentContainerdRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "node is functioning properly",
-          "reason": "NoFrequentUnregisterNetDevice",
-          "status": "False",
-          "type": "FrequentUnregisterNetDevice"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not use v1alpha2 CRI",
-          "reason": "DeprecatedUsingV1Alpha2CriNotDetected",
-          "status": "False",
-          "type": "DeprecatedUsingV1Alpha2Cri"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "docker is functioning properly",
-          "reason": "NoFrequentDockerRestart",
-          "status": "False",
-          "type": "FrequentDockerRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "kubelet is functioning properly",
-          "reason": "NoFrequentKubeletRestart",
-          "status": "False",
-          "type": "FrequentKubeletRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "Root filesystem is not read only",
-          "reason": "ReadOnlyRootFileSystemNotDetected",
-          "status": "False",
-          "type": "ReadOnlyRootFileSystem"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not find any deprecated 'auths' field in containerd's config",
-          "reason": "DeprecatedAuthsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedAuthsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "Swap is not active",
-          "reason": "SwapNotDetected",
-          "status": "False",
-          "type": "Swap"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.",
-          "reason": "DeprecatedOtherContainerdFeaturesNotDetected",
-          "status": "False",
-          "type": "DeprecatedOtherContainerdFeatures"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not pull any schema v1 images",
-          "reason": "DeprecatedPullingSchemaV1ImageDetected",
-          "status": "False",
-          "type": "DeprecatedPullingSchemaV1Image"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "Default sysctls are in effect, no unexpected sysctl changes",
-          "reason": "SysctlNotChanged",
-          "status": "False",
-          "type": "SysctlChanged"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not find any deprecated 'configs' field in containerd's config",
-          "reason": "DeprecatedConfigsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedConfigsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config",
-          "reason": "DeprecatedMirrorsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedMirrorsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:35:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:27Z",
-          "message": "docker overlay2 is functioning properly",
-          "reason": "NoCorruptDockerOverlay2",
-          "status": "False",
-          "type": "CorruptDockerOverlay2"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-23T18:29:29Z",
-          "lastTransitionTime": "2025-04-23T18:29:28Z",
-          "message": "NodeController create implicit route",
-          "reason": "RouteCreated",
-          "status": "False",
-          "type": "NetworkUnavailable"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:34:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:23Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:24Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
           "message": "kubelet has sufficient memory available",
           "reason": "KubeletHasSufficientMemory",
           "status": "False",
           "type": "MemoryPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:34:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:23Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:24Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
           "message": "kubelet has no disk pressure",
           "reason": "KubeletHasNoDiskPressure",
           "status": "False",
           "type": "DiskPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:34:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:23Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:24Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
           "message": "kubelet has sufficient PID available",
           "reason": "KubeletHasSufficientPID",
           "status": "False",
           "type": "PIDPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:34:53Z",
-          "lastTransitionTime": "2025-04-23T18:29:29Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:24Z",
+          "lastTransitionTime": "2025-04-29T19:04:00Z",
           "message": "kubelet is posting ready status",
           "reason": "KubeletReady",
           "status": "True",
@@ -187,562 +59,55 @@
       "avs_pods": []
     },
     {
-      "name": "gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz",
+      "name": "ip-192-168-27-123.ec2.internal",
       "capacity": {
         "cpu": "4",
-        "ephemeral-storage": "98831908Ki",
+        "ephemeral-storage": "83873772Ki",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "16382864Ki",
-        "pods": "110"
+        "memory": "15896988Ki",
+        "pods": "58"
       },
       "allocatable": {
         "cpu": "3920m",
-        "ephemeral-storage": "47060071478",
+        "ephemeral-storage": "76224326324",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "13594512Ki",
-        "pods": "110"
+        "memory": "14880156Ki",
+        "pods": "58"
       },
       "cloud_provider": "On-premises",
-      "instance_type": "e2-standard-4",
-      "region": "us-central1",
-      "zone": "us-central1-c",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
       "conditions": [
         {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not find any deprecated 'configs' field in containerd's config",
-          "reason": "DeprecatedConfigsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedConfigsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.",
-          "reason": "DeprecatedOtherContainerdFeaturesNotDetected",
-          "status": "False",
-          "type": "DeprecatedOtherContainerdFeatures"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "Swap is not active",
-          "reason": "SwapNotDetected",
-          "status": "False",
-          "type": "Swap"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "kubelet is functioning properly",
-          "reason": "NoFrequentKubeletRestart",
-          "status": "False",
-          "type": "FrequentKubeletRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "containerd is functioning properly",
-          "reason": "NoFrequentContainerdRestart",
-          "status": "False",
-          "type": "FrequentContainerdRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not pull any schema v1 images",
-          "reason": "DeprecatedPullingSchemaV1ImageDetected",
-          "status": "False",
-          "type": "DeprecatedPullingSchemaV1Image"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "node is functioning properly",
-          "reason": "NoFrequentUnregisterNetDevice",
-          "status": "False",
-          "type": "FrequentUnregisterNetDevice"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not find any deprecated 'auths' field in containerd's config",
-          "reason": "DeprecatedAuthsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedAuthsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "docker overlay2 is functioning properly",
-          "reason": "NoCorruptDockerOverlay2",
-          "status": "False",
-          "type": "CorruptDockerOverlay2"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "docker is functioning properly",
-          "reason": "NoFrequentDockerRestart",
-          "status": "False",
-          "type": "FrequentDockerRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-24T00:33:34Z",
-          "message": "{\"unmanaged\": {\"kernel.tainted\": \"512\"}}",
-          "reason": "NodeSysctlChange",
-          "status": "True",
-          "type": "SysctlChanged"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config",
-          "reason": "DeprecatedMirrorsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedMirrorsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "No deprecation risk: did not use v1alpha2 CRI",
-          "reason": "DeprecatedUsingV1Alpha2CriNotDetected",
-          "status": "False",
-          "type": "DeprecatedUsingV1Alpha2Cri"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "kernel has no deadlock",
-          "reason": "KernelHasNoDeadlock",
-          "status": "False",
-          "type": "KernelDeadlock"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:52Z",
-          "lastTransitionTime": "2025-04-23T18:33:33Z",
-          "message": "Root filesystem is not read only",
-          "reason": "ReadOnlyRootFileSystemNotDetected",
-          "status": "False",
-          "type": "ReadOnlyRootFileSystem"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-23T18:33:42Z",
-          "lastTransitionTime": "2025-04-23T18:33:42Z",
-          "message": "NodeController create implicit route",
-          "reason": "RouteCreated",
-          "status": "False",
-          "type": "NetworkUnavailable"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:36:02Z",
-          "lastTransitionTime": "2025-04-29T20:33:08Z",
-          "message": "kubelet has insufficient memory available",
-          "reason": "KubeletHasInsufficientMemory",
-          "status": "True",
-          "type": "MemoryPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:36:02Z",
-          "lastTransitionTime": "2025-04-23T18:33:27Z",
-          "message": "kubelet has no disk pressure",
-          "reason": "KubeletHasNoDiskPressure",
-          "status": "False",
-          "type": "DiskPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:36:02Z",
-          "lastTransitionTime": "2025-04-23T18:33:27Z",
-          "message": "kubelet has sufficient PID available",
-          "reason": "KubeletHasSufficientPID",
-          "status": "False",
-          "type": "PIDPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:36:02Z",
-          "lastTransitionTime": "2025-04-23T18:33:43Z",
-          "message": "kubelet is posting ready status",
-          "reason": "KubeletReady",
-          "status": "True",
-          "type": "Ready"
-        }
-      ],
-      "avs_pods": []
-    },
-    {
-      "name": "gke-ahevenor-myntra3-avs-query-pool-8235afd2-jfdd",
-      "capacity": {
-        "cpu": "16",
-        "ephemeral-storage": "98831908Ki",
-        "hugepages-1Gi": "0",
-        "hugepages-2Mi": "0",
-        "memory": "65851340Ki",
-        "pods": "110"
-      },
-      "allocatable": {
-        "cpu": "15890m",
-        "ephemeral-storage": "47060071478",
-        "hugepages-1Gi": "0",
-        "hugepages-2Mi": "0",
-        "memory": "60043212Ki",
-        "pods": "110"
-      },
-      "cloud_provider": "On-premises",
-      "instance_type": "n2-standard-16",
-      "region": "us-central1",
-      "zone": "us-central1-c",
-      "conditions": [
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "Swap is not active",
-          "reason": "SwapNotDetected",
-          "status": "False",
-          "type": "Swap"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "docker overlay2 is functioning properly",
-          "reason": "NoCorruptDockerOverlay2",
-          "status": "False",
-          "type": "CorruptDockerOverlay2"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not pull any schema v1 images",
-          "reason": "DeprecatedPullingSchemaV1ImageDetected",
-          "status": "False",
-          "type": "DeprecatedPullingSchemaV1Image"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.",
-          "reason": "DeprecatedOtherContainerdFeaturesNotDetected",
-          "status": "False",
-          "type": "DeprecatedOtherContainerdFeatures"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "Root filesystem is not read only",
-          "reason": "ReadOnlyRootFileSystemNotDetected",
-          "status": "False",
-          "type": "ReadOnlyRootFileSystem"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-24T00:31:58Z",
-          "message": "{\"unmanaged\": {\"kernel.tainted\": \"512\"}}",
-          "reason": "NodeSysctlChange",
-          "status": "True",
-          "type": "SysctlChanged"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "kubelet is functioning properly",
-          "reason": "NoFrequentKubeletRestart",
-          "status": "False",
-          "type": "FrequentKubeletRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "kernel has no deadlock",
-          "reason": "KernelHasNoDeadlock",
-          "status": "False",
-          "type": "KernelDeadlock"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not use v1alpha2 CRI",
-          "reason": "DeprecatedUsingV1Alpha2CriNotDetected",
-          "status": "False",
-          "type": "DeprecatedUsingV1Alpha2Cri"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "containerd is functioning properly",
-          "reason": "NoFrequentContainerdRestart",
-          "status": "False",
-          "type": "FrequentContainerdRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "node is functioning properly",
-          "reason": "NoFrequentUnregisterNetDevice",
-          "status": "False",
-          "type": "FrequentUnregisterNetDevice"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not find any deprecated 'configs' field in containerd's config",
-          "reason": "DeprecatedConfigsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedConfigsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "docker is functioning properly",
-          "reason": "NoFrequentDockerRestart",
-          "status": "False",
-          "type": "FrequentDockerRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config",
-          "reason": "DeprecatedMirrorsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedMirrorsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:05Z",
-          "lastTransitionTime": "2025-04-23T18:31:58Z",
-          "message": "No deprecation risk: did not find any deprecated 'auths' field in containerd's config",
-          "reason": "DeprecatedAuthsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedAuthsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-23T18:32:00Z",
-          "lastTransitionTime": "2025-04-23T18:31:59Z",
-          "message": "NodeController create implicit route",
-          "reason": "RouteCreated",
-          "status": "False",
-          "type": "NetworkUnavailable"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:32:00Z",
-          "lastTransitionTime": "2025-04-23T18:31:55Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:46Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
           "message": "kubelet has sufficient memory available",
           "reason": "KubeletHasSufficientMemory",
           "status": "False",
           "type": "MemoryPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:32:00Z",
-          "lastTransitionTime": "2025-04-23T18:31:55Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:46Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
           "message": "kubelet has no disk pressure",
           "reason": "KubeletHasNoDiskPressure",
           "status": "False",
           "type": "DiskPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:32:00Z",
-          "lastTransitionTime": "2025-04-23T18:31:55Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:46Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
           "message": "kubelet has sufficient PID available",
           "reason": "KubeletHasSufficientPID",
           "status": "False",
           "type": "PIDPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:32:00Z",
-          "lastTransitionTime": "2025-04-23T18:32:00Z",
-          "message": "kubelet is posting ready status",
-          "reason": "KubeletReady",
-          "status": "True",
-          "type": "Ready"
-        }
-      ],
-      "avs_pods": [
-        {
-          "name": "avs-app-aerospike-vector-search-0",
-          "memory_request": "",
-          "memory_limit": "",
-          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 4666M, capacity 4666M, max capacity 51446M"
-        }
-      ]
-    },
-    {
-      "name": "gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7",
-      "capacity": {
-        "cpu": "16",
-        "ephemeral-storage": "98831908Ki",
-        "hugepages-1Gi": "0",
-        "hugepages-2Mi": "0",
-        "memory": "65851344Ki",
-        "pods": "110"
-      },
-      "allocatable": {
-        "cpu": "15890m",
-        "ephemeral-storage": "47060071478",
-        "hugepages-1Gi": "0",
-        "hugepages-2Mi": "0",
-        "memory": "60043216Ki",
-        "pods": "110"
-      },
-      "cloud_provider": "On-premises",
-      "instance_type": "c2-standard-16",
-      "region": "us-central1",
-      "zone": "us-central1-c",
-      "conditions": [
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "node is functioning properly",
-          "reason": "NoFrequentUnregisterNetDevice",
-          "status": "False",
-          "type": "FrequentUnregisterNetDevice"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not pull any schema v1 images",
-          "reason": "DeprecatedPullingSchemaV1ImageDetected",
-          "status": "False",
-          "type": "DeprecatedPullingSchemaV1Image"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "containerd is functioning properly",
-          "reason": "NoFrequentContainerdRestart",
-          "status": "False",
-          "type": "FrequentContainerdRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "docker overlay2 is functioning properly",
-          "reason": "NoCorruptDockerOverlay2",
-          "status": "False",
-          "type": "CorruptDockerOverlay2"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.",
-          "reason": "DeprecatedOtherContainerdFeaturesNotDetected",
-          "status": "False",
-          "type": "DeprecatedOtherContainerdFeatures"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not find any deprecated 'auths' field in containerd's config",
-          "reason": "DeprecatedAuthsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedAuthsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config",
-          "reason": "DeprecatedMirrorsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedMirrorsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "docker is functioning properly",
-          "reason": "NoFrequentDockerRestart",
-          "status": "False",
-          "type": "FrequentDockerRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "Swap is not active",
-          "reason": "SwapNotDetected",
-          "status": "False",
-          "type": "Swap"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "Root filesystem is not read only",
-          "reason": "ReadOnlyRootFileSystemNotDetected",
-          "status": "False",
-          "type": "ReadOnlyRootFileSystem"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "kubelet is functioning properly",
-          "reason": "NoFrequentKubeletRestart",
-          "status": "False",
-          "type": "FrequentKubeletRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not find any deprecated 'configs' field in containerd's config",
-          "reason": "DeprecatedConfigsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedConfigsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "No deprecation risk: did not use v1alpha2 CRI",
-          "reason": "DeprecatedUsingV1Alpha2CriNotDetected",
-          "status": "False",
-          "type": "DeprecatedUsingV1Alpha2Cri"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-24T00:30:36Z",
-          "message": "{\"unmanaged\": {\"kernel.tainted\": \"512\"}}",
-          "reason": "NodeSysctlChange",
-          "status": "True",
-          "type": "SysctlChanged"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:20Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "kernel has no deadlock",
-          "reason": "KernelHasNoDeadlock",
-          "status": "False",
-          "type": "KernelDeadlock"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-23T18:30:37Z",
-          "lastTransitionTime": "2025-04-23T18:30:36Z",
-          "message": "NodeController create implicit route",
-          "reason": "RouteCreated",
-          "status": "False",
-          "type": "NetworkUnavailable"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:34:54Z",
-          "lastTransitionTime": "2025-04-23T18:30:32Z",
-          "message": "kubelet has sufficient memory available",
-          "reason": "KubeletHasSufficientMemory",
-          "status": "False",
-          "type": "MemoryPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:34:54Z",
-          "lastTransitionTime": "2025-04-23T18:30:32Z",
-          "message": "kubelet has no disk pressure",
-          "reason": "KubeletHasNoDiskPressure",
-          "status": "False",
-          "type": "DiskPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:34:54Z",
-          "lastTransitionTime": "2025-04-23T18:30:32Z",
-          "message": "kubelet has sufficient PID available",
-          "reason": "KubeletHasSufficientPID",
-          "status": "False",
-          "type": "PIDPressure"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:34:54Z",
-          "lastTransitionTime": "2025-04-23T18:30:38Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:46Z",
+          "lastTransitionTime": "2025-04-29T19:10:24Z",
           "message": "kubelet is posting ready status",
           "reason": "KubeletReady",
           "status": "True",
@@ -754,188 +119,190 @@
           "name": "avs-app-aerospike-vector-search-2",
           "memory_request": "",
           "memory_limit": "",
-          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 704M, capacity 900M, max capacity 51446M"
+          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 296M, capacity 2492M, max capacity 12420M"
         }
       ]
     },
     {
-      "name": "gke-ahevenor-myntra3-default-pool-f66e6796-8wtd",
+      "name": "ip-192-168-28-89.ec2.internal",
       "capacity": {
-        "cpu": "2",
-        "ephemeral-storage": "98831908Ki",
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "4015484Ki",
-        "pods": "110"
+        "memory": "16069020Ki",
+        "pods": "58"
       },
       "allocatable": {
-        "cpu": "940m",
-        "ephemeral-storage": "47060071478",
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
         "hugepages-1Gi": "0",
         "hugepages-2Mi": "0",
-        "memory": "2869628Ki",
-        "pods": "110"
+        "memory": "15052188Ki",
+        "pods": "58"
       },
       "cloud_provider": "On-premises",
-      "instance_type": "e2-medium",
-      "region": "us-central1",
-      "zone": "us-central1-c",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
       "conditions": [
         {
-          "lastHeartbeatTime": "2025-04-23T18:27:49Z",
-          "lastTransitionTime": "2025-04-23T18:27:48Z",
-          "message": "NodeController create implicit route",
-          "reason": "RouteCreated",
-          "status": "False",
-          "type": "NetworkUnavailable"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not use v1alpha2 CRI",
-          "reason": "DeprecatedUsingV1Alpha2CriNotDetected",
-          "status": "False",
-          "type": "DeprecatedUsingV1Alpha2Cri"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "kubelet is functioning properly",
-          "reason": "NoFrequentKubeletRestart",
-          "status": "False",
-          "type": "FrequentKubeletRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "node is functioning properly",
-          "reason": "NoFrequentUnregisterNetDevice",
-          "status": "False",
-          "type": "FrequentUnregisterNetDevice"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "docker overlay2 is functioning properly",
-          "reason": "NoCorruptDockerOverlay2",
-          "status": "False",
-          "type": "CorruptDockerOverlay2"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "Root filesystem is not read only",
-          "reason": "ReadOnlyRootFileSystemNotDetected",
-          "status": "False",
-          "type": "ReadOnlyRootFileSystem"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "Default sysctls are in effect, no unexpected sysctl changes",
-          "reason": "SysctlNotChanged",
-          "status": "False",
-          "type": "SysctlChanged"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not find any deprecated 'configs' field in containerd's config",
-          "reason": "DeprecatedConfigsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedConfigsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not find any deprecated 'auths' field in containerd's config",
-          "reason": "DeprecatedAuthsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedAuthsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "kernel has no deadlock",
-          "reason": "KernelHasNoDeadlock",
-          "status": "False",
-          "type": "KernelDeadlock"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not find any deprecations other than 3 configs fields (auths/configs/mirrors), pulling schema v1 images and using v1alpha2 CRI.",
-          "reason": "DeprecatedOtherContainerdFeaturesNotDetected",
-          "status": "False",
-          "type": "DeprecatedOtherContainerdFeatures"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "docker is functioning properly",
-          "reason": "NoFrequentDockerRestart",
-          "status": "False",
-          "type": "FrequentDockerRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "Swap is not active",
-          "reason": "SwapNotDetected",
-          "status": "False",
-          "type": "Swap"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not find any deprecated 'mirrors' field in containerd's config",
-          "reason": "DeprecatedMirrorsFieldInContainerdConfigurationNotDetected",
-          "status": "False",
-          "type": "DeprecatedMirrorsFieldInContainerdConfiguration"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "No deprecation risk: did not pull any schema v1 images",
-          "reason": "DeprecatedPullingSchemaV1ImageDetected",
-          "status": "False",
-          "type": "DeprecatedPullingSchemaV1Image"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:33:11Z",
-          "lastTransitionTime": "2025-04-23T18:24:41Z",
-          "message": "containerd is functioning properly",
-          "reason": "NoFrequentContainerdRestart",
-          "status": "False",
-          "type": "FrequentContainerdRestart"
-        },
-        {
-          "lastHeartbeatTime": "2025-04-29T20:31:21Z",
-          "lastTransitionTime": "2025-04-23T18:26:43Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:50Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
           "message": "kubelet has sufficient memory available",
           "reason": "KubeletHasSufficientMemory",
           "status": "False",
           "type": "MemoryPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:31:21Z",
-          "lastTransitionTime": "2025-04-23T18:26:43Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:50Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
           "message": "kubelet has no disk pressure",
           "reason": "KubeletHasNoDiskPressure",
           "status": "False",
           "type": "DiskPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:31:21Z",
-          "lastTransitionTime": "2025-04-23T18:26:43Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:50Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
           "message": "kubelet has sufficient PID available",
           "reason": "KubeletHasSufficientPID",
           "status": "False",
           "type": "PIDPressure"
         },
         {
-          "lastHeartbeatTime": "2025-04-29T20:31:21Z",
-          "lastTransitionTime": "2025-04-23T18:28:08Z",
+          "lastHeartbeatTime": "2025-04-29T20:50:50Z",
+          "lastTransitionTime": "2025-04-29T19:13:55Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": [
+        {
+          "name": "avs-app-aerospike-vector-search-1",
+          "memory_request": "",
+          "memory_limit": "",
+          "heap_info": "➡️ jcmd 10 GC.heap_info:\n10:\n ZHeap           used 528M, capacity 1390M, max capacity 12554M"
+        }
+      ]
+    },
+    {
+      "name": "ip-192-168-52-147.ec2.internal",
+      "capacity": {
+        "cpu": "8",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "65023384Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "7910m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "64006552Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "r5.2xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1d",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:19Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:19Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:19Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:19Z",
+          "lastTransitionTime": "2025-04-29T19:06:55Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": [
+        {
+          "name": "avs-app-aerospike-vector-search-0",
+          "memory_request": "",
+          "memory_limit": "",
+          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 20012M, capacity 44646M, max capacity 50800M"
+        }
+      ]
+    },
+    {
+      "name": "ip-192-168-53-124.ec2.internal",
+      "capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "15896988Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "14880156Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1d",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T20:51:30Z",
+          "lastTransitionTime": "2025-04-29T18:59:03Z",
           "message": "kubelet is posting ready status",
           "reason": "KubeletReady",
           "status": "True",

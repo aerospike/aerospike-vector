@@ -1,36 +1,8 @@
 {
-  "id": "chatcmpl-BRlzVFYjr6gLKJQYLvNly6p8NFj6C",
-  "object": "chat.completion",
-  "created": 1745959033,
-  "model": "gpt-4o-2024-08-06",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "# Aerospike Vector Search Cluster Analysis Report\n\n## 1. Resource Overview Table\n\n| Node Name | Total Memory | Allocatable Memory | AVS Pods on Node | Instance Type | Status/Health |\n|-----------|--------------|--------------------|------------------|---------------|---------------|\n| gke-ahevenor-myntra3-aerospike-pool-161ba45a-gxgz | N/A | N/A | N/A | N/A | N/A |\n| gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz | N/A | N/A | N/A | N/A | N/A |\n| gke-ahevenor-myntra3-avs-query-pool-8235afd2-jfdd | N/A | N/A | N/A | N/A | N/A |\n| gke-ahevenor-myntra3-avs-standalone-p-13dbe120-gqv7 | N/A | N/A | N/A | N/A | N/A |\n| gke-ahevenor-myntra3-default-pool-f66e6796-8wtd | 4015484 KiB | 2869628 KiB | None | e2-medium | ✅ Healthy |\n\n## 2. Node Overview Table\n\n| Node Name | Pod Name | Roles | JVM Flags | Memory Request | Memory Limit | Memory Used |\n|-----------|----------|-------|-----------|----------------|--------------|-------------|\n| gke-ahevenor-myntra3-default-pool-f66e6796-8wtd | None | None | None | None | None | None |\n\n## 3. Cluster-wide AVS Information\n\n- **Cluster Info**: Not available\n- **Indices**: Not available\n\n## 4. Cluster Health Assessment\n\n- **Memory Distribution**: Memory is overcommitted on some nodes.\n- **Resource Allocation Patterns**: Overcommitment of CPU and memory limits observed.\n- **GC Pressure Indicators**: No specific GC pressure indicators available.\n- **Node Conditions**: No memory pressure events except on `gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz`.\n\n## 5. Key Metrics\n\n- **Total Cluster Memory**: Not available\n- **Average Memory per AVS Pod**: Not available\n- **Memory Utilization Percentages**: Not available\n- **Resource Efficiency**: Overcommitment noted on some nodes.\n\n## 6. Potential Issues\n\n- **Memory Pressure Points**: Observed on `gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz`.\n- **Resource Imbalances**: Overcommitment of CPU and memory.\n- **GC Concerns**: Not available.\n- **Configuration Inconsistencies**: Not available.\n\n## 7. OOMKill Analysis\n\n### Detailed Timeline of OOMKill Events\n\n- **Node**: `gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz`\n  - **Time**: 48m ago, 28m ago, 20m ago, 16m ago, 4m7s ago\n  - **Processes Killed**: `java`, `as-tini-static`, `epollEventLoopG`, `ZWorkerYoung#0`\n  - **JVM Heap Settings**: Not available\n  - **Node Memory Capacity**: Not available\n  - **Pattern**: Repeated OOMKills within short intervals\n  - **Correlation**: Memory pressure events observed\n\n## 8. Memory Configuration Assessment\n\n- **Comparison**: Nodes with OOMKills showed higher memory utilization.\n- **Correlation**: OOMKills correlate with memory pressure events.\n- **Workload Patterns**: Not available.\n- **Time of Day**: Not available.\n\n## 9. Recommendations\n\n- **Memory Configuration Changes**: Adjust memory limits to prevent overcommitment.\n- **System-Level Improvements**: Investigate and resolve ReadOnlyLocalSSDDetected warnings.\n- **Monitoring Enhancements**: Implement monitoring for memory usage and GC activity.\n- **Prevention Strategies**: Scale node pools to accommodate resource demands.\n\n---\n\n### Conclusion\n\nThe cluster exhibits overcommitment in CPU and memory resources, particularly on `gke-ahevenor-myntra3-avs-index-pool-c2231d80-88xz`, which has experienced multiple OOMKills. Addressing these issues through resource scaling and configuration adjustments will enhance cluster stability and performance. 🌟",
-        "refusal": null,
-        "annotations": []
-      },
-      "logprobs": null,
-      "finish_reason": "stop"
+    "error": {
+        "message": "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": null
     }
-  ],
-  "usage": {
-    "prompt_tokens": 3441,
-    "completion_tokens": 960,
-    "total_tokens": 4401,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-      "audio_tokens": 0
-    },
-    "completion_tokens_details": {
-      "reasoning_tokens": 0,
-      "audio_tokens": 0,
-      "accepted_prediction_tokens": 0,
-      "rejected_prediction_tokens": 0
-    }
-  },
-  "service_tier": "default",
-  "system_fingerprint": "fp_55d88aaf2f"
 }
