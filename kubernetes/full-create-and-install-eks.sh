@@ -304,7 +304,6 @@ validate_inputs() {
     fi
 }
 
-# Function to create EKS cluster
 create_eks_cluster() {
     # Validate inputs before any resource creation
     validate_inputs
@@ -335,7 +334,6 @@ create_eks_cluster() {
     aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
 }
 
-# Function to create node groups
 create_node_groups() {
     # Create Aerospike node group
     create_node_group "$NODE_POOL_NAME_AEROSPIKE" "$NUM_AEROSPIKE_NODES" "default-rack"
@@ -438,7 +436,7 @@ label_node_group() {
     kubectl get nodes -l eks.amazonaws.com/nodegroup=$group_name -o name | \
         xargs -I '{}' kubectl label '{}' \
             aerospike.io/node-pool=$node_pool \
-            aerospike.io/role=$node_role \
+            aerospike.io/role-label=$node_role \
             aerospike.io/group=$group_name --overwrite
 }
 
@@ -685,7 +683,9 @@ handle_error() {
 # Function to cleanup resources
 cleanup() {
     echo "Cleaning up resources..."
-    
+    eksctl utils write-kubeconfig --cluster  $CLUSTER_NAME --region $REGION
+
+
     if [[ "${CLEANUP_PARTIAL}" == 1 ]]; then
         # Get last checkpoint and clean up from there
         local last_checkpoint
