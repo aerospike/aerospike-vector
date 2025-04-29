@@ -544,28 +544,19 @@ CLUSTER_RESPONSE_FILE="$OUTPUT_DIR/cluster-response.json"
             echo "    No AVS pods"
         fi
     done
-    echo -e "\n=== Cluster-wide avs information ==="
-    {
-        echo "Running asvec to get cluster-wide avs information"
-        echo "cluster info:"
-        kubectl run asvec \
-            --restart=Never \
-            --rm -i \
-            --tty \
-            --image artifact.aerospike.io/docker/asvec:3.3.0 \
-            -n "$NAMESPACE" \
-            -- --host avs-app-aerospike-vector-search-internal \
-                nodes ls | tee "$OUTPUT_DIR/avs-cluster-info.txt"
-        echo "indecies:"
-        kubectl run asvec -q -o yaml\
-            --restart=Never \
-            --rm -i \
-            --tty \
-            --image artifact.aerospike.io/docker/asvec:3.3.0 \
-            -n "$NAMESPACE" \
-            --  --host avs-app-aerospike-vector-search-internal \
-                index ls --verbose --yaml | tee "$OUTPUT_DIR/avs-indices.yaml"
-    }
+
+    echo -e "\n=== AVS Cluster Information ==="
+    if [ -f "$OUTPUT_DIR/avs-cluster-info.txt" ]; then
+        echo "Cluster Info:"
+        cat "$OUTPUT_DIR/avs-cluster-info.txt"
+    fi
+
+    echo -e "\n=== AVS Indices Configuration ==="
+    if [ -f "$OUTPUT_DIR/avs-indices.yaml" ]; then
+        echo "Indices Configuration:"
+        cat "$OUTPUT_DIR/avs-indices.yaml"
+    fi
+
     echo -e "\n=== Cluster-wide OOMKill Analysis ==="
     {
         echo "Summary of Pod Restarts and OOMKills across cluster:"
@@ -590,8 +581,8 @@ CLUSTER_RESPONSE_FILE="$OUTPUT_DIR/cluster-response.json"
             kubectl get events --field-selector involvedObject.name="$node",type=Warning | \
                 grep -i -E "memory|pressure|oom" || echo "No memory pressure events found"
         done
-    } >> "$CLUSTER_TMP_FILE"
-}
+    }
+} > "$CLUSTER_TMP_FILE"
 
 # Cluster analysis prompt
 CLUSTER_PROMPT=$(cat <<EOF
@@ -600,18 +591,66 @@ You are analyzing an Aerospike Vector Search cluster deployment.
 Generate a comprehensive cluster analysis report with the following sections:
 
 1. 📊 AVS Index Analysis
-   - Detailed breakdown of each index configuration:
-     * Index name, namespace, and set
-     * Vector dimensions and distance metric
-     * HNSW parameters (ef, efConstruction, m)
-     * Batching and caching configurations
-     * Healer and merge parameters
-   - Recommendations for index optimization based on:
-     * Vector dimensions vs memory usage
-     * Caching parameters vs available memory
-     * Batching parameters vs cluster size
+   First, create a summary table of all indices:
+   | Index Name | Mode | Dimensions | Distance Metric | HNSW m | ef | efConstruction | Cache Size | Batching Interval |
+   |------------|------|------------|-----------------|--------|----|----------------|------------|-------------------|
+   [Fill with data from avs-indices.yaml]
+
+   Then provide detailed breakdowns for each index:
+   - Index Identification:
+     * Name (from id.name)
+     * Namespace (from id.namespace)
+     * Set (from storage.set)
+     * Mode (DISTRIBUTED/STANDALONE)
+   - Vector Configuration:
+     * Dimensions
+     * Field name
+     * Distance metric
+     * Set filter
+   - HNSW Parameters:
+     * m (number of connections)
+     * ef (search parameter)
+     * efConstruction (build parameter)
+     * maxMemQueueSize
+     * enableVectorIntegrityCheck
+   - Batching Configuration:
+     * indexInterval
+     * maxIndexRecords
+     * maxReindexRecords
+     * reindexInterval
+   - Caching Configuration:
+     * Index cache:
+       - maxEntries
+       - expiry
+     * Record cache:
+       - maxEntries
+       - expiry
+   - Healer Configuration:
+     * maxScanPageSize
+     * maxScanRatePerNode
+     * parallelism
+     * reindexPercent
+     * schedule
+   - Merge Configuration:
+     * indexParallelism
+     * reIndexParallelism
+   - Storage Configuration:
+     * Namespace
+     * Set
+   - Recommendations for each index:
+     * Vector dimension optimization
+     * HNSW parameter tuning
+     * Caching strategy
+     * Batching optimization
+     * Memory usage optimization
 
 2. 🌐 Cluster Configuration
+   First, create a cluster summary table:
+   | Node | Role | Endpoint | Cluster ID | Version | Visible Nodes |
+   |------|------|----------|------------|---------|---------------|
+   [Fill with data from avs-cluster-info.txt]
+
+   Then provide detailed analysis:
    - Node distribution and roles
    - Endpoint configuration and visibility
    - Version information
@@ -619,8 +658,12 @@ Generate a comprehensive cluster analysis report with the following sections:
    - Analysis of node distribution vs index mode (DISTRIBUTED/STANDALONE)
 
 3. ⚙️ JVM Configuration Analysis
-   Create a detailed table for each node showing:
-   - Node name/ID
+   First, create a JVM configuration summary table:
+   | Node | Heap (Xms/Xmx) | GC Type | GC Threads | NUMA | Compressed Oops | Code Cache |
+   |------|---------------|---------|------------|------|-----------------|------------|
+   [Fill with data from jvm-info.txt]
+
+   Then provide detailed analysis for each node:
    - Memory Configuration:
      * Initial heap (-Xms)
      * Maximum heap (-Xmx)
@@ -648,7 +691,12 @@ Generate a comprehensive cluster analysis report with the following sections:
      * Class space usage
 
 4. 💾 Memory Analysis
-   For each node:
+   First, create a memory usage summary table:
+   | Node | Total Memory | Allocatable | Used Heap | Heap Capacity | Max Capacity | Metaspace |
+   |------|--------------|-------------|-----------|---------------|--------------|-----------|
+   [Fill with data from node-aggregates.json and jvm-info.txt]
+
+   Then provide detailed analysis for each node:
    - Heap size vs container limits
    - Memory distribution across different regions
    - GC pressure indicators
@@ -656,12 +704,24 @@ Generate a comprehensive cluster analysis report with the following sections:
    - Correlation between index parameters and memory usage
 
 5. 🔍 Performance Configuration Analysis
+   First, create a performance metrics table:
+   | Node | CPU Cores | Memory | Network Bandwidth | Storage | Pod Count |
+   |------|-----------|--------|-------------------|---------|-----------|
+   [Fill with data from node-aggregates.json]
+
+   Then analyze:
    - Index caching vs JVM heap size
    - Batching parameters vs available memory
    - Thread settings vs available CPU
    - Network configuration impact
 
 6. ⚠️ Potential Issues and Recommendations
+   First, create an issues summary table:
+   | Issue Type | Severity | Affected Nodes | Description | Recommendation |
+   |------------|----------|----------------|-------------|----------------|
+   [Fill with identified issues]
+
+   Then provide detailed analysis:
    - Memory configuration improvements
    - Index parameter optimizations
    - JVM flag adjustments
@@ -669,42 +729,48 @@ Generate a comprehensive cluster analysis report with the following sections:
    - Caching strategy improvements
 
 7. 📈 Scaling Considerations
+   First, create a scaling metrics table:
+   | Resource | Current Usage | Available | Recommended Threshold | Action Required |
+   |----------|--------------|-----------|----------------------|-----------------|
+   [Fill with scaling metrics]
+
+   Then analyze:
    - Current resource utilization
    - Headroom for growth
    - Bottleneck identification
    - Scaling recommendations
 
 8. 🔄 Resource Overview
-   - Create a table showing each node's:
-     * Total Memory (from node-aggregates.json)
-     * Allocatable Memory (from node-aggregates.json)
-     * AVS pods on node (with name and role from node-aggregates.json)
-     * Instance Type (from node-aggregates.json)
-     * Status/Health (from node-aggregates.json)
+   Create a comprehensive resource table:
+   | Node | Total Memory | Allocatable | AVS Pods | Instance Type | Status | Cloud Provider | Region |
+   |------|--------------|-------------|----------|---------------|--------|----------------|--------|
+   [Fill with data from node-aggregates.json]
 
 9. 📊 Node Overview
-   - Create a table showing details of each pod on each node:
-     * Name
-     * Roles
-     * JVM Flags (extracted from full java command line in jvm-info.txt)
-     * Memory Request
-     * Memory Limit
-     * Memory Used
+   Create a detailed pod configuration table:
+   | Node | Pod Name | Role | Memory Request | Memory Limit | JVM Heap | GC Type | Restarts |
+   |------|----------|------|----------------|--------------|----------|---------|----------|
+   [Fill with pod information]
 
 10. ⚠️ OOMKill Analysis
-    - Detailed timeline of all OOMKill events found:
-      * Container restart history
-      * Previous termination states
-      * System OOM events
-      * Pod events
-    - For each OOMKill event analyze:
-      * JVM heap settings at the time
-      * Node memory capacity
-      * Whether it was an isolated incident or part of a pattern
-      * Correlation with memory pressure or other events
+    First, create an OOM events summary table:
+    | Timestamp | Node | Pod | Container | Reason | Exit Code | Memory Settings | Node Pressure |
+    |-----------|------|-----|-----------|--------|-----------|-----------------|---------------|
+    [Fill with OOM events]
+
+    Then provide detailed analysis:
+    - Container restart history
+    - Previous termination states
+    - System OOM events
+    - Pod events
+    - JVM heap settings at the time
+    - Node memory capacity
+    - Pattern analysis
+    - Correlation with memory pressure
 
 Format Requirements:
-- Use tables for comparing configurations across nodes
+- Place all tables at the top of their respective sections
+- Use consistent table formatting throughout
 - Include specific values and settings
 - Provide clear before/after recommendations
 - Use emojis for section headers
