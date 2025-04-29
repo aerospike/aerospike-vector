@@ -1,74 +1,94 @@
-# 🖥️ Node Analysis: ip-192-168-28-89.ec2.internal
+### 🖥️ Node Analysis: ip-192-168-28-89.ec2.internal
 
-## Node Overview
+#### Node Capacity & Conditions
+- **CPU**: 4 cores
+- **Memory**: 16 GB
+- **Allocatable Resources**:
+  - **CPU**: 3920m
+  - **Memory**: 14.3 GB
+- **Conditions**: 
+  - MemoryPressure: False
+  - DiskPressure: False
+  - PIDPressure: False
+  - Ready: True
+
+#### Cloud Provider & Instance Type
+- **Provider**: AWS
 - **Instance Type**: m5.xlarge
 - **Region**: us-east-1
 - **Zone**: us-east-1b
-- **Capacity**: 
-  - CPU: 4 cores
-  - Memory: 16GB
-  - Pods: 58
-- **Allocatable Resources**:
-  - CPU: 3920m
-  - Memory: 14.35GB
-- **Node Conditions**: All conditions are normal with no memory, disk, or PID pressure. The node is ready.
 
-## Node-Level Recommendations
-1. **Resource Utilization**: The node's CPU and memory requests are low, indicating underutilization. Consider consolidating workloads or scaling down the node size to optimize cost.
-2. **Monitoring**: Ensure continuous monitoring of node metrics to detect any future resource pressure.
+#### Resource Allocation & Utilization
+- **CPU Requests**: 190m (4%)
+- **Memory Requests**: 184Mi (1%)
+- **CPU Limits**: 400m (10%)
+- **Memory Limits**: 1280Mi (8%)
 
-# 🧵 Pod Analysis: avs-app-aerospike-vector-search-1
+#### Node-Level Issues
+- No OOMKill events or warnings detected.
 
-## Configuration Review
-- **Cluster Name**: avs-db-1
+### 🧵 Pod Analysis: avs-app-aerospike-vector-search-1
+
+#### Configuration Review
 - **Node Roles**: index-update
-- **Heartbeat Seeds**: Correctly configured with two seed nodes.
-- **Listener Addresses**: Properly set to 0.0.0.0 for interconnect and external IP for service.
-- **Interconnect Ports**: Port 5001 is correctly configured.
+- **Heartbeat Seeds**: Correctly configured with two seeds.
+- **Listener Addresses**: Configured for 0.0.0.0 on port 5001.
+- **Interconnect Settings**: Properly set for all interfaces.
 
-## JVM Configuration
+#### JVM Configuration
 - **Memory Settings**:
-  - Initial Heap Size: Not explicitly set
-  - Maximum Heap Size (-Xmx): 12.55GB
-  - Soft Max Heap Size: 12.55GB
-  - Reserved Code Cache Size: 240MB
-  - Code Heap Sizes: NonNMethod (5.8MB), NonProfiled (122.9MB), Profiled (122.9MB)
+  - **Initial Heap Size (-Xms)**: Not explicitly set, defaults to 243 MB.
+  - **Maximum Heap Size (-Xmx)**: 12.5 GB
+  - **Soft Max Heap Size (-XX:SoftMaxHeapSize)**: 12.5 GB
+  - **Reserved Code Cache Size (-XX:ReservedCodeCacheSize)**: 240 MB
+  - **Code Heap Sizes**: NonNMethod: 5.8 MB, NonProfiled: 122 MB, Profiled: 122 MB
+
 - **GC Settings**:
-  - GC Type: ZGC
-  - GC Thread Counts: ZYoungGCThreads=1, ZOldGCThreads=1
-  - GC-specific Flags: ZGenerational enabled
+  - **GC Type**: ZGC
+  - **GC Thread Counts**: ZYoungGCThreads=1, ZOldGCThreads=1
+  - **GC-specific Flags**: -XX:+ZGenerational
+
 - **Other Important Flags**:
-  - NUMA settings: Disabled
-  - Compressed oops: Disabled
-  - Pre-touch settings: Enabled
-  - Compiler settings: CICompilerCount=3
-  - Exit on OOM: Enabled
+  - **NUMA Settings**: -XX:-UseNUMA, -XX:-UseNUMAInterleaving
+  - **Compressed Oops**: -XX:-UseCompressedOops
+  - **Pre-touch Settings**: -XX:+AlwaysPreTouch
+  - **Compiler Settings**: -XX:CICompilerCount=3
+  - **Exit on OOM**: -XX:+ExitOnOutOfMemoryError
+
 - **Module and Package Settings**:
-  - Added Modules: jdk.incubator.vector
-  - Opened Packages: Multiple packages opened for ALL-UNNAMED
+  - **Added Modules**: jdk.incubator.vector
+  - **Opened Packages**: Multiple packages opened for ALL-UNNAMED
+  - **Exported Packages**: Several packages exported for ALL-UNNAMED
 
-## GC.heap_info Analysis
-- **Current Heap Usage**: 2044MB
-- **Heap Capacity**: 3244MB
-- **Max Capacity**: 12554MB
-- **Metaspace Usage**: 82MB used, 1.1GB reserved
-- **Class Space Usage**: 8.9MB used, 1MB reserved
+#### GC.heap_info Analysis
+- **Current Heap Usage**: 2036 MB
+- **Heap Capacity**: 2972 MB
+- **Max Capacity**: 12.5 GB
+- **Metaspace Usage**: 82 MB
+- **Class Space Usage**: 8.9 MB
 
-## Pod-Level Recommendations
-1. **JVM Memory Settings**: Consider setting an initial heap size (-Xms) to improve startup performance.
-2. **GC Configuration**: ZGC is appropriate for low-latency applications, but ensure adequate monitoring of GC performance.
-3. **NUMA Settings**: Evaluate enabling NUMA settings if running on a NUMA-aware system for potential performance gains.
+#### Failed Config-Injection Logs
+- No failed configuration injections detected.
 
-## Resource Allocation Adjustments
-- **CPU and Memory Requests**: Currently set to 0, which can lead to scheduling issues. Define appropriate requests and limits to ensure resource guarantees.
+### Recommendations
 
-## Performance Improvements
-1. **Heap Usage**: Monitor heap usage trends to ensure the application is not approaching max capacity, which could lead to GC thrashing.
-2. **Code Cache**: The reserved code cache size is adequate, but monitor for any signs of code cache exhaustion.
+#### 1. Node-Level Optimizations
+- **Resource Requests**: Increase CPU and memory requests for critical pods to ensure they have guaranteed resources.
+- **Monitoring**: Implement monitoring for resource usage to prevent future resource constraints.
 
-## Failed Config-Injection Logs
-- No failed config-injection logs detected. Initialization logs indicate successful configuration application.
+#### 2. Pod-Level Configurations
+- **Heartbeat Seeds**: Ensure all nodes in the cluster are correctly listed as seeds for redundancy.
+- **Listener Configuration**: Consider restricting listener addresses to specific interfaces for security.
 
----
+#### 3. Resource Allocation Adjustments
+- **CPU & Memory Limits**: Re-evaluate limits to prevent overcommitment and ensure stability.
 
-By optimizing node and pod configurations, you can enhance the performance and cost-effectiveness of your Aerospike Vector Search deployment. 🛠️
+#### 4. Performance Improvements
+- **GC Threads**: Consider increasing ZGC thread counts if GC pauses become an issue.
+- **NUMA Settings**: Evaluate the impact of enabling NUMA settings for potential performance gains.
+
+#### 5. JVM Memory Settings
+- **Heap Size**: Ensure the maximum heap size is within the limits of the node's available memory.
+- **Code Cache**: Monitor the usage of the code cache and adjust if necessary.
+
+By implementing these recommendations, you can enhance the stability and performance of the Aerospike Vector Search deployment on this node. 🚀

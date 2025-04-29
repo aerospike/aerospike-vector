@@ -94,14 +94,14 @@ Unschedulable:      false
 Lease:
   HolderIdentity:  ip-192-168-53-124.ec2.internal
   AcquireTime:     <unset>
-  RenewTime:       Tue, 29 Apr 2025 15:02:27 -0700
+  RenewTime:       Tue, 29 Apr 2025 15:10:27 -0700
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Tue, 29 Apr 2025 14:57:47 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Tue, 29 Apr 2025 14:57:47 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Tue, 29 Apr 2025 14:57:47 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Tue, 29 Apr 2025 14:57:47 -0700   Tue, 29 Apr 2025 11:59:03 -0700   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Tue, 29 Apr 2025 15:08:00 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 15:08:00 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 15:08:00 -0700   Tue, 29 Apr 2025 11:58:49 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 15:08:00 -0700   Tue, 29 Apr 2025 11:59:03 -0700   KubeletReady                 kubelet is posting ready status
 Addresses:
   InternalIP:   192.168.53.124
   ExternalIP:   44.213.250.59
@@ -137,14 +137,14 @@ ProviderID:                   aws:///us-east-1d/i-06a1a8c247b423e45
 Non-terminated Pods:          (8 in total)
   Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
   ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
-  kube-system                 aws-node-m2dn4                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         3h4m
-  kube-system                 coredns-586b798467-9n7fr                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     3h8m
-  kube-system                 coredns-586b798467-nmhdq                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     3h8m
-  kube-system                 ebs-csi-controller-645d8c6c95-qwxt7                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   3h
-  kube-system                 ebs-csi-controller-645d8c6c95-zpfjv                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   3h
-  kube-system                 ebs-csi-node-fs4xm                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     3h
-  kube-system                 kube-proxy-mq2k2                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         3h4m
-  monitoring                  monitoring-stack-prometheus-node-exporter-cb9wg    0 (0%)        0 (0%)      0 (0%)           0 (0%)         164m
+  kube-system                 aws-node-m2dn4                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         3h12m
+  kube-system                 coredns-586b798467-9n7fr                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     3h16m
+  kube-system                 coredns-586b798467-nmhdq                           100m (2%)     0 (0%)      70Mi (0%)        170Mi (1%)     3h16m
+  kube-system                 ebs-csi-controller-645d8c6c95-qwxt7                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   3h8m
+  kube-system                 ebs-csi-controller-645d8c6c95-zpfjv                60m (1%)      0 (0%)      240Mi (1%)       1536Mi (10%)   3h8m
+  kube-system                 ebs-csi-node-fs4xm                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     3h8m
+  kube-system                 kube-proxy-mq2k2                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         3h12m
+  monitoring                  monitoring-stack-prometheus-node-exporter-cb9wg    0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
   Resource           Requests    Limits
@@ -179,7 +179,7 @@ Events:              <none>
 === Node Conditions ===
 [
   {
-    \"lastHeartbeatTime\": \"2025-04-29T21:57:47Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T22:08:00Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has sufficient memory available\",
     \"reason\": \"KubeletHasSufficientMemory\",
@@ -187,7 +187,7 @@ Events:              <none>
     \"type\": \"MemoryPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T21:57:47Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T22:08:00Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has no disk pressure\",
     \"reason\": \"KubeletHasNoDiskPressure\",
@@ -195,7 +195,7 @@ Events:              <none>
     \"type\": \"DiskPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T21:57:47Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T22:08:00Z\",
     \"lastTransitionTime\": \"2025-04-29T18:58:49Z\",
     \"message\": \"kubelet has sufficient PID available\",
     \"reason\": \"KubeletHasSufficientPID\",
@@ -203,7 +203,7 @@ Events:              <none>
     \"type\": \"PIDPressure\"
   },
   {
-    \"lastHeartbeatTime\": \"2025-04-29T21:57:47Z\",
+    \"lastHeartbeatTime\": \"2025-04-29T22:08:00Z\",
     \"lastTransitionTime\": \"2025-04-29T18:59:03Z\",
     \"message\": \"kubelet is posting ready status\",
     \"reason\": \"KubeletReady\",

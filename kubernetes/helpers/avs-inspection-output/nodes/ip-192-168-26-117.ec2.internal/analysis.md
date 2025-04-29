@@ -1,51 +1,61 @@
 ### 🖥️ Node Analysis: ip-192-168-26-117.ec2.internal
 
-#### Node Overview
-- **Instance Type**: m5.xlarge
-- **Region/Zone**: us-east-1 / us-east-1b
-- **Cloud Provider**: AWS (On-Demand)
-- **Node Conditions**: 
-  - MemoryPressure: ❌ No issues
-  - DiskPressure: ❌ No issues
-  - PIDPressure: ❌ No issues
-  - Ready: ✅ Node is ready
+#### Node Overview:
+- **Instance Type**: `m5.xlarge` (AWS EC2)
+- **Region/Zone**: `us-east-1` / `us-east-1b`
+- **Capacity**: 
+  - CPU: 4 cores
+  - Memory: ~15.9 GiB
+  - Pods: 58
+- **Allocatable Resources**: 
+  - CPU: 3920m
+  - Memory: ~14.8 GiB
+  - Pods: 58
+- **Node Conditions**: No memory, disk, or PID pressure. Node is ready.
+- **Cloud Provider**: AWS
+- **OS**: Amazon Linux 2
+- **Kernel Version**: 5.10.235-227.919.amzn2.x86_64
 
-#### Node Capacity & Allocatable Resources
-- **CPU**: 4 cores (3920m allocatable)
-- **Memory**: 15.8 GiB (14.8 GiB allocatable)
-- **Ephemeral Storage**: ~80 GiB (76 GiB allocatable)
-- **Pods**: 58 max
+#### Node-Level Observations:
+- **Resource Utilization**:
+  - CPU Requests: 190m (4%)
+  - Memory Requests: 170Mi (1%)
+  - Memory Limits: 768Mi (5%)
+- **No OOMKill Events**: Both system and Kubernetes OOM events are absent, indicating stable memory usage.
 
-#### Resource Allocation & Utilization
-- **CPU Requests**: 190m (4% of allocatable)
-- **Memory Requests**: 170Mi (1% of allocatable)
-- **Memory Limits**: 768Mi (5% of allocatable)
-- **Ephemeral Storage**: Not utilized
-
-#### Node-Level Recommendations
-1. **Resource Requests**: Increase CPU and memory requests for critical pods to ensure they have guaranteed resources.
-2. **Monitoring**: Set up alerts for any changes in node conditions, especially for memory and disk pressure.
-3. **Storage Utilization**: Consider using ephemeral storage for temporary data to optimize usage.
-
-### 🏷️ Cloud Provider & Instance Type
-- **Instance Type**: m5.xlarge is suitable for general-purpose workloads. Consider upgrading to a larger instance if CPU or memory becomes a bottleneck.
-
-### 🛠️ Node-Level Issues
-- **No OOM Events**: No out-of-memory events detected, indicating sufficient memory allocation.
+#### Recommendations for Node-Level Optimizations:
+1. **Resource Allocation**: Consider increasing CPU and memory requests for critical pods to ensure they have guaranteed resources.
+2. **Monitoring**: Implement detailed monitoring to track resource usage trends over time, which can help in proactive scaling decisions.
+3. **Node Taints and Tolerations**: Use taints and tolerations to control pod scheduling more effectively, ensuring critical workloads are prioritized.
 
 ### 🚀 Pod-Level Analysis
-- **AVS Pods**: No Aerospike Vector Search (AVS) pods found on this node. Ensure that AVS pods are scheduled correctly if expected.
 
-### 🔍 JVM & Pod Configuration Analysis
-- **No AVS Pods Detected**: Since no AVS pods are present, JVM configuration and heap analysis are not applicable.
+#### Observations:
+- **No AVS Pods Detected**: The node currently does not host any Aerospike Vector Search (AVS) pods.
 
-### 📈 Recommendations for Future Deployments
-1. **Node Role Assignment**: Ensure nodes have appropriate roles for AVS pods to be scheduled.
-2. **JVM Configuration**: For future AVS deployments, ensure JVM settings are optimized for memory and garbage collection.
-3. **Pod Scheduling**: Verify node selectors and affinity rules to ensure AVS pods are scheduled on the intended nodes.
+#### Recommendations for Pod-Level Configurations:
+1. **Pod Placement**: Ensure that AVS pods are scheduled on nodes with sufficient resources and appropriate labels.
+2. **Pod Resource Requests and Limits**: Define clear resource requests and limits for AVS pods to prevent resource contention and ensure stability.
 
-### 🌟 Performance Improvements
-- **Node Utilization**: Current utilization is low. Consider consolidating workloads or scaling down if resources are underutilized.
-- **Resource Allocation**: Review and adjust resource requests and limits for non-critical pods to free up resources for AVS pods when deployed.
+### 📈 Performance and Resource Allocation
 
-This analysis provides a comprehensive overview of the node's current state and recommendations for optimizing resource allocation and preparing for future AVS pod deployments.
+#### Recommendations for Resource Allocation Adjustments:
+1. **CPU and Memory**: Re-evaluate the CPU and memory requests for existing pods to optimize resource utilization.
+2. **Pod Distribution**: Balance the distribution of pods across nodes to avoid overloading a single node.
+
+### 🛠️ JVM Memory Settings and Performance Improvements
+
+#### General Recommendations:
+1. **JVM Configuration**: For AVS pods, ensure JVM settings are optimized for performance:
+   - **Heap Settings**: Configure initial and maximum heap sizes appropriately (-Xms, -Xmx).
+   - **Garbage Collection**: Use a suitable GC algorithm (e.g., ZGC) and configure thread counts (-XX:ZYoungGCThreads, -XX:ZOldGCThreads).
+   - **NUMA and Memory Settings**: Consider enabling NUMA settings if applicable (-XX:-UseNUMA).
+   - **OOM Handling**: Enable exit on OOM to prevent pod hangs (-XX:+ExitOnOutOfMemoryError).
+
+2. **Monitoring and Logging**: Implement comprehensive logging and monitoring for JVM metrics, including heap usage and GC performance.
+
+3. **Failed Config-Injection Logs**: Regularly review logs for any failed configuration injections to ensure all settings are applied correctly.
+
+### 🌟 Conclusion
+
+While the node is currently stable and underutilized, there is room for optimization in resource allocation and pod scheduling. By implementing the above recommendations, you can enhance the performance and reliability of your Kubernetes environment, especially when deploying AVS pods.

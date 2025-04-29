@@ -35,14 +35,14 @@ Unschedulable:      false
 Lease:
   HolderIdentity:  ip-192-168-27-123.ec2.internal
   AcquireTime:     <unset>
-  RenewTime:       Tue, 29 Apr 2025 15:01:51 -0700
+  RenewTime:       Tue, 29 Apr 2025 15:10:00 -0700
 Conditions:
   Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
   ----             ------  -----------------                 ------------------                ------                       -------
-  MemoryPressure   False   Tue, 29 Apr 2025 14:59:10 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Tue, 29 Apr 2025 14:59:10 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Tue, 29 Apr 2025 14:59:10 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            True    Tue, 29 Apr 2025 14:59:10 -0700   Tue, 29 Apr 2025 12:10:24 -0700   KubeletReady                 kubelet is posting ready status
+  MemoryPressure   False   Tue, 29 Apr 2025 15:09:21 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Tue, 29 Apr 2025 15:09:21 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Tue, 29 Apr 2025 15:09:21 -0700   Tue, 29 Apr 2025 12:10:12 -0700   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Tue, 29 Apr 2025 15:09:21 -0700   Tue, 29 Apr 2025 12:10:24 -0700   KubeletReady                 kubelet is posting ready status
 Addresses:
   InternalIP:   192.168.27.123
   ExternalIP:   3.90.200.129
@@ -78,11 +78,11 @@ ProviderID:                   aws:///us-east-1b/i-061fa95344eaa63d0
 Non-terminated Pods:          (5 in total)
   Namespace                   Name                                               CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
   ---------                   ----                                               ------------  ----------  ---------------  -------------  ---
-  avs                         avs-app-aerospike-vector-search-2                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         165m
-  kube-system                 aws-node-q6fz6                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         172m
-  kube-system                 ebs-csi-node-dhpkb                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     172m
-  kube-system                 kube-proxy-pg2m7                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         172m
-  monitoring                  monitoring-stack-prometheus-node-exporter-7lmgf    0 (0%)        0 (0%)      0 (0%)           0 (0%)         163m
+  avs                         avs-app-aerospike-vector-search-2                  0 (0%)        0 (0%)      0 (0%)           0 (0%)         173m
+  kube-system                 aws-node-q6fz6                                     50m (1%)      0 (0%)      0 (0%)           0 (0%)         3h
+  kube-system                 ebs-csi-node-dhpkb                                 30m (0%)      0 (0%)      120Mi (0%)       768Mi (5%)     3h
+  kube-system                 kube-proxy-pg2m7                                   100m (2%)     0 (0%)      0 (0%)           0 (0%)         3h
+  monitoring                  monitoring-stack-prometheus-node-exporter-7lmgf    0 (0%)        0 (0%)      0 (0%)           0 (0%)         172m
 Allocated resources:
   (Total limits may be over 100 percent, i.e., overcommitted.)
   Resource           Requests    Limits
@@ -117,7 +117,7 @@ Events:              <none>
 === Node Conditions ===
 [
   {
-    "lastHeartbeatTime": "2025-04-29T21:59:10Z",
+    "lastHeartbeatTime": "2025-04-29T22:09:21Z",
     "lastTransitionTime": "2025-04-29T19:10:12Z",
     "message": "kubelet has sufficient memory available",
     "reason": "KubeletHasSufficientMemory",
@@ -125,7 +125,7 @@ Events:              <none>
     "type": "MemoryPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T21:59:10Z",
+    "lastHeartbeatTime": "2025-04-29T22:09:21Z",
     "lastTransitionTime": "2025-04-29T19:10:12Z",
     "message": "kubelet has no disk pressure",
     "reason": "KubeletHasNoDiskPressure",
@@ -133,7 +133,7 @@ Events:              <none>
     "type": "DiskPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T21:59:10Z",
+    "lastHeartbeatTime": "2025-04-29T22:09:21Z",
     "lastTransitionTime": "2025-04-29T19:10:12Z",
     "message": "kubelet has sufficient PID available",
     "reason": "KubeletHasSufficientPID",
@@ -141,7 +141,7 @@ Events:              <none>
     "type": "PIDPressure"
   },
   {
-    "lastHeartbeatTime": "2025-04-29T21:59:10Z",
+    "lastHeartbeatTime": "2025-04-29T22:09:21Z",
     "lastTransitionTime": "2025-04-29T19:10:24Z",
     "message": "kubelet is posting ready status",
     "reason": "KubeletReady",

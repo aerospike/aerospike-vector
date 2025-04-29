@@ -544,19 +544,28 @@ CLUSTER_RESPONSE_FILE="$OUTPUT_DIR/cluster-response.json"
             echo "    No AVS pods"
         fi
     done
-
-    echo -e "\n=== AVS Cluster Information ==="
-    if [ -f "$OUTPUT_DIR/avs-cluster-info.txt" ]; then
-        echo "Cluster Info:"
-        cat "$OUTPUT_DIR/avs-cluster-info.txt"
-    fi
-
-    echo -e "\n=== AVS Indices Configuration ==="
-    if [ -f "$OUTPUT_DIR/avs-indices.yaml" ]; then
-        echo "Indices Configuration:"
-        cat "$OUTPUT_DIR/avs-indices.yaml"
-    fi
-
+    echo -e "\n=== Cluster-wide avs information ==="
+    {
+        echo "Running asvec to get cluster-wide avs information"
+        echo "cluster info:"
+        kubectl run asvec \
+            --restart=Never \
+            --rm -i \
+            --tty \
+            --image artifact.aerospike.io/docker/asvec:3.3.0 \
+            -n "$NAMESPACE" \
+            -- --host avs-app-aerospike-vector-search-internal \
+                nodes ls | tee "$OUTPUT_DIR/avs-cluster-info.txt"
+        echo "indecies:"
+        kubectl run asvec -q -o yaml\
+            --restart=Never \
+            --rm -i \
+            --tty \
+            --image artifact.aerospike.io/docker/asvec:3.3.0 \
+            -n "$NAMESPACE" \
+            --  --host avs-app-aerospike-vector-search-internal \
+                index ls --verbose --yaml | tee "$OUTPUT_DIR/avs-indices.yaml"
+    }
     echo -e "\n=== Cluster-wide OOMKill Analysis ==="
     {
         echo "Summary of Pod Restarts and OOMKills across cluster:"
@@ -581,8 +590,8 @@ CLUSTER_RESPONSE_FILE="$OUTPUT_DIR/cluster-response.json"
             kubectl get events --field-selector involvedObject.name="$node",type=Warning | \
                 grep -i -E "memory|pressure|oom" || echo "No memory pressure events found"
         done
-    }
-} > "$CLUSTER_TMP_FILE"
+    } >> "$CLUSTER_TMP_FILE"
+}
 
 # Cluster analysis prompt
 CLUSTER_PROMPT=$(cat <<EOF

@@ -1,53 +1,61 @@
-# 🖥️ Node Analysis: ip-192-168-53-124.ec2.internal
+### 🖥️ Node Analysis: ip-192-168-53-124.ec2.internal
 
-## Node Overview
-- **Instance Type**: m5.xlarge
-- **Region**: us-east-1
-- **Zone**: us-east-1d
-- **Cloud Provider**: AWS
-- **Capacity**:
-  - CPU: 4 cores
-  - Memory: ~15.1 GiB
-  - Pods: 58
-- **Allocatable Resources**:
-  - CPU: 3920m
-  - Memory: ~14.2 GiB
-  - Pods: 58
-- **Node Conditions**:
-  - MemoryPressure: ❌ False
-  - DiskPressure: ❌ False
-  - PIDPressure: ❌ False
-  - Ready: ✅ True
+#### Node Capacity & Allocatable Resources
+- **CPU Capacity:** 4 cores
+- **Memory Capacity:** 15,896,988 Ki (~15.16 GiB)
+- **Allocatable CPU:** 3920m (~3.92 cores)
+- **Allocatable Memory:** 14,880,156 Ki (~14.18 GiB)
+- **Pods Capacity & Allocatable:** 58
 
-## Node Resource Utilization
-- **CPU Requests**: 500m (12% of capacity)
-- **Memory Requests**: 740Mi (5% of capacity)
-- **Memory Limits**: 4180Mi (28% of capacity)
-- **Ephemeral Storage**: Not utilized
+#### Node Conditions
+- **Memory Pressure:** ❌ False (Sufficient memory available)
+- **Disk Pressure:** ❌ False (No disk pressure)
+- **PID Pressure:** ❌ False (Sufficient PID available)
+- **Ready Status:** ✅ True (Node is ready)
 
-## Node-Level Observations
-- The node is healthy with no memory, disk, or PID pressure.
-- The node has sufficient resources available for additional workloads.
-- No OOM events detected, indicating stable memory usage.
+#### Cloud Provider & Instance Type
+- **Provider:** AWS
+- **Instance Type:** m5.xlarge
+- **Region & Zone:** us-east-1, us-east-1d
 
-## Recommendations for Node-Level Optimizations
-1. **Resource Allocation**: Consider increasing resource requests for critical pods to ensure they have guaranteed resources.
-2. **Monitoring**: Implement monitoring alerts for CPU and memory usage to preemptively address potential resource constraints.
-3. **Scaling**: If workload increases, consider adding more nodes or upgrading to a larger instance type.
+#### Resource Allocation & Utilization
+- **CPU Requests:** 500m (12% of allocatable)
+- **Memory Requests:** 740Mi (5% of allocatable)
+- **Memory Limits:** 4180Mi (28% of allocatable)
+- **Ephemeral Storage:** Not utilized
 
-## Pod-Level Analysis
-- **AVS Pods**: No Aerospike Vector Search pods found on this node.
+#### Node-Level Issues or Warnings
+- **OOM Events:** No OOM events detected
+- **Node Events:** No significant events
 
-## Recommendations for Pod-Level Configurations
-- **Deployment**: Ensure AVS pods are deployed on this node if required, by setting appropriate node selectors or affinities in the pod specifications.
+### 🛠️ Recommendations for Node-Level Optimizations
+1. **Resource Requests & Limits:** Consider setting CPU limits to prevent overcommitment and ensure fair resource distribution.
+2. **Pod Distribution:** Ensure even distribution of pods across nodes to avoid resource bottlenecks.
+3. **Monitoring:** Implement monitoring for ephemeral storage usage to prevent potential issues.
 
-## JVM Configuration and Performance
-- **JVM Analysis**: Not applicable as no AVS pods are present.
+### 🚀 Pod-Level Analysis
+- **AVS Pods:** No Aerospike Vector Search pods found on this node.
 
-## General Recommendations
-1. **Node Role Assignment**: Assign specific roles to nodes to optimize workload distribution and resource utilization.
-2. **Pod Distribution**: Ensure balanced distribution of pods across nodes to avoid overloading a single node.
-3. **Resource Requests and Limits**: Review and adjust resource requests and limits for non-AVS pods to optimize node utilization.
+### 📈 Recommendations for Pod-Level Configurations
+- **Node Roles & Heartbeat Seeds:** Ensure correct node roles and heartbeat seeds are configured in `aerospike-vector-search.yml`.
+- **Listener Addresses & Interconnect Settings:** Validate listener addresses and interconnect settings for optimal communication.
 
-## Conclusion
-The node `ip-192-168-53-124.ec2.internal` is operating efficiently with no immediate issues. However, it is crucial to continuously monitor and adjust configurations as workloads evolve to maintain optimal performance.
+### 💡 Resource Allocation Adjustments
+- **CPU & Memory Requests:** Adjust requests to reflect actual usage, ensuring efficient resource utilization.
+- **Memory Limits:** Set appropriate memory limits to prevent pods from consuming excessive resources.
+
+### 🚀 Performance Improvements
+- **JVM Configuration:** For AVS pods, ensure JVM settings are optimized for performance:
+  - **Heap Sizes:** Set initial and max heap sizes based on workload requirements.
+  - **GC Settings:** Use appropriate garbage collection settings for low-latency applications.
+  - **NUMA & Pre-touch Settings:** Enable NUMA interleaving and pre-touch settings for optimized memory access.
+
+### 🧠 JVM Memory Settings Recommendations
+- **Initial Heap Size (-Xms):** Set to a reasonable percentage of available memory (e.g., 25%).
+- **Max Heap Size (-Xmx):** Ensure it does not exceed available memory.
+- **Soft Max Heap Size (-XX:SoftMaxHeapSize):** Use to allow flexible heap growth.
+- **Reserved Code Cache Size (-XX:ReservedCodeCacheSize):** Adjust based on application needs.
+- **GC Threads:** Configure based on CPU cores available.
+
+### 🌟 Conclusion
+The node is well-configured with no immediate issues. However, optimizing resource requests and limits, along with JVM settings for AVS pods, can enhance performance and resource utilization. Regular monitoring and adjustments based on workload patterns are recommended.

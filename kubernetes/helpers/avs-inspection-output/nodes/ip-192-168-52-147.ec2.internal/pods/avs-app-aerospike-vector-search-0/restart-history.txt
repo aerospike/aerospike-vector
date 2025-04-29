@@ -9,11 +9,11 @@ Previous Terminations (including OOMKills):
 
 Pod Events History (last 1 hour):
 LAST SEEN   TYPE      REASON                            OBJECT                                  MESSAGE
-10s         Warning   FailedToRetrieveImagePullSecret   pod/avs-app-aerospike-vector-search-0   Unable to retrieve some image pull secrets (jfrog-secret); attempting to pull the image may not succeed.
+3m8s        Warning   FailedToRetrieveImagePullSecret   pod/avs-app-aerospike-vector-search-0   Unable to retrieve some image pull secrets (jfrog-secret); attempting to pull the image may not succeed.
 
 Node Conditions at Recent Restarts:
 {
-  "lastHeartbeatTime": "2025-04-29T21:59:07Z",
+  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has sufficient memory available",
   "reason": "KubeletHasSufficientMemory",
@@ -21,7 +21,7 @@ Node Conditions at Recent Restarts:
   "type": "MemoryPressure"
 }
 {
-  "lastHeartbeatTime": "2025-04-29T21:59:07Z",
+  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has no disk pressure",
   "reason": "KubeletHasNoDiskPressure",
@@ -29,7 +29,7 @@ Node Conditions at Recent Restarts:
   "type": "DiskPressure"
 }
 {
-  "lastHeartbeatTime": "2025-04-29T21:59:07Z",
+  "lastHeartbeatTime": "2025-04-29T22:09:18Z",
   "lastTransitionTime": "2025-04-29T19:06:40Z",
   "message": "kubelet has sufficient PID available",
   "reason": "KubeletHasSufficientPID",
