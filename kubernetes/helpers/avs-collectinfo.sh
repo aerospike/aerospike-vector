@@ -600,53 +600,16 @@ You are analyzing an Aerospike Vector Search cluster deployment.
 Generate a comprehensive cluster analysis report with the following sections:
 
 1. 📊 AVS Index Analysis
-   For each index in avs-indices.yaml, create a detailed breakdown:
-   - Index Identification:
-     * Name (from id.name)
-     * Namespace (from id.namespace)
-     * Set (from storage.set)
-     * Mode (DISTRIBUTED/STANDALONE)
-   - Vector Configuration:
-     * Dimensions
-     * Field name
-     * Distance metric
-     * Set filter
-   - HNSW Parameters:
-     * m (number of connections)
-     * ef (search parameter)
-     * efConstruction (build parameter)
-     * maxMemQueueSize
-     * enableVectorIntegrityCheck
-   - Batching Configuration:
-     * indexInterval
-     * maxIndexRecords
-     * maxReindexRecords
-     * reindexInterval
-   - Caching Configuration:
-     * Index cache:
-       - maxEntries
-       - expiry
-     * Record cache:
-       - maxEntries
-       - expiry
-   - Healer Configuration:
-     * maxScanPageSize
-     * maxScanRatePerNode
-     * parallelism
-     * reindexPercent
-     * schedule
-   - Merge Configuration:
-     * indexParallelism
-     * reIndexParallelism
-   - Storage Configuration:
-     * Namespace
-     * Set
-   - Recommendations for each index:
-     * Vector dimension optimization
-     * HNSW parameter tuning
-     * Caching strategy
-     * Batching optimization
-     * Memory usage optimization
+   - Detailed breakdown of each index configuration:
+     * Index name, namespace, and set
+     * Vector dimensions and distance metric
+     * HNSW parameters (ef, efConstruction, m)
+     * Batching and caching configurations
+     * Healer and merge parameters
+   - Recommendations for index optimization based on:
+     * Vector dimensions vs memory usage
+     * Caching parameters vs available memory
+     * Batching parameters vs cluster size
 
 2. 🌐 Cluster Configuration
    - Node distribution and roles

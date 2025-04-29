@@ -1,52 +1,60 @@
 ### 🖥️ Node Analysis: ip-192-168-26-117.ec2.internal
 
 #### Node Overview
-- **Instance Type:** m5.xlarge
-- **Region & Zone:** us-east-1, us-east-1b
-- **Capacity:**
-  - **CPU:** 4 cores
-  - **Memory:** 15.9 GiB
-  - **Ephemeral Storage:** ~80 GiB
-  - **Pods:** 58
-- **Allocatable Resources:**
-  - **CPU:** 3920m
-  - **Memory:** 14.8 GiB
-  - **Ephemeral Storage:** ~71 GiB
+- **Instance Type**: `m5.xlarge` (AWS EC2)
+- **Region/Zone**: `us-east-1` / `us-east-1b`
+- **Roles**: None specified
+- **Capacity**: 
+  - **CPU**: 4 cores
+  - **Memory**: 15.2 GiB
+  - **Ephemeral Storage**: ~80 GiB
+- **Allocatable**:
+  - **CPU**: 3920m
+  - **Memory**: 14.2 GiB
+  - **Pods**: 58
 
 #### Node Conditions
-- **Memory Pressure:** False (Sufficient memory available)
-- **Disk Pressure:** False (No disk pressure)
-- **PID Pressure:** False (Sufficient PID available)
-- **Ready:** True (Node is ready)
+- **MemoryPressure**: `False` - Sufficient memory available
+- **DiskPressure**: `False` - No disk pressure
+- **PIDPressure**: `False` - Sufficient PID available
+- **Ready**: `True` - Node is ready
 
-#### Resource Allocation
-- **CPU Requests:** 190m (4%)
-- **Memory Requests:** 170Mi (1%)
-- **Memory Limits:** 768Mi (5%)
+#### Resource Utilization
+- **CPU Requests**: 190m (4% of allocatable)
+- **Memory Requests**: 170Mi (1% of allocatable)
+- **Memory Limits**: 768Mi (5% of allocatable)
 
-#### Node-Level Observations
-- The node is underutilized in terms of CPU and memory, indicating potential for scaling up workloads.
-- No OOM events or pressure conditions, suggesting stable node performance.
+#### Node-Level Recommendations
+1. **Resource Requests**: Increase resource requests for critical system pods to ensure they are not preempted.
+2. **Monitoring**: Set up alerts for CPU and memory utilization to prevent resource exhaustion.
+3. **Node Labels**: Consider adding specific roles to the node for better resource management and scheduling.
 
-### Recommendations for Node-Level Optimizations
-1. **Resource Utilization:** Consider deploying more workloads to utilize the available resources effectively.
-2. **Monitoring:** Keep monitoring for any changes in resource pressure to ensure continued stability.
+### 🏷️ Cloud Provider Details
+- **Provider**: AWS
+- **Instance Type**: `m5.xlarge`
+- **Capacity Type**: On-demand
 
-### 🚀 Pod-Level Analysis
-#### Pod Overview
-- **No Aerospike Vector Search (AVS) pods found on this node.**
+### ❌ No AVS Pods Found
+- **Observation**: No Aerospike Vector Search (AVS) pods are currently running on this node.
 
-### Recommendations for Pod-Level Configurations
-- **Deployment Strategy:** Ensure AVS pods are scheduled on nodes with sufficient resources. Consider using node affinity or taints and tolerations to control pod placement.
+### General Recommendations
+1. **Node-Level Optimizations**:
+   - Ensure that the node is appropriately labeled for specific workloads to optimize scheduling.
+   - Consider using taints and tolerations to manage pod placement effectively.
 
-### 📊 Resource Allocation Adjustments
-- **CPU and Memory Requests:** Given the low utilization, consider adjusting requests and limits to match actual usage patterns, allowing for better resource allocation across the cluster.
+2. **Pod-Level Configurations**:
+   - Since no AVS pods are found, ensure that deployment configurations are correct and pods are scheduled on the appropriate nodes.
 
-### 🛠️ Performance Improvements
-- **Scaling:** With available resources, consider scaling up existing deployments or adding new ones to maximize node utilization.
+3. **Resource Allocation Adjustments**:
+   - Evaluate current resource requests and limits for all pods to ensure efficient utilization.
+   - Consider using Vertical Pod Autoscaler (VPA) for dynamic resource adjustments.
 
-### JVM Memory Settings
-- **No AVS pods detected, hence no JVM configurations to analyze.** Ensure that when AVS pods are deployed, JVM settings are optimized for performance and resource usage.
+4. **Performance Improvements**:
+   - Implement Horizontal Pod Autoscaler (HPA) for scaling based on load.
+   - Regularly review node and pod performance metrics to identify bottlenecks.
 
-### Final Thoughts
-- The node is well-configured and stable, with ample resources available for additional workloads. Ensure that future deployments are strategically placed to maintain this balance. Keep an eye on resource usage trends to anticipate any necessary adjustments.
+5. **JVM Memory Settings**:
+   - For future AVS pods, ensure JVM settings are optimized for the workload, focusing on heap size and garbage collection settings.
+
+### 📈 Conclusion
+This node is well-configured and underutilized, providing opportunities for hosting additional workloads. Ensure that future deployments, especially AVS pods, are correctly configured and scheduled to leverage the node's capacity effectively.

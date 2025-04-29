@@ -1,15 +1,20 @@
 ### 🖥️ Node Analysis: ip-192-168-53-124.ec2.internal
 
-#### Node Capacity and Conditions
-- **CPU Capacity:** 4 cores
-- **Memory Capacity:** 15,896,988 Ki (~15.16 GiB)
-- **Allocatable CPU:** 3920m
-- **Allocatable Memory:** 14,880,156 Ki (~14.18 GiB)
-- **Node Conditions:**
-  - **MemoryPressure:** False (sufficient memory available)
-  - **DiskPressure:** False (no disk pressure)
-  - **PIDPressure:** False (sufficient PID available)
-  - **Ready:** True (node is ready)
+#### Node Capacity and Allocatable Resources
+- **Capacity:**
+  - CPU: 4 cores
+  - Memory: 15.8 GiB
+  - Pods: 58
+- **Allocatable:**
+  - CPU: 3920m
+  - Memory: 14.8 GiB
+  - Pods: 58
+
+#### Node Conditions
+- **MemoryPressure:** False (Sufficient memory available)
+- **DiskPressure:** False (No disk pressure)
+- **PIDPressure:** False (Sufficient PID available)
+- **Ready:** True (Node is ready)
 
 #### Cloud Provider Details
 - **Instance Type:** m5.xlarge
@@ -18,43 +23,53 @@
 
 #### Resource Allocation and Utilization
 - **CPU Requests:** 500m (12% of allocatable)
-- **Memory Requests:** 740 Mi (5% of allocatable)
-- **Memory Limits:** 4180 Mi (28% of allocatable)
-- **No OOMKill Events:** No system or Kubernetes OOM events found.
+- **Memory Requests:** 740Mi (5% of allocatable)
+- **Memory Limits:** 4180Mi (28% of allocatable)
 
-#### Node-Level Recommendations
-1. **Optimize Resource Requests:**
-   - Current CPU and memory requests are low compared to capacity. Consider reviewing and adjusting requests to better reflect actual usage.
+#### Node-Level Issues or Warnings
+- No OOM events or warnings found.
+- Node is operating within normal parameters with no pressure on resources.
 
-2. **Monitor Disk Usage:**
-   - Although there is no disk pressure, keep an eye on ephemeral storage usage to prevent future issues.
+### Recommendations for Node-Level Optimizations
+1. **Resource Requests and Limits:**
+   - Consider setting CPU and memory limits for all pods to prevent resource overcommitment.
+   - Monitor and adjust resource requests to better reflect actual usage and improve scheduling efficiency.
 
-3. **Review Node Roles:**
-   - This node has no specific roles assigned. Ensure this is intentional and aligns with your cluster architecture.
+2. **Node Utilization:**
+   - Current CPU and memory usage is low. Evaluate if additional workloads can be scheduled on this node to optimize resource utilization.
 
-4. **Upgrade Considerations:**
-   - Consider upgrading the instance type if you anticipate increased load or require more resources for future workloads.
+### Pod-Level Analysis
+- **Observation:** No Aerospike Vector Search (AVS) pods are currently running on this node.
 
-### ❌ AVS Pod Analysis
-- **Observation:** No Aerospike Vector Search (AVS) pods are running on this node.
+### Recommendations for Pod-Level Configurations
+1. **Ensure AVS Pods are Scheduled:**
+   - Verify that AVS pods are scheduled on appropriate nodes with sufficient resources.
+   - Check pod affinity/anti-affinity rules and node selectors to ensure correct placement.
 
-### General Recommendations for AVS Pods
-1. **Ensure Proper Node Affinity:**
-   - If AVS pods are intended to run on this node, check node affinity and anti-affinity rules in the pod specifications.
+2. **JVM Configuration:**
+   - Since no AVS pods are found, ensure that the JVM settings in the `aerospike-vector-search.yml` are optimized for your workload requirements when they are deployed.
 
-2. **Validate Configuration:**
-   - Ensure `aerospike-vector-search.yml` is correctly configured with appropriate node roles, heartbeat seeds, and listener addresses.
+### Resource Allocation Adjustments
+- **CPU and Memory:**
+  - Review and adjust resource requests and limits for non-AVS pods to ensure they are not over-allocated.
+  - Consider increasing the number of pods if the node is underutilized.
 
-3. **JVM Configuration:**
-   - When AVS pods are deployed, review JVM settings for optimal performance:
-     - **Memory Settings:** Ensure heap sizes are appropriately set for your workload.
-     - **GC Settings:** Use ZGC for low-latency requirements and adjust thread counts as needed.
-     - **NUMA and Pre-touch Settings:** Enable NUMA interleaving and pre-touch for better memory management.
+### Performance Improvements
+- **Node Scaling:**
+  - If workload increases, consider scaling the node group or upgrading to a larger instance type to accommodate additional AVS pods.
 
-4. **Resource Requests and Limits:**
-   - Set appropriate CPU and memory requests/limits based on expected workload to prevent resource contention.
+### JVM Memory Settings (For Future AVS Pods)
+- **Memory Settings:**
+  - Ensure JVM heap sizes are configured based on available memory and workload requirements.
+  - Use `-Xms` and `-Xmx` to set appropriate initial and maximum heap sizes.
+  - Consider using `-XX:SoftMaxHeapSize` to manage heap growth.
 
-5. **Performance Monitoring:**
-   - Continuously monitor heap usage, metaspace, and class space to identify potential memory leaks or inefficiencies.
+- **GC Settings:**
+  - Optimize garbage collection settings based on application performance needs.
+  - Use `-XX:+UseZGC` for low-latency applications if applicable.
 
-By following these recommendations, you can ensure optimal performance and resource utilization for your Kubernetes node and AVS pods. 🚀
+- **Other Flags:**
+  - Consider enabling `-XX:+ExitOnOutOfMemoryError` to ensure the JVM exits on OOM, allowing Kubernetes to restart the pod.
+
+### Conclusion
+The node `ip-192-168-53-124.ec2.internal` is in good health with no current issues. However, ensure that AVS pods are properly scheduled and configured for optimal performance. Regularly review and adjust resource allocations to maintain efficient utilization.
