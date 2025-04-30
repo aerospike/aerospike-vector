@@ -65,6 +65,7 @@ echo "  checkpoint: ${CHECKPOINT_FILE}"
 
 # Define steps in order with their checkpoint names
 STEPS=(
+    "build_reset:reset_build"
     "cluster_created:create_eks_cluster"
     "nodes_created:create_node_groups"
     "nodes_labeled:label_nodes"
@@ -712,9 +713,9 @@ cleanup() {
         fi
         helm uninstall avs-app -n avs || true
         helm uninstall monitoring-stack -n monitoring || true
-    kubectl delete namespace avs --timeout=60s || true
-    kubectl delete namespace aerospike --timeout=60s || true
-    kubectl delete namespace monitoring --timeout=60s || true
+        kubectl delete namespace avs --timeout=60s || true
+        kubectl delete namespace aerospike --timeout=60s || true
+        kubectl delete namespace monitoring --timeout=60s || true
         eksctl delete cluster --name "$CLUSTER_NAME" --region "$REGION" || true
     fi
 }
