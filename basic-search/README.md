@@ -45,6 +45,70 @@ You may change the --namespace and --index-namespace to other values, like the d
 | --index-set       | basic-index | The Aerospike set for storing the HNSW index                            |
 | --load-balancer   | False       | If true, the first seed address will be treated as a load balancer node |
 
+## Security Configuration (TLS/Auth)
+
+This example supports connecting to Aerospike Vector Search instances secured with TLS and authentication.
+
+### Connecting to a Secure AVS Instance (mTLS)
+
+To connect to an AVS instance requiring mutual TLS (mTLS), where both the server and client must present valid certificates signed by a trusted Certificate Authority (CA), use the following command-line arguments:
+
+*   `--root-certificate <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--certificate-chain <path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
+*   `--private-key <path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
+
+**Example using certificates from `docker/secure`:**
+
+If you have generated certificates using the `docker/secure/gen_ssh.sh` script, you can connect from the `basic-search` directory like this:
+
+```bash
+python search.py \
+    --host localhost \
+    --port 5555 \
+    --root-certificate ../docker/secure/config/tls/ca.crt \
+    --certificate-chain ../docker/secure/config/tls/client.crt \
+    --private-key ../docker/secure/config/tls/client.key
+```
+*(Note: Ensure the AVS server is running and configured for TLS on port 5555, as set up by `docker/secure/docker-compose.yaml`)*
+
+### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
+
+If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server.
+
+*   `--root-certificate <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+
+**Example using CA certificate from `kubernetes/generated`:**
+
+If you have generated certificates using the scripts in the `kubernetes` directory (which creates a `generated` subdirectory), you can connect from the `basic-search` directory like this:
+
+*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use --tls-hostname-override to override the expected host name)
+
+```bash
+# Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
+python search.py \
+    --host <k8s_avs_host> \
+    --port <k8s_avs_tls_port> \
+    --root-certificate ../kubernetes/generated/certs/ca.aerospike.com.pem \
+    --tls-hostname-override <host_name> \
+    --username <username> \
+    --password <password>
+```
+
+### Basic Authentication
+
+If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), use these flags:
+
+*   `--username <your_username>`
+*   `--password <your_password>`
+
+```bash
+python search.py \
+    --host <avs_host> \
+    --port <avs_port> \
+    --username <username> \
+    --password <password>
+```
+
 ## Run the search demo
 
 Run with --help to see available the example's available configuration.

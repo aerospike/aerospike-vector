@@ -96,6 +96,13 @@ arg_parser.add_argument(
     default=None,
     help="Path to the PEM encoded private key file.",
 )
+arg_parser.add_argument(
+    "--ssl-target-name-override",
+    dest="ssl_target_name_override",
+    required=False,
+    default=None,
+    help="The hostname to use for the SSL connection.",
+)
 # auth args
 arg_parser.add_argument(
     "--username",
@@ -138,6 +145,7 @@ try:
         root_certificate=root_certificate,
         certificate_chain=certificate_chain,
         private_key=private_key,
+        ssl_target_name_override=args.ssl_target_name_override,
     ) as client:
         
         print("inserting vectors")

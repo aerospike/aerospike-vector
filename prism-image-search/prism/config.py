@@ -18,6 +18,15 @@ def get_bool_env(name, default):
 class Config(object):
     BASIC_AUTH_USERNAME = os.environ.get("APP_USERNAME") or ""
     BASIC_AUTH_PASSWORD = os.environ.get("APP_PASSWORD") or ""
+    AVS_AUTH_USERNAME = os.environ.get("AVS_USERNAME") or None
+    AVS_AUTH_PASSWORD = os.environ.get("AVS_PASSWORD") or None
+    AVS_TLS_CA_FILE = os.environ.get("AVS_TLS_CA_FILE") or None
+    AVS_TLS_CA = None
+    AVS_TLS_CERT_FILE = os.environ.get("AVS_TLS_CERT_FILE") or None
+    AVS_TLS_CERT = None
+    AVS_TLS_KEY_FILE = os.environ.get("AVS_TLS_KEY_FILE") or None
+    AVS_TLS_KEY = None
+    AVS_TLS_NAME_OVERRIDE = os.environ.get("AVS_TLS_NAME_OVERRIDE") or None
     INDEXER_PARALLELISM = int(os.environ.get("APP_INDEXER_PARALLELISM") or 1)
     AVS_HOST = os.environ.get("AVS_HOST") or "localhost"
     AVS_PORT = int(os.environ.get("AVS_PORT") or 5000)
@@ -33,3 +42,15 @@ class Config(object):
     # using a load balancer with AVS is best practice so this is the default
     # you should set this to False if you are not using a load balancer with an AVS cluster of more than 1 node
     AVS_IS_LOADBALANCER = get_bool_env("AVS_IS_LOADBALANCER", True)
+
+    if AVS_TLS_CA_FILE:
+        with open(AVS_TLS_CA_FILE, "rb") as f:
+            AVS_TLS_CA = f.read()
+
+    if AVS_TLS_CERT_FILE:
+        with open(AVS_TLS_CERT_FILE, "rb") as f:
+            AVS_TLS_CERT = f.read()
+
+    if AVS_TLS_KEY_FILE:
+        with open(AVS_TLS_KEY_FILE, "rb") as f:
+            AVS_TLS_KEY = f.read()

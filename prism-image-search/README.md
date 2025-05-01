@@ -157,3 +157,77 @@ restart and hence is ideal for development.
 ```shell
 FLASK_ENV=development FLASK_DEBUG=1 python3 -m flask --app prism  run --port 8080
 ```
+
+## Security Configuration (TLS/Auth)
+
+This application supports connecting to Aerospike Vector Search instances secured with TLS and authentication via environment variables.
+
+### Connecting to a Secure AVS Instance (mTLS)
+
+To connect to an AVS instance requiring mutual TLS (mTLS), where both the server and client must present valid certificates signed by a trusted Certificate Authority (CA), set the following environment variables before running the application:
+
+*   `AVS_TLS_CA_FILE=<path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_TLS_CERT_FILE=<path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
+*   `AVS_TLS_KEY_FILE=<path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
+*   `AVS_HOST=<avs_hostname>`: (e.g., `localhost`)
+*   `AVS_PORT=<avs_tls_port>`: (e.g., `5555`)
+
+**Example using certificates from `docker/secure`:**
+
+If you have generated certificates using the `docker/secure/gen_ssh.sh` script and are running the secure AVS via `docker/secure/docker-compose.yaml`, you can configure the Prism application like this:
+
+```bash
+export AVS_HOST=localhost
+export AVS_PORT=5555
+export AVS_TLS_CA_FILE=../docker/secure/config/tls/ca.crt
+export AVS_TLS_CERT_FILE=../docker/secure/config/tls/client.crt
+export AVS_TLS_KEY_FILE=../docker/secure/config/tls/client.key
+
+# Then run the application (e.g., using flask run or gunicorn)
+flask run
+```
+*(Note: Ensure the AVS server is running and configured for TLS on port 5555)*
+
+### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
+
+If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server. Set the following environment variables:
+
+*   `AVS_TLS_CA_FILE=<path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_HOST=<avs_hostname>`
+*   `AVS_PORT=<avs_tls_port>`
+
+**Example using CA certificate from `kubernetes/generated`:**
+
+If you have generated certificates using the scripts in the `kubernetes` directory (which creates a `generated` subdirectory), you can configure the Prism application like this:
+
+*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use AVS_TLS_NAME_OVERRIDE to override the expected host name)
+
+```bash
+# Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
+export AVS_HOST=<k8s_avs_host>
+export AVS_PORT=<k8s_avs_tls_port>
+export AVS_TLS_CA_FILE=../kubernetes/generated/certs/ca.aerospike.com.pem
+export AVS_TLS_NAME_OVERRIDE=<host_name>
+export AVS_AUTH_USERNAME=<username>
+export AVS_AUTH_PASSWORD=<password>
+
+# Then run the application (e.g., using flask run or gunicorn)
+flask run
+```
+
+### Basic Authentication
+
+If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), set these environment variables:
+
+*   `AVS_AUTH_USERNAME=<your_username>`
+*   `AVS_AUTH_PASSWORD=<your_password>`
+
+```bash
+export AVS_HOST=<avs_host>
+export AVS_PORT=<avs_port>
+export AVS_AUTH_USERNAME=<username>
+export AVS_AUTH_PASSWORD=<password>
+
+# Then run the application
+flask run
+```

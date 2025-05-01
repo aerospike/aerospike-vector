@@ -16,6 +16,8 @@ def get_bool_env(name, default):
 class Config(object):
     BASIC_AUTH_USERNAME = os.environ.get("APP_USERNAME") or ""
     BASIC_AUTH_PASSWORD = os.environ.get("APP_PASSWORD") or ""
+    AVS_AUTH_USERNAME = os.environ.get("AVS_USERNAME") or None
+    AVS_AUTH_PASSWORD = os.environ.get("AVS_PASSWORD") or None
     NUM_QUOTES = int(os.environ.get("APP_NUM_QUOTES") or 5000)
     AVS_HOST = os.environ.get("AVS_HOST") or "localhost"
     AVS_PORT = int(os.environ.get("AVS_PORT") or 5000)
@@ -26,6 +28,7 @@ class Config(object):
     AVS_TLS_CERT = None
     AVS_TLS_KEY_FILE = os.environ.get("AVS_TLS_KEY_FILE") or None
     AVS_TLS_KEY = None
+    AVS_TLS_NAME_OVERRIDE = os.environ.get("AVS_TLS_NAME_OVERRIDE") or None
     AVS_INDEX_NAME = os.environ.get("AVS_INDEX_NAME") or "quote-semantic-search"
     AVS_NAMESPACE = os.environ.get("AVS_NAMESPACE") or "avs-data"
     AVS_SET = os.environ.get("AVS_SET") or "quote-data"
