@@ -114,8 +114,9 @@ usage() {
     echo "  --region, -r <region>                 AWS region (default: ${DEFAULT_REGION})"
     echo "  --run-insecure, -I                    Run setup cluster without auth or TLS (no argument)"
     echo "  --cleanup|-C                          Clean up the cluster and exit"
-    echo "  --resume|-R                           Resume from last checkpoint"
-    echo "  --cleanup-partial|-CP                 Clean up only the failed stage"
+# Resume and cleanup partial are hidden and for internal debug purposes only
+    # echo "  --resume|-R                           Resume from last checkpoint"
+    # echo "  --cleanup-partial|-CP                 Clean up only the failed stage"
     echo "  --help, -h                            Show this help message"
     echo "  --log-level, -L <level>               Set AVS logging level (default: ${DEFAULT_LOG_LEVEL})"
     exit 1
@@ -182,7 +183,6 @@ check_dependencies() {
     aws --version || echo "AWS CLI: unknown"
 }
 
-# Function to set environment variables
 set_env_variables() {
     export NODE_POOL_NAME_AEROSPIKE="aerospike-pool"
     export NODE_POOL_NAME_AVS="avs-pool"
@@ -206,7 +206,6 @@ set_env_variables() {
     fi
 }
 
-# Function to print environment variables
 print_env() {
     echo "Environment Variables:"
     echo "export CLUSTER_NAME=$CLUSTER_NAME"
@@ -225,7 +224,6 @@ print_env() {
     echo "export LOG_LEVEL=$LOG_LEVEL"
 }
 
-# Function to validate inputs
 validate_inputs() {
     local errors=0
     
@@ -313,6 +311,8 @@ create_eks_cluster() {
         echo "Cluster $CLUSTER_NAME does not exist. Creating..."
     else
         echo "Error: Cluster $CLUSTER_NAME already exists. Please use a new cluster name or delete the existing cluster."
+        echo "Current cluster named $CLUSTER_NAME nodes:"
+        run_asvec $RUN_INSECURE nodes ls || echo "could not run asvec. Is there an invalid cluster running?"
         return 1
     fi
 
@@ -455,13 +455,13 @@ label_nodes() {
     label_node_group "avs-mixed-pool" "default-nodes" "avs"
 }
 
-# Function to create namespaces
+# Create namespaces used by the deployment
 create_namespaces() {
     kubectl create namespace aerospike || true
     kubectl create namespace avs || true
 }
 
-# Function to create resources if they don't exist
+# Safe function to create resources if they don't exist but continue peacefully if they do
 # Arguments:
 #   $@: command - The command to execute
 create_if_not_exists() {
@@ -470,12 +470,12 @@ create_if_not_exists() {
             echo "$output" >&2  # Print error if it's not "already exists"
             return 1
         fi
-        echo "ignoring already exists error."
+        echo "already created."
     }
     return 0
 }
 
-# Function to setup Aerospike
+# Function to setup Aerospike using the Aerospike Kubernetes Operator (AKO)
 setup_aerospike() {
     echo "Setting up namespaces..."
     create_if_not_exists kubectl create namespace aerospike
@@ -576,8 +576,6 @@ setup_aerospike() {
 
 # Function to setup AVS
 setup_avs() {
-    kubectl create namespace avs || true 
-
     echo "Setting secrets for AVS cluster..."
     kubectl --namespace avs create secret generic auth-secret --from-literal=password='admin123'
     kubectl --namespace avs create secret generic aerospike-tls \
@@ -634,18 +632,53 @@ setup_monitoring() {
     kubectl apply -f manifests/monitoring/avs-servicemonitor.yaml
 }
 
+# Function to run asvec commands with optional TLS and port forwarding
+# Arguments:
+#   $1 - insecure mode flag (1 for insecure, 0 for secure)
+#   $@ - All remaining arguments passed to asvec command (e.g. "nodes ls", "user create", etc)
+# Example usage:
+#   run_asvec 0 nodes ls  # secure mode
+#   run_asvec 1 nodes ls  # insecure mode
+run_asvec() {
+    local run_insecure=${1}  # Default to 0 if not provided
+    if [[ "$run_insecure" == "0" || "$run_insecure" == "1" ]]; then
+        shift
+    fi
+    
+    local pod="avs-app-aerospike-vector-search-0"
+    local namespace="avs"
+    local port=5000
+    local host_override="avs-app-aerospike-vector-search.aerospike.svc.cluster.local"
+    local tmp_log=$(mktemp)
+    
+    # Start port forwarding
+    (kubectl port-forward pod/$pod -n "$namespace" $port:$port > "$tmp_log" 2>&1 & \
+        pf_pid=$! && \
+        while ! grep -q "Forwarding from 127.0.0.1:$port" "$tmp_log"; do sleep 0.1; done && \
+        
+        if [[ "$run_insecure" == 1 ]]; then
+            # Insecure mode: basic connection only
+            asvec --host "localhost:$port" "$@"
+        else
+            # Secure mode: include TLS and credentials
+            local ca_cert_b64
+            ca_cert_b64=$(kubectl get secret aerospike-tls -n "$namespace" -o jsonpath='{.data.ca\.aerospike\.com\.pem}')
+            asvec --host "localhost:$port" \
+                  --tls-cafile "b64:$ca_cert_b64" \
+                  --tls-hostname-override "$host_override" \
+                  --credentials admin:admin \
+                  "$@"
+        fi && \
+        kill $pf_pid)
+}
+
+
 # Function to print final instructions
 print_final_instructions() {
-    echo "Check your deployment using our command line tool asvec available at https://github.com/aerospike/asvec."
-
-    echo "Use the asvec tool to change your password with"
-    echo -n asvec nodes ls --seeds "$(kubectl get nodes --selector=aerospike.io/node-pool=avs --output=jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')"
-    echo
-    
-    if [[ -z "${RUN_INSECURE}" || "${RUN_INSECURE}" == "0" ]]; then
-        echo " --tls-cafile $BUILD_DIR/certs/ca.aerospike.com.pem --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local --credentials admin:admin"
-        echo "note: the ca file will be overwritten if the script is re run so copy it over to a safe location"
-    fi
+    echo "cluster is ready"
+    run_asvec $RUN_INSECURE nodes ls
+    echo "You can now use the asvec tool to view and manage your AVS cluster. See our asvec documentation at https://aerospike.com/docs/vector/tools/asvec/" 
+    echo "or connect to the cluster from an application. See "
     echo "Setup Complete!"
 }
 
