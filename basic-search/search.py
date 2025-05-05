@@ -1,7 +1,15 @@
 import argparse
 import time
+import logging
 
+import aerospike_vector_search
 from aerospike_vector_search import Client, Index, types, AVSServerError
+
+# set logging to debug
+logging.basicConfig(level=logging.DEBUG)
+handler = logging.StreamHandler()
+aerospike_vector_search.client.logger.addHandler(handler)
+aerospike_vector_search.client.logger.setLevel(logging.DEBUG)
 
 listener_name = None
 index_name = "basic_index"
@@ -74,6 +82,15 @@ arg_parser.add_argument(
     default=True,
     help="Use this if the host is a load balancer.",
 )
+arg_parser.add_argument(
+    "--no-load-balancer",
+    dest="no_load_balancer",
+    action="store_true",
+    required=False,
+    # you should set this to True if you are not using a load balancer with an AVS cluster of more than 1 node
+    default=False,
+    help="Use this if the host is not a load balancer.",
+)
 # tls args
 arg_parser.add_argument(
     "--root-certificate",
@@ -135,6 +152,10 @@ if args.private_key:
     with open(args.private_key, "rb") as f:
         private_key = f.read()
 
+load_balancer = args.load_balancer
+if args.no_load_balancer:
+    load_balancer = False
+
 try:
     with Client(
         seeds=types.HostPort(host=args.host, port=args.port),
@@ -148,6 +169,8 @@ try:
         ssl_target_name_override=args.ssl_target_name_override,
     ) as client:
         
+        print(f"load balancer: {load_balancer}")
+
         print("inserting vectors")
         for i in range(10):
             key = "r" + str(i)

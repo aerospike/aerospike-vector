@@ -183,8 +183,7 @@ export AVS_TLS_CA_FILE=../docker/secure/config/tls/ca.crt
 export AVS_TLS_CERT_FILE=../docker/secure/config/tls/client.crt
 export AVS_TLS_KEY_FILE=../docker/secure/config/tls/client.key
 
-# Then run the application (e.g., using flask run or gunicorn)
-flask run
+# Then run the application
 ```
 *(Note: Ensure the AVS server is running and configured for TLS on port 5555)*
 
@@ -211,8 +210,7 @@ export AVS_TLS_NAME_OVERRIDE=<host_name>
 export AVS_AUTH_USERNAME=<username>
 export AVS_AUTH_PASSWORD=<password>
 
-# Then run the application (e.g., using flask run or gunicorn)
-flask run
+# Then run the application
 ```
 
 ### Basic Authentication
@@ -229,5 +227,4 @@ export AVS_AUTH_USERNAME=<username>
 export AVS_AUTH_PASSWORD=<password>
 
 # Then run the application
-flask run
 ```
