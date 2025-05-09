@@ -189,8 +189,7 @@ export AVS_TLS_CAFILE=../docker/secure/config/tls/ca.crt
 export AVS_TLS_CERTFILE=../docker/secure/config/tls/client.crt
 export AVS_TLS_KEYFILE=../docker/secure/config/tls/client.key
 
-# Then run the application (e.g., using flask run or gunicorn)
-flask run
+# Then run the application
 ```
 *(Note: Ensure the AVS server is running and configured for TLS on port 5000)*
 
@@ -218,8 +217,7 @@ export AVS_TLS_CAFILE=../kubernetes/generated/certs/ca.aerospike.com.pem
 export AVS_TLS_HOSTNAME_OVERRIDE=<avs-service.namespace.svc.cluster.local>
 export AVS_CREDENTIALS=<user>:<password>
 
-# Then run the application (e.g., using flask run or gunicorn)
-flask run
+# Then run the application
 ```
 
 ### Basic Authentication
@@ -234,5 +232,4 @@ export AVS_PORT=<avs_port>
 export AVS_CREDENTIALS=myuser:mypassword
 
 # Then run the application
-flask run
 ```

@@ -50,8 +50,8 @@ python search.py \
 
 *   `--host localhost`: The hostname where AVS is running (as exposed by Docker Compose).
 *   `--port 5555`: The TLS port AVS is listening on (defined in `docker-compose.yaml`).
-*   `--root-certificate ../docker/secure/config/tls/ca.crt`: Path to the CA certificate file. The client uses this to verify the server's certificate.
-*   `--certificate-chain ../docker/secure/config/tls/client.crt`: Path to the client's certificate file. The client presents this to the server for authentication.
-*   `--private-key ../docker/secure/config/tls/client.key`: Path to the client's private key file, corresponding to the client certificate.
+*   `--tls-cafile ../docker/secure/config/tls/ca.crt`: Path to the CA certificate file. The client uses this to verify the server's certificate.
+*   `--tls-certfile ../docker/secure/config/tls/client.crt`: Path to the client's certificate file. The client presents this to the server for authentication.
+*   `--tls-keyfile ../docker/secure/config/tls/client.key`: Path to the client's private key file, corresponding to the client certificate.
 
 This command tells `search.py` to establish a TLS connection with AVS, verify the server using `ca.crt`, and authenticate itself using `client.crt` and `client.key`. 
