@@ -35,15 +35,68 @@ By default, this application stores its AVS index in the "avs-index" namespace, 
 If your Aerospike database configuration does not define these namespaces you will see an error.
 You may change the --namespace and --index-namespace to other values, like the default Aerospike "test" namespace, to use other namespaces.
 
-| Command Line Flag | Default     | Description                                                             |
-|-------------------|-------------|-------------------------------------------------------------------------|
-| --host            | localhost   | AVS host used for initial connection                                    |
-| --port            | 5000        | AVS server seed host port                                               |
-| --namespace       | avs-data    | The Aerospike namespace for storing the quote records                   |
-| --set             | basic-data  | The Aerospike set for storing the quote records                         |
-| --index-namespace | avs-index   | The Aerospike namespace for storing the HNSW index                      |
-| --index-set       | basic-index | The Aerospike set for storing the HNSW index                            |
-| --load-balancer   | False       | If true, the first seed address will be treated as a load balancer node |
+| Command Line Flag           | Default     | Description                                                                 |
+|-----------------------------|-------------|-----------------------------------------------------------------------------|
+| --host                      | localhost   | AVS host used for initial connection                                        |
+| --port                      | 5000        | AVS server seed host port                                                   |
+| --namespace                 | avs-data    | The Aerospike namespace for storing the data records                        |
+| --set                       | basic-data  | The Aerospike set for storing the data records                              |
+| --index-namespace           | avs-index   | The Aerospike namespace for storing the HNSW index                          |
+| --index-set                 | basic-index | The Aerospike set for storing the HNSW index                                |
+| --no-load-balancer          | False       | If true, cluster tending is enabled                                         |
+| --tls-cafile                | None        | Path to the PEM encoded root CA certificate file (for TLS)                  |
+| --tls-certfile              | None        | Path to the PEM encoded certificate chain file (for mTLS client auth)       |
+| --tls-keyfile               | None        | Path to the PEM encoded private key file (for mTLS client auth)             |
+| --tls-hostname-override     | None        | Override hostname for SSL/TLS certificate validation (for TLS)              |
+| --credentials               | None        | AVS credentials in 'user:password' format (for basic authentication)        |
+
+## Security Configuration (TLS/Auth)
+
+This example supports connecting to Aerospike Vector Search instances secured with TLS and authentication.
+
+### Connecting to a Secure AVS Instance (mTLS)
+
+To connect to an AVS instance requiring mutual TLS (mTLS), where both the server and client must present valid certificates signed by a trusted Certificate Authority (CA), use the following command-line arguments:
+
+*   `--tls-cafile <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--tls-certfile <path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
+*   `--tls-keyfile <path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
+
+### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
+
+If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server.
+
+*   `--tls-cafile <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--tls-hostname-override <hostname>`: (Optional) If the hostname in the server's certificate does not match the address you are connecting to.
+
+**Example using CA certificate from `kubernetes/generated`:**
+
+If you have generated certificates using the scripts in the `kubernetes` directory (which creates a `generated` subdirectory), you can connect from the `basic-search` directory like this:
+
+*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use --tls-hostname-override to override the expected host name)*
+
+```bash
+# Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
+python search.py \
+    --host <k8s_avs_host> \
+    --port <k8s_avs_tls_port> \
+    --tls-cafile ../kubernetes/generated/certs/ca.aerospike.com.pem \
+    --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local \
+    --credentials admin:admin
+```
+
+### Basic Authentication
+
+If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), use this flag:
+
+*   `--credentials <user>:<password>`
+
+```bash
+python search.py \
+    --host <avs_host> \
+    --port <avs_port> \
+    --credentials myuser:mypassword
+```
 
 ## Run the search demo
 
