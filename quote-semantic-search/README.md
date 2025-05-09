@@ -117,30 +117,29 @@ Using a load balancer with AVS is best practice. Therefore, AVS_IS_LOADBALANCER 
 This works fine for AVS clusters with a load balancer or clusters with only 1 node. If you are using
 the examples with an AVS cluster larger than 1 node without load balancing you should set AVS_IS_LOADBALANCER to False.
 
-| Environment Variable      | Default               | Description                                                                                                                                              |
-|---------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| APP_USERNAME              |                       | If set, the username for basic authentication for the app UI                                                                                             |
-| APP_PASSWORD              |                       | If set, the password for basic authentication for the app UI                                                                                             |
-| APP_NUM_QUOTES            | 5000                  | The number of quotes to index. If time and space allows the max is 100000. **Hint:** To keep the app from re-indexing quotes on subsequent runs set to 0 |
-| APP_INDEXER_PARALLELISM   | 1                     | To speed up indexing of quotes set this equal to or less than the number of CPU cores                                                                    |
-| AVS_HOST                  | localhost             | AVS server seed host                                                                                                                                     |
-| AVS_PORT                  | 5000                  | AVS server seed host port                                                                                                                                |
-| AVS_ADVERTISED_LISTENER   |                       | An optional advertised listener to use if configured on the AVS server                                                                                   |
-| AVS_NAMESPACE             | avs-data              | The Aerospike namespace for storing the quote records                                                                                                    |
-| AVS_SET                   | quote-data            | The Aerospike set for storing the quote records                                                                                                          |
-| AVS_INDEX_NAMESPACE       | avs-index             | The Aerospike namespace for storing the HNSW index                                                                                                       |
-| AVS_INDEX_SET             | quote-index           | The Aerospike set for storing the HNSW index                                                                                                             |
-| AVS_INDEX_NAME            | quote-semantic-search | The name of the  index                                                                                                                                   |
-| AVS_MAX_RESULTS           | 5                     | Maximum number of vector search results to return                                                                                                        |
-| AVS_IS_LOADBALANCER       | True                  | If true, the first seed address will be treated as a load balancer node                                                                                  |
-| AVS_AUTH_USERNAME         | None                  | Username for AVS basic authentication                                                                                                                    |
-| AVS_AUTH_PASSWORD         | None                  | Password for AVS basic authentication                                                                                                                    |
-| AVS_TLS_CA_FILE           | None                  | Path to the PEM encoded root CA certificate file (for TLS)                                                                                               |
-| AVS_TLS_CERT_FILE         | None                  | Path to the PEM encoded certificate chain file (for mTLS client auth)                                                                                    |
-| AVS_TLS_KEY_FILE          | None                  | Path to the PEM encoded private key file (for mTLS client auth)                                                                                          |
-| AVS_TLS_NAME_OVERRIDE     | None                  | Override hostname for SSL certificate validation (for TLS)                                                                                               |
-| AVS_VERIFY_TLS            | True                  | Set to false to disable TLS certificate verification (use with caution)                                                                                  |
-| DATASET_FILE_PATH         | ../container-volumes/quote-search/data/quote-embeddings.csv | Path to the quote embeddings dataset file                                                                          |
+| Environment Variable        | Default                                                     | Description                                                                                                                                              |
+|-----------------------------|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| APP_USERNAME                |                                                             | If set, the username for basic authentication for the app UI                                                                                             |
+| APP_PASSWORD                |                                                             | If set, the password for basic authentication for the app UI                                                                                             |
+| APP_NUM_QUOTES              | 5000                                                        | The number of quotes to index. If time and space allows the max is 100000. **Hint:** To keep the app from re-indexing quotes on subsequent runs set to 0 |
+| APP_INDEXER_PARALLELISM     | 1                                                           | To speed up indexing of quotes set this equal to or less than the number of CPU cores                                                                    |
+| AVS_HOST                    | localhost                                                   | AVS server seed host                                                                                                                                     |
+| AVS_PORT                    | 5000                                                        | AVS server seed host port                                                                                                                                |
+| AVS_ADVERTISED_LISTENER     |                                                             | An optional advertised listener to use if configured on the AVS server                                                                                   |
+| AVS_NAMESPACE               | avs-data                                                    | The Aerospike namespace for storing the quote records                                                                                                    |
+| AVS_SET                     | quote-data                                                  | The Aerospike set for storing the quote records                                                                                                          |
+| AVS_INDEX_NAMESPACE         | avs-index                                                   | The Aerospike namespace for storing the HNSW index                                                                                                       |
+| AVS_INDEX_SET               | quote-index                                                 | The Aerospike set for storing the HNSW index                                                                                                             |
+| AVS_INDEX_NAME              | quote-semantic-search                                       | The name of the  index                                                                                                                                   |
+| AVS_MAX_RESULTS             | 5                                                           | Maximum number of vector search results to return                                                                                                        |
+| AVS_IS_LOADBALANCER         | True                                                        | If true, the first seed address will be treated as a load balancer node                                                                                  |
+| AVS_CREDENTIALS             | None                                                        | AVS credentials in 'user:password' format (for basic authentication)                                                                                     |
+| AVS_TLS_CAFILE              | None                                                        | Path to the PEM encoded root CA certificate file (for TLS)                                                                                               |
+| AVS_TLS_CERTFILE            | None                                                        | Path to the PEM encoded certificate chain file (for mTLS client auth)                                                                                    |
+| AVS_TLS_KEYFILE             | None                                                        | Path to the PEM encoded private key file (for mTLS client auth)                                                                                          |
+| AVS_TLS_HOSTNAME_OVERRIDE   | None                                                        | Override hostname for SSL/TLS certificate validation (for TLS)                                                                                           |
+| AVS_VERIFY_TLS              | True                                                        | Set to false to disable TLS certificate verification (use with caution)                                                                                  |
+| DATASET_FILE_PATH           | ../container-volumes/quote-search/data/quote-embeddings.csv | Path to the quote embeddings dataset file                                                                                                                |
 
 ### Setup networking (optional)
 
@@ -178,11 +177,11 @@ This application supports connecting to Aerospike Vector Search instances secure
 
 To connect to an AVS instance requiring mutual TLS (mTLS), where both the server and client must present valid certificates signed by a trusted Certificate Authority (CA), set the following environment variables before running the application:
 
-*   `AVS_TLS_CA_FILE=<path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
-*   `AVS_TLS_CERT_FILE=<path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
-*   `AVS_TLS_KEY_FILE=<path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
+*   `AVS_TLS_CAFILE=<path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_TLS_CERTFILE=<path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
+*   `AVS_TLS_KEYFILE=<path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
 *   `AVS_HOST=<avs_hostname>`: (e.g., `localhost`)
-*   `AVS_PORT=<avs_tls_port>`: (e.g., `5555`)
+*   `AVS_PORT=<avs_tls_port>`: (e.g., `5000`)
 
 **Example using certificates from `docker/secure`:**
 
@@ -190,54 +189,55 @@ If you have generated certificates using the `docker/secure/gen_ssh.sh` script a
 
 ```bash
 export AVS_HOST=localhost
-export AVS_PORT=5555
-export AVS_TLS_CA_FILE=../docker/secure/config/tls/ca.crt
-export AVS_TLS_CERT_FILE=../docker/secure/config/tls/client.crt
-export AVS_TLS_KEY_FILE=../docker/secure/config/tls/client.key
+export AVS_PORT=5000
+export AVS_TLS_CAFILE=../docker/secure/config/tls/ca.crt
+export AVS_TLS_CERTFILE=../docker/secure/config/tls/client.crt
+export AVS_TLS_KEYFILE=../docker/secure/config/tls/client.key
 
-# Then run the application
+# Then run the application (e.g., using flask run or gunicorn)
+flask run
 ```
-*(Note: Ensure the AVS server is running and configured for TLS on port 5555)*
+*(Note: Ensure the AVS server is running and configured for TLS on port 5000)*
 
 ### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
 
 If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server. Set the following environment variables:
 
-*   `AVS_TLS_CA_FILE=<path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_TLS_CAFILE=../kubernetes/generated/certs/ca.aerospike.com.pem`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_TLS_HOSTNAME_OVERRIDE=avs-app-aerospike-vector-search.aerospike.svc.cluster.local`: (Optional) If the hostname in the server's certificate does not match the address you are connecting to.
 *   `AVS_HOST=<avs_hostname>`
 *   `AVS_PORT=<avs_tls_port>`
+*   `AVS_CREDENTIALS=admin:admin` (If basic auth is also enabled on the K8s service)
 
 **Example using CA certificate from `kubernetes/generated`:**
 
 If you have generated certificates using the scripts in the `kubernetes` directory (which creates a `generated` subdirectory), you can configure the Quote Search application like this:
 
-*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use AVS_TLS_NAME_OVERRIDE to override the expected host name)
+*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use AVS_TLS_HOSTNAME_OVERRIDE to override the expected host name)*
 
 ```bash
 # Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
 export AVS_HOST=<k8s_avs_host>
 export AVS_PORT=<k8s_avs_tls_port>
-export AVS_TLS_CA_FILE=../kubernetes/generated/certs/ca.aerospike.com.pem
-export AVS_TLS_NAME_OVERRIDE=<host_name>
-export AVS_AUTH_USERNAME=<username>
-export AVS_AUTH_PASSWORD=<password>
+export AVS_TLS_CAFILE=../kubernetes/generated/certs/ca.aerospike.com.pem
+export AVS_TLS_HOSTNAME_OVERRIDE=<avs-service.namespace.svc.cluster.local>
+export AVS_CREDENTIALS=<user>:<password>
 
-
-# Then run the application
+# Then run the application (e.g., using flask run or gunicorn)
+flask run
 ```
 
 ### Basic Authentication
 
-If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), set these environment variables:
+If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), set this environment variable:
 
-*   `AVS_AUTH_USERNAME=<your_username>`
-*   `AVS_AUTH_PASSWORD=<your_password>`
+*   `AVS_CREDENTIALS=<user>:<password>`
 
 ```bash
 export AVS_HOST=<avs_host>
 export AVS_PORT=<avs_port>
-export AVS_AUTH_USERNAME=<username>
-export AVS_AUTH_PASSWORD=<password>
+export AVS_CREDENTIALS=myuser:mypassword
 
 # Then run the application
+flask run
 ```

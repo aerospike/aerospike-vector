@@ -35,21 +35,20 @@ By default, this application stores its AVS index in the "avs-index" namespace, 
 If your Aerospike database configuration does not define these namespaces you will see an error.
 You may change the --namespace and --index-namespace to other values, like the default Aerospike "test" namespace, to use other namespaces.
 
-| Command Line Flag          | Default     | Description                                                             |
-|----------------------------|-------------|-------------------------------------------------------------------------|
-| --host                     | localhost   | AVS host used for initial connection                                    |
-| --port                     | 5000        | AVS server seed host port                                               |
-| --namespace                | avs-data    | The Aerospike namespace for storing the data records                    |
-| --set                      | basic-data  | The Aerospike set for storing the data records                          |
-| --index-namespace          | avs-index   | The Aerospike namespace for storing the HNSW index                      |
-| --index-set                | basic-index | The Aerospike set for storing the HNSW index                            |
-| --no-load-balancer         | False       | If true, cluster tending is enabled                                     |
-| --root-certificate         | None        | Path to the PEM encoded root CA certificate file (for TLS)              |
-| --certificate-chain        | None        | Path to the PEM encoded certificate chain file (for mTLS client auth)   |
-| --private-key              | None        | Path to the PEM encoded private key file (for mTLS client auth)         |
-| --ssl-target-name-override | None        | Override hostname for SSL certificate validation (for TLS)              |
-| --username                 | None        | Username for basic authentication                                       |
-| --password                 | None        | Password for basic authentication                                       |
+| Command Line Flag           | Default     | Description                                                                 |
+|-----------------------------|-------------|-----------------------------------------------------------------------------|
+| --host                      | localhost   | AVS host used for initial connection                                        |
+| --port                      | 5000        | AVS server seed host port                                                   |
+| --namespace                 | avs-data    | The Aerospike namespace for storing the data records                        |
+| --set                       | basic-data  | The Aerospike set for storing the data records                              |
+| --index-namespace           | avs-index   | The Aerospike namespace for storing the HNSW index                          |
+| --index-set                 | basic-index | The Aerospike set for storing the HNSW index                                |
+| --no-load-balancer          | False       | If true, cluster tending is enabled                                         |
+| --tls-cafile                | None        | Path to the PEM encoded root CA certificate file (for TLS)                  |
+| --tls-certfile              | None        | Path to the PEM encoded certificate chain file (for mTLS client auth)       |
+| --tls-keyfile               | None        | Path to the PEM encoded private key file (for mTLS client auth)             |
+| --tls-hostname-override     | None        | Override hostname for SSL/TLS certificate validation (for TLS)                |
+| --credentials               | None        | AVS credentials in 'user:password' format (for basic authentication)      |
 
 ## Security Configuration (TLS/Auth)
 
@@ -59,9 +58,9 @@ This example supports connecting to Aerospike Vector Search instances secured wi
 
 To connect to an AVS instance requiring mutual TLS (mTLS), where both the server and client must present valid certificates signed by a trusted Certificate Authority (CA), use the following command-line arguments:
 
-*   `--root-certificate <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
-*   `--certificate-chain <path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
-*   `--private-key <path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
+*   `--tls-cafile <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--tls-certfile <path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
+*   `--tls-keyfile <path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
 
 **Example using certificates from `docker/secure`:**
 
@@ -70,49 +69,47 @@ If you have generated certificates using the `docker/secure/gen_ssh.sh` script, 
 ```bash
 python search.py \
     --host localhost \
-    --port 5555 \
-    --root-certificate ../docker/secure/config/tls/ca.crt \
-    --certificate-chain ../docker/secure/config/tls/client.crt \
-    --private-key ../docker/secure/config/tls/client.key
+    --port 5000 \
+    --tls-cafile ../docker/secure/config/tls/ca.crt \
+    --tls-certfile ../docker/secure/config/tls/client.crt \
+    --tls-keyfile ../docker/secure/config/tls/client.key
 ```
-*(Note: Ensure the AVS server is running and configured for TLS on port 5555, as set up by `docker/secure/docker-compose.yaml`)*
+*(Note: Ensure the AVS server is running and configured for TLS on port 5000, as set up by `docker/secure/docker-compose.yaml`)*
 
 ### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
 
 If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server.
 
-*   `--root-certificate <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--tls-cafile <path/to/ca.crt>`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `--tls-hostname-override <hostname>`: (Optional) If the hostname in the server's certificate does not match the address you are connecting to.
 
 **Example using CA certificate from `kubernetes/generated`:**
 
 If you have generated certificates using the scripts in the `kubernetes` directory (which creates a `generated` subdirectory), you can connect from the `basic-search` directory like this:
 
-*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use --ssl-target-name-override to override the expected host name)
+*(Note: The common name on the certificate and the host name of your K8s cluster may not match, you may use --tls-hostname-override to override the expected host name)*
 
 ```bash
 # Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
 python search.py \
     --host <k8s_avs_host> \
     --port <k8s_avs_tls_port> \
-    --root-certificate ../kubernetes/generated/certs/ca.aerospike.com.pem \
-    --ssl-target-name-override <host_name> \
-    --username <username> \
-    --password <password>
+    --tls-cafile ../kubernetes/generated/certs/ca.aerospike.com.pem \
+    --tls-hostname-override avs-app-aerospike-vector-search.aerospike.svc.cluster.local \
+    --credentials admin:admin
 ```
 
 ### Basic Authentication
 
-If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), use these flags:
+If the AVS instance uses basic username/password authentication (and **not** mTLS, as they are typically mutually exclusive for client identity), use this flag:
 
-*   `--username <your_username>`
-*   `--password <your_password>`
+*   `--credentials <user>:<password>`
 
 ```bash
 python search.py \
     --host <avs_host> \
     --port <avs_port> \
-    --username <username> \
-    --password <password>
+    --credentials myuser:mypassword
 ```
 
 ## Run the search demo

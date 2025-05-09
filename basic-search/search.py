@@ -93,63 +93,68 @@ arg_parser.add_argument(
 )
 # tls args
 arg_parser.add_argument(
-    "--root-certificate",
-    dest="root_certificate",
+    "--tls-cafile",
+    dest="tls_cafile",
     required=False,
     default=None,
-    help="Path to the PEM encoded root certificate file.",
+    help="Path to the PEM encoded root CA certificate file.",
 )
 arg_parser.add_argument(
-    "--certificate-chain",
-    dest="certificate_chain",
+    "--tls-certfile",
+    dest="tls_certfile",
     required=False,
     default=None,
-    help="Path to the PEM encoded certificate chain file.",
+    help="Path to the PEM encoded certificate chain file for mTLS.",
 )
 arg_parser.add_argument(
-    "--private-key",
-    dest="private_key",
+    "--tls-keyfile",
+    dest="tls_keyfile",
     required=False,
     default=None,
-    help="Path to the PEM encoded private key file.",
+    help="Path to the PEM encoded private key file for mTLS.",
 )
 arg_parser.add_argument(
-    "--ssl-target-name-override",
-    dest="ssl_target_name_override",
+    "--tls-hostname-override",
+    dest="tls_hostname_override",
     required=False,
     default=None,
-    help="The hostname to use for the SSL connection.",
+    help="The hostname to use for SSL/TLS certificate validation.",
 )
 # auth args
 arg_parser.add_argument(
-    "--username",
-    dest="username",
+    "--credentials",
+    dest="credentials",
     required=False,
     default=None,
-    help="Username for basic auth.",
-)
-arg_parser.add_argument(
-    "--password",
-    dest="password",
-    required=False,
-    default=None,
-    help="Password for basic auth.",
+    help="AVS credentials in 'user:password' format. Overrides --username and --password if provided.",
 )
 args = arg_parser.parse_args()
 
+avs_username = None
+avs_password = None
+
+if args.credentials:
+    parts = args.credentials.split(":", 1)
+    avs_username = parts[0]
+    if len(parts) > 1:
+        avs_password = parts[1]
+    else:
+        logging.warning("--credentials provided but no password provided")
+
+
 root_certificate = None
-if args.root_certificate:
-    with open(args.root_certificate, "rb") as f:
+if args.tls_cafile:
+    with open(args.tls_cafile, "rb") as f:
         root_certificate = f.read()
 
 certificate_chain = None
-if args.certificate_chain:
-    with open(args.certificate_chain, "rb") as f:
+if args.tls_certfile:
+    with open(args.tls_certfile, "rb") as f:
         certificate_chain = f.read()
 
 private_key = None
-if args.private_key:
-    with open(args.private_key, "rb") as f:
+if args.tls_keyfile:
+    with open(args.tls_keyfile, "rb") as f:
         private_key = f.read()
 
 load_balancer = args.load_balancer
@@ -160,13 +165,13 @@ try:
     with Client(
         seeds=types.HostPort(host=args.host, port=args.port),
         listener_name=listener_name,
-        is_loadbalancer=args.load_balancer,
-        username=args.username,
-        password=args.password,
+        is_loadbalancer=load_balancer,
+        username=avs_username,
+        password=avs_password,
         root_certificate=root_certificate,
         certificate_chain=certificate_chain,
         private_key=private_key,
-        ssl_target_name_override=args.ssl_target_name_override,
+        ssl_target_name_override=args.tls_hostname_override,
     ) as client:
         
         print(f"load balancer: {load_balancer}")
