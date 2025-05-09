@@ -69,7 +69,7 @@ If you have generated certificates using the `docker/secure/gen_ssh.sh` script, 
 ```bash
 python search.py \
     --host localhost \
-    --port 5000 \
+    --port 5555 \
     --tls-cafile ../docker/secure/config/tls/ca.crt \
     --tls-certfile ../docker/secure/config/tls/client.crt \
     --tls-keyfile ../docker/secure/config/tls/client.key

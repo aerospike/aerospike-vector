@@ -41,9 +41,9 @@ Navigate to the `basic-search` directory (relative to the root of the `proximus-
 python search.py \
     --host localhost \
     --port 5555 \
-    --root-certificate ../docker/secure/config/tls/ca.crt \
-    --certificate-chain ../docker/secure/config/tls/client.crt \
-    --private-key ../docker/secure/config/tls/client.key
+    --tls-cafile ../docker/secure/config/tls/ca.crt \
+    --tls-certfile ../docker/secure/config/tls/client.crt \
+    --tls-keyfile ../docker/secure/config/tls/client.key
 ```
 
 **Explanation of Flags:**

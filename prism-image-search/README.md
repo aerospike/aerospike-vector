@@ -184,7 +184,7 @@ If you have generated certificates using the `docker/secure/gen_ssh.sh` script a
 
 ```bash
 export AVS_HOST=localhost
-export AVS_PORT=5000
+export AVS_PORT=5555
 export AVS_TLS_CAFILE=../docker/secure/config/tls/ca.crt
 export AVS_TLS_CERTFILE=../docker/secure/config/tls/client.crt
 export AVS_TLS_KEYFILE=../docker/secure/config/tls/client.key
