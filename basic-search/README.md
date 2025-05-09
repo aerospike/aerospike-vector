@@ -62,20 +62,6 @@ To connect to an AVS instance requiring mutual TLS (mTLS), where both the server
 *   `--tls-certfile <path/to/client.crt>`: Path to the client certificate file presented to AVS for authentication.
 *   `--tls-keyfile <path/to/client.key>`: Path to the client's private key file corresponding to the client certificate.
 
-**Example using certificates from `docker/secure`:**
-
-If you have generated certificates using the `docker/secure/gen_ssh.sh` script, you can connect from the `basic-search` directory like this:
-
-```bash
-python search.py \
-    --host localhost \
-    --port 5555 \
-    --tls-cafile ../docker/secure/config/tls/ca.crt \
-    --tls-certfile ../docker/secure/config/tls/client.crt \
-    --tls-keyfile ../docker/secure/config/tls/client.key
-```
-*(Note: Ensure the AVS server is running and configured for TLS on port 5000, as set up by `docker/secure/docker-compose.yaml`)*
-
 ### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
 
 If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server.

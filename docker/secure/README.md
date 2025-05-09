@@ -22,7 +22,6 @@ This setup demonstrates how to:
     *   `ca.crt`: The Certificate Authority certificate.
     *   `server.key`, `server.crt`: AVS server private key and certificate.
     *   `client.key`, `client.crt`: Client private key and certificate (for `search.py`).
-    *   `truststore.jks`, `storepass`: Java truststore files (potentially used by AVS internally).
 
 2.  **Start AVS Container:**
     From this directory (`docker/secure`), start the AVS container using Docker Compose:
@@ -54,4 +53,4 @@ python search.py \
 *   `--tls-certfile ../docker/secure/config/tls/client.crt`: Path to the client's certificate file. The client presents this to the server for authentication.
 *   `--tls-keyfile ../docker/secure/config/tls/client.key`: Path to the client's private key file, corresponding to the client certificate.
 
-This command tells `search.py` to establish a TLS connection with AVS, verify the server using `ca.crt`, and authenticate itself using `client.crt` and `client.key`. 
+This command tells `search.py` to establish a TLS connection with AVS, verify the server using `ca.crt`, and authenticate itself using `client.crt` and `client.key`.

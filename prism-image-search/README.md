@@ -178,21 +178,6 @@ To connect to an AVS instance requiring mutual TLS (mTLS), where both the server
 *   `AVS_HOST=<avs_hostname>`: (e.g., `localhost`)
 *   `AVS_PORT=<avs_tls_port>`: (e.g., `5000`)
 
-**Example using certificates from `docker/secure`:**
-
-If you have generated certificates using the `docker/secure/gen_ssh.sh` script and are running the secure AVS via `docker/secure/docker-compose.yaml`, you can configure the Prism application like this:
-
-```bash
-export AVS_HOST=localhost
-export AVS_PORT=5555
-export AVS_TLS_CAFILE=../docker/secure/config/tls/ca.crt
-export AVS_TLS_CERTFILE=../docker/secure/config/tls/client.crt
-export AVS_TLS_KEYFILE=../docker/secure/config/tls/client.key
-
-# Then run the application
-```
-*(Note: Ensure the AVS server is running and configured for TLS on port 5000)*
-
 ### Connecting to a Secure AVS Instance (Server-Side TLS Only - e.g., Kubernetes)
 
 If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server. Set the following environment variables:
