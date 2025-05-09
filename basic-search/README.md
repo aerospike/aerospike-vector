@@ -47,8 +47,8 @@ You may change the --namespace and --index-namespace to other values, like the d
 | --tls-cafile                | None        | Path to the PEM encoded root CA certificate file (for TLS)                  |
 | --tls-certfile              | None        | Path to the PEM encoded certificate chain file (for mTLS client auth)       |
 | --tls-keyfile               | None        | Path to the PEM encoded private key file (for mTLS client auth)             |
-| --tls-hostname-override     | None        | Override hostname for SSL/TLS certificate validation (for TLS)                |
-| --credentials               | None        | AVS credentials in 'user:password' format (for basic authentication)      |
+| --tls-hostname-override     | None        | Override hostname for SSL/TLS certificate validation (for TLS)              |
+| --credentials               | None        | AVS credentials in 'user:password' format (for basic authentication)        |
 
 ## Security Configuration (TLS/Auth)
 

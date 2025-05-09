@@ -5,11 +5,6 @@ import logging
 import aerospike_vector_search
 from aerospike_vector_search import Client, Index, types, AVSServerError
 
-# set logging to debug
-logging.basicConfig(level=logging.DEBUG)
-handler = logging.StreamHandler()
-aerospike_vector_search.client.logger.addHandler(handler)
-aerospike_vector_search.client.logger.setLevel(logging.DEBUG)
 
 listener_name = None
 index_name = "basic_index"
