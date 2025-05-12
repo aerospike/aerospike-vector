@@ -9,6 +9,12 @@ seeds = types.HostPort(
 
 avs_client = Client(
     seeds=seeds,
+    username=Config.AVS_USERNAME,
+    password=Config.AVS_PASSWORD,
+    root_certificate=Config.AVS_TLS_CA,
+    certificate_chain=Config.AVS_TLS_CERT,
+    private_key=Config.AVS_TLS_KEY,
     listener_name=Config.AVS_ADVERTISED_LISTENER,
     is_loadbalancer=Config.AVS_IS_LOADBALANCER,
+    ssl_target_name_override=Config.AVS_TLS_HOSTNAME_OVERRIDE,
 )
