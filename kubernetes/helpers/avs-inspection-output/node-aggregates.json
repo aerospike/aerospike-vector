@@ -1,0 +1,315 @@
+{
+  "nodes": [
+    {
+      "name": "ip-192-168-26-117.ec2.internal",
+      "capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "15896988Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "14880156Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T22:42:32Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:42:32Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:42:32Z",
+          "lastTransitionTime": "2025-04-29T19:03:47Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:42:32Z",
+          "lastTransitionTime": "2025-04-29T19:04:00Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": []
+    },
+    {
+      "name": "ip-192-168-27-123.ec2.internal",
+      "capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "15896988Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "14880156Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:03Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:03Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:03Z",
+          "lastTransitionTime": "2025-04-29T19:10:12Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:03Z",
+          "lastTransitionTime": "2025-04-29T19:10:24Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": [
+        {
+          "name": "avs-app-aerospike-vector-search-2",
+          "memory_request": "",
+          "memory_limit": "",
+          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 970M, capacity 3726M, max capacity 12420M"
+        }
+      ]
+    },
+    {
+      "name": "ip-192-168-28-89.ec2.internal",
+      "capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "16069020Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "15052188Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1b",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:13:40Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:13:55Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": [
+        {
+          "name": "avs-app-aerospike-vector-search-1",
+          "memory_request": "",
+          "memory_limit": "",
+          "heap_info": "➡️ jcmd 10 GC.heap_info:\n10:\n ZHeap           used 1352M, capacity 3382M, max capacity 12554M"
+        }
+      ]
+    },
+    {
+      "name": "ip-192-168-52-147.ec2.internal",
+      "capacity": {
+        "cpu": "8",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "65023384Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "7910m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "64006552Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "r5.2xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1d",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:06:40Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:45:02Z",
+          "lastTransitionTime": "2025-04-29T19:06:55Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": [
+        {
+          "name": "avs-app-aerospike-vector-search-0",
+          "memory_request": "",
+          "memory_limit": "",
+          "heap_info": "➡️ jcmd 9 GC.heap_info:\n9:\n ZHeap           used 39778M, capacity 45000M, max capacity 50800M"
+        }
+      ]
+    },
+    {
+      "name": "ip-192-168-53-124.ec2.internal",
+      "capacity": {
+        "cpu": "4",
+        "ephemeral-storage": "83873772Ki",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "15896988Ki",
+        "pods": "58"
+      },
+      "allocatable": {
+        "cpu": "3920m",
+        "ephemeral-storage": "76224326324",
+        "hugepages-1Gi": "0",
+        "hugepages-2Mi": "0",
+        "memory": "14880156Ki",
+        "pods": "58"
+      },
+      "cloud_provider": "On-premises",
+      "instance_type": "m5.xlarge",
+      "region": "us-east-1",
+      "zone": "us-east-1d",
+      "conditions": [
+        {
+          "lastHeartbeatTime": "2025-04-29T22:43:44Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has sufficient memory available",
+          "reason": "KubeletHasSufficientMemory",
+          "status": "False",
+          "type": "MemoryPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:43:44Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has no disk pressure",
+          "reason": "KubeletHasNoDiskPressure",
+          "status": "False",
+          "type": "DiskPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:43:44Z",
+          "lastTransitionTime": "2025-04-29T18:58:49Z",
+          "message": "kubelet has sufficient PID available",
+          "reason": "KubeletHasSufficientPID",
+          "status": "False",
+          "type": "PIDPressure"
+        },
+        {
+          "lastHeartbeatTime": "2025-04-29T22:43:44Z",
+          "lastTransitionTime": "2025-04-29T18:59:03Z",
+          "message": "kubelet is posting ready status",
+          "reason": "KubeletReady",
+          "status": "True",
+          "type": "Ready"
+        }
+      ],
+      "avs_pods": []
+    }
+  ]
+}
