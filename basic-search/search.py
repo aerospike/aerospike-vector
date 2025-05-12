@@ -1,7 +1,10 @@
 import argparse
 import time
+import logging
 
+import aerospike_vector_search
 from aerospike_vector_search import Client, Index, types, AVSServerError
+
 
 listener_name = None
 index_name = "basic_index"
@@ -74,15 +77,100 @@ arg_parser.add_argument(
     default=True,
     help="Use this if the host is a load balancer.",
 )
+arg_parser.add_argument(
+    "--no-load-balancer",
+    dest="no_load_balancer",
+    action="store_true",
+    required=False,
+    # you should set this to True if you are not using a load balancer with an AVS cluster of more than 1 node
+    default=False,
+    help="Use this if the host is not a load balancer.",
+)
+# tls args
+arg_parser.add_argument(
+    "--tls-cafile",
+    dest="tls_cafile",
+    required=False,
+    default=None,
+    help="Path to the PEM encoded root CA certificate file.",
+)
+arg_parser.add_argument(
+    "--tls-certfile",
+    dest="tls_certfile",
+    required=False,
+    default=None,
+    help="Path to the PEM encoded certificate chain file for mTLS.",
+)
+arg_parser.add_argument(
+    "--tls-keyfile",
+    dest="tls_keyfile",
+    required=False,
+    default=None,
+    help="Path to the PEM encoded private key file for mTLS.",
+)
+arg_parser.add_argument(
+    "--tls-hostname-override",
+    dest="tls_hostname_override",
+    required=False,
+    default=None,
+    help="The hostname to use for SSL/TLS certificate validation.",
+)
+# auth args
+arg_parser.add_argument(
+    "--credentials",
+    dest="credentials",
+    required=False,
+    default=None,
+    help="AVS credentials in 'user:password' format. Overrides --username and --password if provided.",
+)
 args = arg_parser.parse_args()
+
+avs_username = None
+avs_password = None
+
+if args.credentials:
+    parts = args.credentials.split(":", 1)
+    avs_username = parts[0]
+    if len(parts) > 1:
+        avs_password = parts[1]
+    else:
+        logging.warning("--credentials provided but no password provided")
+
+
+root_certificate = None
+if args.tls_cafile:
+    with open(args.tls_cafile, "rb") as f:
+        root_certificate = f.read()
+
+certificate_chain = None
+if args.tls_certfile:
+    with open(args.tls_certfile, "rb") as f:
+        certificate_chain = f.read()
+
+private_key = None
+if args.tls_keyfile:
+    with open(args.tls_keyfile, "rb") as f:
+        private_key = f.read()
+
+load_balancer = args.load_balancer
+if args.no_load_balancer:
+    load_balancer = False
 
 try:
     with Client(
         seeds=types.HostPort(host=args.host, port=args.port),
         listener_name=listener_name,
-        is_loadbalancer=args.load_balancer,
+        is_loadbalancer=load_balancer,
+        username=avs_username,
+        password=avs_password,
+        root_certificate=root_certificate,
+        certificate_chain=certificate_chain,
+        private_key=private_key,
+        ssl_target_name_override=args.tls_hostname_override,
     ) as client:
         
+        print(f"load balancer: {load_balancer}")
+
         print("inserting vectors")
         for i in range(10):
             key = "r" + str(i)
