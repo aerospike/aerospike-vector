@@ -187,7 +187,7 @@ To connect to an AVS instance requiring mutual TLS (mTLS), where both the server
 
 If the AVS instance uses TLS for encryption but does not require client authentication (mTLS), you only need to provide the CA certificate to verify the server. Set the following environment variables:
 
-*   `AVS_TLS_CAFILE=../kubernetes/generated/certs/ca.aerospike.com.pem`: Path to the CA certificate file used to verify the AVS server certificate.
+*   `AVS_TLS_CAFILE=../../kubernetes/generated/certs/ca.aerospike.com.pem`: Path to the CA certificate file used to verify the AVS server certificate.
 *   `AVS_TLS_HOSTNAME_OVERRIDE=avs-app-aerospike-vector-search.aerospike.svc.cluster.local`: (Optional) If the hostname in the server's certificate does not match the address you are connecting to.
 *   `AVS_HOST=<avs_hostname>`
 *   `AVS_PORT=<avs_tls_port>`
@@ -203,9 +203,9 @@ If you have generated certificates using the scripts in the `kubernetes` directo
 # Replace <k8s_avs_host> and <k8s_avs_tls_port> with your Kubernetes service details
 export AVS_HOST=<k8s_avs_host>
 export AVS_PORT=<k8s_avs_tls_port>
-export AVS_TLS_CAFILE=../kubernetes/generated/certs/ca.aerospike.com.pem
-export AVS_TLS_HOSTNAME_OVERRIDE=<avs-service.namespace.svc.cluster.local>
-export AVS_CREDENTIALS=<user>:<password>
+export AVS_TLS_CAFILE=../../kubernetes/generated/certs/ca.aerospike.com.pem
+export AVS_TLS_HOSTNAME_OVERRIDE=avs-service.namespace.svc.cluster.local
+export AVS_CREDENTIALS=admin:admin
 
 # Then run the application
 ```
