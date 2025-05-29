@@ -185,6 +185,7 @@ try:
                     "map": {"a": "A", "inlist": [1, 2, 3], "filter":
                         random.random()},
                     "list": ["a", 1, "c", {"a": "A"}],
+                    "bool": (i % 2 == 0)
                 },
             )
 
@@ -223,7 +224,8 @@ try:
                     variables={"limit": 0.9},
                     selectivity=0.9),
                 post_filter=types.PostFilter(
-                    filter_expression="record.fields.map.a == compareWith",
+                    filter_expression="record.fields.map.a == compareWith && "
+                                      "record.fields.bool == true",
                     variables={"compareWith": "A"},
                 )
             )
