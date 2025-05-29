@@ -219,10 +219,12 @@ try:
                 query=[i * 1.0, i * 1.0],
                 limit=10,
                 acorn1_filter=types.Acorn1Filter(
-                    filter_expression="record.fields.map.filter <= 0.9",
+                    filter_expression="record.fields.map.filter <= limit",
+                    variables={"limit": 0.9},
                     selectivity=0.9),
                 post_filter=types.PostFilter(
-                    filter_expression="record.fields.map.a == \"A\"",
+                    filter_expression="record.fields.map.a == compareWith",
+                    variables={"compareWith": "A"},
                 )
             )
             for result in results:
