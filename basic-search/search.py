@@ -1,6 +1,7 @@
 import argparse
 import time
 import logging
+import random
 
 import aerospike_vector_search
 from aerospike_vector_search import Client, Index, types, AVSServerError
@@ -15,7 +16,7 @@ def wait_for_indexing(index: Index, timeout=30):
     timeout = float(timeout)
     while index_status.readiness != types.IndexReadiness.READY:
         time.sleep(0.5)
-        
+
         timeout -= 0.5
         if timeout <= 0:
             raise Exception("timed out waiting for indexing to complete, "
@@ -168,7 +169,7 @@ try:
         private_key=private_key,
         ssl_target_name_override=args.tls_hostname_override,
     ) as client:
-        
+
         print(f"load balancer: {load_balancer}")
 
         print("inserting vectors")
@@ -181,7 +182,8 @@ try:
                 record_data={
                     "url": f"http://host.com/data{i}",
                     "vector": [i * 1.0, i * 1.0],
-                    "map": {"a": "A", "inlist": [1, 2, 3]},
+                    "map": {"a": "A", "inlist": [1, 2, 3], "filter":
+                        random.random()},
                     "list": ["a", 1, "c", {"a": "A"}],
                 },
             )
@@ -216,6 +218,12 @@ try:
             results = index.vector_search(
                 query=[i * 1.0, i * 1.0],
                 limit=10,
+                acorn1_filter=types.Acorn1Filter(
+                    filter_expression="record.fields.map.filter <= 0.9",
+                    selectivity=0.9),
+                post_filter=types.PostFilter(
+                    filter_expression="record.fields.map.a == \"A\"",
+                )
             )
             for result in results:
                 print(str(result.key.key) + " -> " + str(result.fields))
